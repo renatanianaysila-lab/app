@@ -58,14 +58,15 @@ void initState() {
               const SizedBox(height: 20),
 
               // NAMA APLIKASI
-              const Text(
-                "IsyaratKita",
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2F3A45),
-                ),
-              ),
+             const Text(
+  'IsyaratKita',
+  style: TextStyle(
+    fontSize: 32,
+    fontWeight: FontWeight.w900,
+    letterSpacing: 0.5,
+    color: Color(0xFF2F3A45),
+  ),
+),
 
               const SizedBox(height: 8),
 

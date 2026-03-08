@@ -43,14 +43,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 12),
 
-                const Text(
-                  'IsyaratKita',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF273043),
-                  ),
-                ),
+               const Text(
+  'IsyaratKita',
+  style: TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.w900,
+    letterSpacing: 0.5,
+    color: Color(0xFF273043),
+  ),
+),
 
                 const SizedBox(height: 4),
 
