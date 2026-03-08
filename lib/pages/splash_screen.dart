@@ -10,20 +10,20 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
 
- @override
-void initState() {
-  super.initState();
-
-  Timer(const Duration(seconds: 3), () {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const LoginScreen(),
-      ),
-    );
-  });
-}
+    Timer(const Duration(seconds: 3), () {
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const LoginScreen(),
+        ),
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +31,6 @@ void initState() {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -42,14 +41,11 @@ void initState() {
             ],
           ),
         ),
-
         child: SafeArea(
           child: Column(
             children: [
-
               const SizedBox(height: 80),
 
-              // LOGO
               Image.asset(
                 'assets/images/logo.png',
                 width: 120,
@@ -57,20 +53,17 @@ void initState() {
 
               const SizedBox(height: 20),
 
-              // NAMA APLIKASI
-             const Text(
-  'IsyaratKita',
-  style: TextStyle(
-    fontSize: 32,
-    fontWeight: FontWeight.w900,
-    letterSpacing: 0.5,
-    color: Color(0xFF2F3A45),
-  ),
-),
+              const Text(
+                "IsyaratKita",
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2F3A45),
+                ),
+              ),
 
               const SizedBox(height: 8),
 
-              // GARIS WARNA
               Container(
                 width: 80,
                 height: 4,
@@ -87,7 +80,6 @@ void initState() {
 
               const SizedBox(height: 20),
 
-              // DESKRIPSI
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 40),
                 child: Text(
@@ -102,7 +94,6 @@ void initState() {
 
               const SizedBox(height: 20),
 
-              // TITIK SLIDER
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -116,7 +107,6 @@ void initState() {
 
               const Spacer(),
 
-              // GAMBAR ORANG
               Image.asset(
                 'assets/images/img.png',
                 width: double.infinity,
