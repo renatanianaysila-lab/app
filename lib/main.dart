@@ -1,4 +1,4 @@
-import 'package:app/pages/home_scren.dart';
+import 'package:app/pages/splash_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: .fromSeed(seedColor: Colors.blue),
       ),
-      home: const MyHomePage(title: 'Flutter Home Page'),
+      home: const SplashScreen(),
     );
   }
 }
