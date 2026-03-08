@@ -53,7 +53,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
               // NAMA APLIKASI
               const Text(
-                "syaratKita",
+                "IsyaratKita",
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
