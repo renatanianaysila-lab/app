@@ -59,7 +59,7 @@ void initState() {
 
               // NAMA APLIKASI
              const Text(
-  'IsyaratKita',
+  'MY IsyaratKita',
   style: TextStyle(
     fontSize: 32,
     fontWeight: FontWeight.w900,
