@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'sign_up_page.dart';
+import 'forgot_password_page.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -43,15 +45,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 12),
 
-               const Text(
-  'IsyaratKita',
-  style: TextStyle(
-    fontSize: 24,
-    fontWeight: FontWeight.w900,
-    letterSpacing: 0.5,
-    color: Color(0xFF273043),
-  ),
-),
+                const Text(
+                  'IsyaratKita',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.5,
+                    color: Color(0xFF273043),
+                  ),
+                ),
 
                 const SizedBox(height: 4),
 
@@ -106,7 +108,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: InputDecoration(
                     hintText: 'Masukkan email Anda',
                     hintStyle: const TextStyle(color: Color(0xFF9AA1AC)),
-                    prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF9AA1AC)),
+                    prefixIcon: const Icon(
+                      Icons.email_outlined,
+                      color: Color(0xFF9AA1AC),
+                    ),
                     filled: true,
                     fillColor: const Color(0xFFF3F3F3),
                     contentPadding: const EdgeInsets.symmetric(vertical: 20),
@@ -120,7 +125,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(22),
-                      borderSide: const BorderSide(color: Color(0xFF8FB1F3), width: 1.5),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF8FB1F3),
+                        width: 1.5,
+                      ),
                     ),
                   ),
                 ),
@@ -146,7 +154,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: InputDecoration(
                     hintText: 'Masukkan password Anda',
                     hintStyle: const TextStyle(color: Color(0xFF9AA1AC)),
-                    prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF9AA1AC)),
+                    prefixIcon: const Icon(
+                      Icons.lock_outline,
+                      color: Color(0xFF9AA1AC),
+                    ),
                     suffixIcon: IconButton(
                       onPressed: () {
                         setState(() {
@@ -154,7 +165,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         });
                       },
                       icon: Icon(
-                        isPasswordHidden ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                        isPasswordHidden
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
                         color: const Color(0xFF9AA1AC),
                       ),
                     ),
@@ -171,7 +184,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(22),
-                      borderSide: const BorderSide(color: Color(0xFF8FB1F3), width: 1.5),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF8FB1F3),
+                        width: 1.5,
+                      ),
                     ),
                   ),
                 ),
@@ -181,7 +197,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ForgotPasswordPage(),
+                        ),
+                      );
+                    },
                     child: const Text(
                       'Lupa Password?',
                       style: TextStyle(
@@ -199,7 +222,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: double.infinity,
                   height: 58,
                   child: ElevatedButton.icon(
-                    onPressed: () {},
+                    onPressed: () {
+                      // proses login di sini
+                    },
                     icon: const Icon(Icons.login, color: Colors.white),
                     label: const Text(
                       'Masuk',
@@ -233,7 +258,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SignUpPage(),
+                          ),
+                        );
+                      },
                       child: const Text(
                         'Daftar',
                         style: TextStyle(
