@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:app/pages/login_screen.dart';
+import 'login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -14,8 +14,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
 
-    Timer(const Duration(seconds: 3), () {
-      if (!mounted) return;
+    Timer(const Duration(seconds: 2), () {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -31,101 +30,16 @@ class _SplashScreenState extends State<SplashScreen> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFDCE6F1),
-              Color(0xFFF6E9A6),
-            ],
+        color: Colors.white,
+        child: const Center(
+          child: Text(
+            'Splash Screen',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              const SizedBox(height: 80),
-
-              Image.asset(
-                'assets/images/logo.png',
-                width: 120,
-              ),
-
-              const SizedBox(height: 20),
-
-              const Text(
-                "IsyaratKita",
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2F3A45),
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              Container(
-                width: 80,
-                height: 4,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  gradient: const LinearGradient(
-                    colors: [
-                      Color(0xFF4A7BD1),
-                      Color(0xFFF2C94C),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 40),
-                child: Text(
-                  "Belajar Bahasa Isyarat dengan\nMudah dan Inklusif",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.black87,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _dot(Colors.blue),
-                  const SizedBox(width: 8),
-                  _dot(Colors.blue),
-                  const SizedBox(width: 8),
-                  _dot(Colors.amber),
-                ],
-              ),
-
-              const Spacer(),
-
-              Image.asset(
-                'assets/images/img.png',
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _dot(Color color) {
-    return Container(
-      width: 10,
-      height: 10,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
       ),
     );
   }
