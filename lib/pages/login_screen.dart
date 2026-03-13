@@ -195,26 +195,26 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 12),
 
                 Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ForgotPasswordPage(),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      'Lupa Password?',
-                      style: TextStyle(
-                        color: Color(0xFF5F8DFF),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ),
+  alignment: Alignment.centerRight,
+  child: TextButton(
+    onPressed: () {
+      print('Lupa Password ditekan');
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => const ForgotPasswordPage(),
+        ),
+      );
+    },
+    child: const Text(
+      'Lupa Password?',
+      style: TextStyle(
+        color: Color(0xFF5F8DFF),
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+      ),
+    ),
+  ),
+),
 
                 const SizedBox(height: 8),
 
@@ -248,36 +248,40 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 34),
 
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'Belum punya akun? ',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF5D6470),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SignUpPage(),
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        'Daftar',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF5F8DFF),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
+  mainAxisAlignment: MainAxisAlignment.center,
+  children: [
+    const Text(
+      'Belum punya akun? ',
+      style: TextStyle(
+        fontSize: 14,
+        color: Color(0xFF5D6470),
+      ),
+    ),
+    TextButton(
+      onPressed: () {
+        print('Daftar ditekan');
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => const SignUpPage(),
+          ),
+        );
+      },
+      style: TextButton.styleFrom(
+        padding: EdgeInsets.zero,
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      child: const Text(
+        'Daftar',
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+          color: Color(0xFF5F8DFF),
+        ),
+      ),
+    ),
+  ],
+),
                 const SizedBox(height: 32),
 
                 Row(
