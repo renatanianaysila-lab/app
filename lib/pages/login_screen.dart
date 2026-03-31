@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'forgot_password_page.dart';
 import 'home_page.dart';
+import 'sign_up_page.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -371,13 +372,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFA9C2F5),
-                        elevation: 6,
-                        shadowColor: Colors.black26,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(22),
-                        ),
-                      ),
+  backgroundColor: const Color(0xFF5F8DFF), // Ganti dari 0xFFA9C2F5 ke biru ini
+  elevation: 6,
+  shadowColor: Colors.black26,
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(22),
+  ),
+),
                     ),
                   ),
 
@@ -396,25 +397,24 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       TextButton(
-                        onPressed: () {
-                          setState(() {
-                            isLogin = !isLogin;
-                          });
-                        },
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        child: Text(
-                          isLogin ? 'Daftar' : 'Masuk',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF5F8DFF),
-                          ),
-                        ),
-                      ),
+  onPressed: () {
+    // Navigasi ke file sign_up_page.dart
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const SignUpPage(), // Pastikan nama class di file itu SignUpPage
+      ),
+    );
+  },
+  child: const Text(
+    'Daftar',
+    style: TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w700,
+      color: Color(0xFF5F8DFF),
+    ),
+  ),
+),
                     ],
                   ),
                 ],
