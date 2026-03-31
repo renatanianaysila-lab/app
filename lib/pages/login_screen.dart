@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'sign_up_page.dart';
 import 'forgot_password_page.dart';
+import 'home_page.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -223,8 +224,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 58,
                   child: ElevatedButton.icon(
                     onPressed: () {
-                      // proses login di sini
-                    },
+  print('Tombol masuk ditekan');
+
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(
+      builder: (context) => const HomePage(),
+    ),
+  );
+},
                     icon: const Icon(Icons.login, color: Colors.white),
                     label: const Text(
                       'Masuk',
