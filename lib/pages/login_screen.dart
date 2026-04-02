@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'forgot_password_page.dart';
 import 'home_page.dart';
-import 'sign_up_page.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -64,6 +63,10 @@ class _LoginScreenState extends State<LoginScreen> {
         borderRadius: BorderRadius.circular(22),
         borderSide: const BorderSide(color: Colors.red),
       ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(22),
+        borderSide: const BorderSide(color: Colors.red),
+      ),
     );
   }
 
@@ -84,12 +87,27 @@ class _LoginScreenState extends State<LoginScreen> {
 
       setState(() {
         isLogin = true;
+        isPasswordHidden = true;
+        isConfirmPasswordHidden = true;
         _nameController.clear();
         _emailController.clear();
         _passwordController.clear();
         _confirmPasswordController.clear();
       });
     }
+  }
+
+  void _toggleAuthMode() {
+    setState(() {
+      isLogin = !isLogin;
+      isPasswordHidden = true;
+      isConfirmPasswordHidden = true;
+      _nameController.clear();
+      _emailController.clear();
+      _passwordController.clear();
+      _confirmPasswordController.clear();
+      _formKey.currentState?.reset();
+    });
   }
 
   @override
@@ -118,15 +136,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const SizedBox(height: 8),
-
                   Image.asset(
                     'assets/images/logo.png',
                     width: 110,
                     height: 110,
                   ),
-
                   const SizedBox(height: 12),
-
                   const Text(
                     'IsyaratKita',
                     style: TextStyle(
@@ -136,9 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: Color(0xFF273043),
                     ),
                   ),
-
                   const SizedBox(height: 4),
-
                   const Text(
                     'Belajar Bahasa Isyarat Bersama',
                     style: TextStyle(
@@ -146,9 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: Color(0xFF5D6470),
                     ),
                   ),
-
                   const SizedBox(height: 26),
-
                   Text(
                     isLogin ? 'Selamat Datang' : 'Daftar Akun',
                     style: const TextStyle(
@@ -157,9 +168,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: Color(0xFF273043),
                     ),
                   ),
-
                   const SizedBox(height: 10),
-
                   Text(
                     isLogin
                         ? 'Masuk ke akun Anda untuk melanjutkan\npembelajaran'
@@ -171,9 +180,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: Color(0xFF5D6470),
                     ),
                   ),
-
                   const SizedBox(height: 30),
-
                   if (!isLogin) ...[
                     const Align(
                       alignment: Alignment.centerLeft,
@@ -202,7 +209,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 22),
                   ],
-
                   const Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
@@ -214,9 +220,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 10),
-
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
@@ -228,15 +232,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (value == null || value.trim().isEmpty) {
                         return 'Email wajib diisi';
                       }
-                      if (!value.contains('@')) {
+                      final emailRegex = RegExp(
+                        r'^[\w\-.]+@([\w-]+\.)+[\w-]{2,4}$',
+                      );
+                      if (!emailRegex.hasMatch(value.trim())) {
                         return 'Format email tidak valid';
                       }
                       return null;
                     },
                   ),
-
                   const SizedBox(height: 22),
-
                   const Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
@@ -248,9 +253,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 10),
-
                   TextFormField(
                     controller: _passwordController,
                     obscureText: isPasswordHidden,
@@ -275,13 +278,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (value == null || value.isEmpty) {
                         return 'Password wajib diisi';
                       }
-                      if (!isLogin && value.length < 8) {
+                      if (value.length < 8) {
                         return 'Password minimal 8 karakter';
                       }
                       return null;
                     },
                   ),
-
                   if (!isLogin) ...[
                     const SizedBox(height: 22),
                     const Align(
@@ -330,7 +332,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
                   ],
-
                   if (isLogin) ...[
                     const SizedBox(height: 12),
                     Align(
@@ -354,15 +355,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ],
-
                   const SizedBox(height: 8),
-
                   SizedBox(
                     width: double.infinity,
                     height: 58,
                     child: ElevatedButton.icon(
                       onPressed: _submit,
-                      icon: const Icon(Icons.login, color: Colors.white),
+                      icon: Icon(
+                        isLogin ? Icons.login : Icons.person_add_alt_1,
+                        color: Colors.white,
+                      ),
                       label: Text(
                         isLogin ? 'Masuk' : 'Daftar',
                         style: const TextStyle(
@@ -372,18 +374,16 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-  backgroundColor: const Color(0xFF5F8DFF), // Ganti dari 0xFFA9C2F5 ke biru ini
-  elevation: 6,
-  shadowColor: Colors.black26,
-  shape: RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(22),
-  ),
-),
+                        backgroundColor: const Color(0xFF5F8DFF),
+                        elevation: 6,
+                        shadowColor: Colors.black26,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(22),
+                        ),
+                      ),
                     ),
                   ),
-
                   const SizedBox(height: 34),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -397,24 +397,16 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       TextButton(
-  onPressed: () {
-    // Navigasi ke file sign_up_page.dart
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const SignUpPage(), // Pastikan nama class di file itu SignUpPage
-      ),
-    );
-  },
-  child: const Text(
-    'Daftar',
-    style: TextStyle(
-      fontSize: 14,
-      fontWeight: FontWeight.w700,
-      color: Color(0xFF5F8DFF),
-    ),
-  ),
-),
+                        onPressed: _toggleAuthMode,
+                        child: Text(
+                          isLogin ? 'Daftar' : 'Masuk',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF5F8DFF),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ],
