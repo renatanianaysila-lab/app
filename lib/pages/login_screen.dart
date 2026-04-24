@@ -341,7 +341,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (_) => const ForgotPasswordPage(),
-                            ),
+                            ),  
                           );
                         },
                         child: const Text(
