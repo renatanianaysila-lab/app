@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'forgot_password_page.dart';
 import 'home_page.dart';
+import 'sign_up_page.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -399,16 +400,16 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       TextButton(
-                        onPressed: _toggleAuthMode,
-                        child: Text(
-                          isLogin ? 'Daftar' : 'Masuk',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF5F8DFF),
-                          ),
-                        ),
-                      ),
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const SignUpPage(),
+      ),
+    );
+  },
+  child: const Text('Daftar'),
+),
                     ],
                   ),
                 ],
