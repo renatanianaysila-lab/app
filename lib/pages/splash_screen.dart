@@ -10,7 +10,6 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-
   @override
   void initState() {
     super.initState();
@@ -44,75 +43,75 @@ class _SplashScreenState extends State<SplashScreen> {
         child: SafeArea(
           child: Column(
             children: [
-
               const Spacer(),
 
-              // LOGO
               Image.asset(
                 'assets/images/logo.png',
-                width: 90,
+                width: 96,
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 18),
 
-              // TITLE
               const Text(
                 'IsyaratKita',
                 style: TextStyle(
-                  fontSize: 30,
-                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Poppins',
+                  fontSize: 32,
+                  fontWeight: FontWeight.w700,
                   color: Color(0xFF1F2937),
+                  letterSpacing: 0.3,
                 ),
               ),
 
               const SizedBox(height: 10),
 
-              // GARIS
               Container(
                 width: 90,
                 height: 4,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(20),
                   gradient: const LinearGradient(
-                    colors: [Colors.blue, Colors.yellow],
+                    colors: [
+                      Color(0xFF4F8DFF),
+                      Color(0xFFFFD21F),
+                    ],
                   ),
                 ),
               ),
 
               const SizedBox(height: 16),
 
-              // DESKRIPSI
               const Text(
                 'Belajar Bahasa Isyarat dengan\nMudah dan Inklusif',
                 textAlign: TextAlign.center,
                 style: TextStyle(
+                  fontFamily: 'Poppins',
                   fontSize: 16,
-                  height: 1.4,
-                  color: Colors.black87,
+                  fontWeight: FontWeight.w400,
+                  height: 1.5,
+                  color: Color(0xFF111827),
                 ),
               ),
 
               const SizedBox(height: 20),
 
-              // DOTS
               const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircleAvatar(radius: 4, backgroundColor: Colors.blue),
+                  CircleAvatar(radius: 4, backgroundColor: Color(0xFF3B82F6)),
                   SizedBox(width: 12),
-                  CircleAvatar(radius: 4, backgroundColor: Colors.blueAccent),
+                  CircleAvatar(radius: 4, backgroundColor: Color(0xFF60A5FA)),
                   SizedBox(width: 12),
-                  CircleAvatar(radius: 4, backgroundColor: Colors.amber),
+                  CircleAvatar(radius: 4, backgroundColor: Color(0xFFFACC15)),
                 ],
               ),
 
               const Spacer(),
 
-              // GAMBAR BAWAH
               Image.asset(
                 'assets/images/img.png',
                 width: double.infinity,
-                fit: BoxFit.cover,
+                fit: BoxFit.fitWidth,
               ),
             ],
           ),
