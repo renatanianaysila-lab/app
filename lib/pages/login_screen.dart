@@ -162,13 +162,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 26),
                   Text(
-                    isLogin ? 'Selamat Datang' : 'Daftar Akun',
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF273043),
-                    ),
-                  ),
+  isLogin ? 'Selamat Datang' : 'Daftar Akun',
+  style: const TextStyle(
+    fontFamily: 'Poppins', // TAMBAH INI
+    fontSize: 28,
+    fontWeight: FontWeight.w800,
+    color: Color(0xFF273043),
+  ),
+),
                   const SizedBox(height: 10),
                   Text(
                     isLogin

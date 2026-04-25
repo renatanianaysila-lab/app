@@ -11,8 +11,18 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter App',
+      title: 'IsyaratKita',
       debugShowCheckedModeBanner: false,
+
+      // 🔥 GLOBAL FONT
+      theme: ThemeData(
+        fontFamily: 'Poppins',
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF5F8DFF),
+        ),
+        useMaterial3: true,
+      ),
+
       initialRoute: AppRoutes.splash,
       onGenerateRoute: AppRoutes.generateRoute,
     );
