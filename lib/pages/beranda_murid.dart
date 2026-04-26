@@ -141,8 +141,8 @@ class BerandaMurid extends StatelessWidget {
 
           // Notif button
           Container(
-  width: 56,
-  height: 56,
+  width: 70,
+  height: 70,
   decoration: BoxDecoration(
     color: const Color(0xFFEEF2FF),
     borderRadius: BorderRadius.circular(50),
@@ -150,8 +150,8 @@ class BerandaMurid extends StatelessWidget {
   child: IconButton(
     icon: Image.asset(
       'assets/images/lonceng.png',
-      width: 32,
-      height: 32,
+      width: 50,
+      height: 50,
     ),
     onPressed: () {},
     padding: EdgeInsets.zero,
