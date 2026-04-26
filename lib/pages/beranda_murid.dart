@@ -350,7 +350,7 @@ class BerandaMurid extends StatelessWidget {
         children: [
           _buildNavItem('assets/images/home.png', 'Beranda', true),
           _buildNavItem('assets/images/materi.png', 'Materi', false),
-          _buildNavItem('assets/images/img.png', 'Forum', false),
+          _buildNavItem('assets/images/forum.png', 'Forum', false),
           _buildNavItem('assets/images/history.png', 'Riwayat', false),
           _buildNavItem('assets/images/profile.png', 'Profil', false),
         ],
