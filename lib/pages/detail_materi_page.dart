@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'pilih_level_quiz_page.dart';
-import 'video_player_widget.dart'; // 🔥 Import widget player youtube yang baru
 
 class DetailMateriPage extends StatelessWidget {
   final String title;
@@ -42,8 +41,6 @@ class DetailMateriPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    
-                    // ─── TOMBOL PELAJARI (DENGAN LOGIKA VIDEO YOUTUBE) ───
                     _buildMateriItem(
                       icon: 'A',
                       iconBg: const Color(0xFFEEF2FF),
@@ -51,36 +48,9 @@ class DetailMateriPage extends StatelessWidget {
                       title: 'Pelajari',
                       subtitle: 'Video Pembelajaran Interaktif',
                       locked: false,
-                      onTap: () {
-  // 1. Tetapkan video default (untuk kategori Abjad A-Z)
-  String targetUrl = 'https://youtu.be/Py6Ch1vBvL0?si=_uvNg0de10GJ7Aa5';
-  String targetTitle = 'ABJAD JARI BISINDO';
-
-  // 2. Deteksi kata 'Angka' (Bisa membaca Angka 1-10 maupun Angka dalam Bahasa Isyarat 1-100)
-  if (title.contains('Angka')) {
-    targetUrl = 'https://youtu.be/5UN60jB4eKg?si=IozPkqVxXs36zXE5';
-    targetTitle = 'Belajar Bahasa Isyarat BISINDO angka';
-  } 
-  // 3. Deteksi kata 'Ekspresi'
-  else if (title.contains('Ekspresi')) {
-    targetUrl = 'https://youtu.be/50oEnzX2GtE?si=aEJO3Y_8jRA7QK37';
-    targetTitle = 'Kata "ISTIMEWA" dalan Bahasa Isyarat BISINDO';
-  }
-
-  // 4. Buka halaman player bawa data url + judul yang pas
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => VideoPlayerWidget(
-        title: targetTitle,
-        videoUrl: targetUrl,
-      ),
-    ),
-  );
-},
+                      onTap: () {},
                     ),
                     const SizedBox(height: 10),
-                    
                     _buildMateriItem(
                       icon: '#',
                       iconBg: const Color(0xFFE8F9F0),
@@ -110,10 +80,11 @@ class DetailMateriPage extends StatelessWidget {
           ],
         ),
       ),
+      bottomNavigationBar: _buildBottomNav(context),
     );
   }
 
-  // ─── TOP BAR (LONCENG 46 BULAT CANTIK) ─────────────────
+  // ─── TOP BAR ───────────────────────────────────────────
   Widget _buildTopBar(BuildContext context) {
     return Container(
       color: Colors.white,
@@ -136,24 +107,7 @@ class DetailMateriPage extends StatelessWidget {
               ),
             ),
           ),
-          // 🔥 Lonceng bulat ukuran 46 pas presisi
-          Container(
-            width: 46,
-            height: 46,
-            decoration: const BoxDecoration(
-              color: Color(0xFFEEF2FF),
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              icon: Image.asset(
-                'assets/images/loncengfull.png',
-                width: 22,
-                height: 22,
-              ),
-              onPressed: () {},
-              padding: EdgeInsets.zero,
-            ),
-          ),
+          Image.asset('assets/images/lonceng.png', width: 26, height: 26),
         ],
       ),
     );
@@ -178,6 +132,7 @@ class DetailMateriPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Badge level selesai
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
             decoration: BoxDecoration(
@@ -214,13 +169,9 @@ class DetailMateriPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    Text(
-                      title == 'Abjad A-Z'
-                          ? 'Pelajari alfabet dasar dalam bahasa isyarat'
-                          : title == 'Angka 1-10'
-                              ? 'Pelajari angka dasar 1 sampai 10 dalam bahasa isyarat'
-                              : 'Pelajari ekspresi wajah dan isyarat sehari-hari',
-                      style: const TextStyle(
+                    const Text(
+                      'Pelajari alfabet dasar dalam bahasa isyarat',
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                         color: Color(0xFF6B7280),
@@ -250,6 +201,7 @@ class DetailMateriPage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
+          // Progress bar
           Row(
             children: [
               const Text(
@@ -344,7 +296,7 @@ class DetailMateriPage extends StatelessWidget {
     );
   }
 
-  // ─── MATERI ITEM BUILDER ───────────────────────────────
+  // ─── MATERI ITEM ───────────────────────────────────────
   Widget _buildMateriItem({
     required String icon,
     required Color iconBg,
@@ -402,7 +354,9 @@ class DetailMateriPage extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: locked ? const Color(0xFF9CA3AF) : const Color(0xFF1A1D2E),
+                      color: locked
+                          ? const Color(0xFF9CA3AF)
+                          : const Color(0xFF1A1D2E),
                       fontFamily: 'Poppins',
                     ),
                   ),
@@ -495,6 +449,62 @@ class DetailMateriPage extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  // ─── BOTTOM NAV ────────────────────────────────────────
+  Widget _buildBottomNav(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Color(0xFFEBEBEB))),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildNavItem('assets/images/home.png', 'Beranda', false),
+          _buildNavItem('assets/images/materinavbar.png', 'Materi', true),
+          _buildNavItem('assets/images/forum.png', 'Forum', false),
+          _buildNavItem('assets/images/history.png', 'Riwayat', false),
+          _buildNavItem('assets/images/profile.png', 'Profil', false),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavItem(String iconPath, String label, bool isActive) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: isActive
+              ? const EdgeInsets.symmetric(horizontal: 12, vertical: 4)
+              : EdgeInsets.zero,
+          decoration: isActive
+              ? BoxDecoration(
+                  color: const Color(0xFFEEF2FF),
+                  borderRadius: BorderRadius.circular(10),
+                )
+              : null,
+          child: Image.asset(
+            iconPath,
+            width: 22,
+            height: 22,
+            color: isActive ? const Color(0xFF3B72FF) : const Color(0xFF6B7280),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: isActive ? const Color(0xFF3B72FF) : const Color(0xFF6B7280),
+            fontFamily: 'Poppins',
+          ),
+        ),
+      ],
     );
   }
 }
