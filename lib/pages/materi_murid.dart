@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'detail_materi_page.dart';
 import 'riwayat_page.dart';
 import 'profile_page.dart';
 
