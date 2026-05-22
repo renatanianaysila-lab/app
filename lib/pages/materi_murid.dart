@@ -158,6 +158,10 @@ class _MateriMuridState extends State<MateriMurid> {
                     ...List.generate(_currentKategori.length, (i) {
                       return _buildKategoriCard(i);
                     }),
+                    if (!_isPremiumLevel) ...[
+                      const SizedBox(height: 8),
+                      _buildOverallProgress(),
+                    ],
                     const SizedBox(height: 20),
                   ],
                 ),
@@ -193,7 +197,7 @@ class _MateriMuridState extends State<MateriMurid> {
               ),
             ),
           ),
-          Image.asset('assets/images/lonceng.png', width: 26, height: 26),
+          Image.asset('assets/images/lonceng.png', width: 28, height: 28),
         ],
       ),
     );
@@ -345,6 +349,132 @@ class _MateriMuridState extends State<MateriMurid> {
     );
   }
 
+  // ─── OVERALL PROGRESS ──────────────────────────────────
+  Widget _buildOverallProgress() {
+    final totalKategori = _kategoriBeginner.length;
+    final selesai = _kategoriBeginner
+        .where((k) => (k['items'] as List)
+            .any((i) => i['type'] == 'video' && i['done'] == true))
+        .length;
+    final percent = totalKategori == 0 ? 0.0 : selesai / totalKategori;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.bar_chart_rounded,
+                  color: Color(0xFF3B72FF), size: 20),
+              const SizedBox(width: 8),
+              const Text(
+                'Progress Keseluruhan',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF1A1D2E),
+                  fontFamily: 'Poppins',
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '${(percent * 100).toInt()}%',
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF3B72FF),
+                  fontFamily: 'Poppins',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: percent,
+              minHeight: 10,
+              backgroundColor: const Color(0xFFE5E7EB),
+              valueColor:
+                  const AlwaysStoppedAnimation<Color>(Color(0xFF3B72FF)),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildProgressStat(
+                'Selesai',
+                '$selesai Kategori',
+                const Color(0xFF4CAF7D),
+                const Color(0xFFE8F9F0),
+              ),
+              _buildProgressStat(
+                'Tersisa',
+                '${totalKategori - selesai} Kategori',
+                const Color(0xFFF5A623),
+                const Color(0xFFFFF8EC),
+              ),
+              _buildProgressStat(
+                'Total',
+                '$totalKategori Kategori',
+                const Color(0xFF3B72FF),
+                const Color(0xFFEEF2FF),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressStat(
+      String label, String value, Color color, Color bgColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              color: color,
+              fontFamily: 'Poppins',
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF6B7280),
+              fontFamily: 'Poppins',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ─── KATEGORI CARD ─────────────────────────────────────
   Widget _buildKategoriCard(int index) {
     final item = _currentKategori[index];
@@ -432,7 +562,8 @@ class _MateriMuridState extends State<MateriMurid> {
                           ),
                           if (isPremium) ...[
                             const SizedBox(width: 6),
-                            const Icon(Icons.lock, size: 13, color: Color(0xFF9CA3AF)),
+                            const Icon(Icons.lock,
+                                size: 13, color: Color(0xFF9CA3AF)),
                           ] else ...[
                             const SizedBox(width: 4),
                             GestureDetector(
@@ -456,7 +587,8 @@ class _MateriMuridState extends State<MateriMurid> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                   decoration: BoxDecoration(
                     color: isPremium
                         ? const Color(0xFFF5A623)
@@ -476,7 +608,9 @@ class _MateriMuridState extends State<MateriMurid> {
               ],
             ),
           ),
-          if (!isPremium && isExpanded && (item['items'] as List).isNotEmpty) ...[
+          if (!isPremium &&
+              isExpanded &&
+              (item['items'] as List).isNotEmpty) ...[
             const Divider(height: 1, color: Color(0xFFF0F0F0)),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -499,7 +633,8 @@ class _MateriMuridState extends State<MateriMurid> {
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
                     decoration: BoxDecoration(
                       color: bgColor,
                       borderRadius: BorderRadius.circular(10),
@@ -564,9 +699,11 @@ class _MateriMuridState extends State<MateriMurid> {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildNavItem(context, 'assets/images/home.png', 'Beranda', false),
-          _buildNavItem(context, 'assets/images/materinavbar.png', 'Materi', true),
+          _buildNavItem(
+              context, 'assets/images/materinavbar.png', 'Materi', true),
           _buildNavItem(context, 'assets/images/forum.png', 'Forum', false),
-          _buildNavItem(context, 'assets/images/history.png', 'Riwayat', false),
+          _buildNavItem(
+              context, 'assets/images/history.png', 'Riwayat', false),
           _buildNavItem(context, 'assets/images/profile.png', 'Profil', false),
         ],
       ),

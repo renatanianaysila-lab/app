@@ -107,7 +107,7 @@ class DetailMateriPage extends StatelessWidget {
               ),
             ),
           ),
-          Image.asset('assets/images/lonceng.png', width: 26, height: 26),
+          Image.asset('assets/images/lonceng.png', width: 28, height: 28),
         ],
       ),
     );

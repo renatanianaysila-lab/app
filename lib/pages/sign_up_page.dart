@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:app/routes/auth_route.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -29,12 +30,10 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pendaftaran berhasil diproses')),
-      );
-    }
+  if (_formKey.currentState!.validate()) {
+    Navigator.pushReplacementNamed(context, AuthRoute.login);
   }
+}
 
   InputDecoration _inputDecoration({
     required String hintText,
@@ -290,7 +289,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                 ),
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFAFC8F8),
+                                backgroundColor: const Color(0xFF2F5EDB),
                                 foregroundColor: Colors.white,
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(

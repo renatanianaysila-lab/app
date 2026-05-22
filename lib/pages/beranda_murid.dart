@@ -132,18 +132,18 @@ class BerandaMurid extends StatelessWidget {
             ),
           ),
           Container(
-            width: 42,
-            height: 42,
+            width: 46,
+            height: 46,
             decoration: BoxDecoration(
               color: const Color(0xFFEEF2FF),
               borderRadius: BorderRadius.circular(50),
             ),
             child: IconButton(
-              icon: Image.asset(
-                'assets/images/lonceng.png',
-                width: 22,
-                height: 22,
-              ),
+  icon: Image.asset(
+    'assets/images/lonceng.png',
+    width: 28,  
+    height: 28,
+  ),
               onPressed: () {},
               padding: EdgeInsets.zero,
             ),
