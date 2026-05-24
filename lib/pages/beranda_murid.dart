@@ -130,15 +130,15 @@ class BerandaMurid extends StatelessWidget {
             ),
           ),
           Container(
-            width: 42,
-            height: 42,
+            width: 46,
+            height: 46,
             decoration: BoxDecoration(
               color: const Color(0xFFEEF2FF),
               borderRadius: BorderRadius.circular(50),
             ),
             child: IconButton(
               icon: Image.asset(
-                'assets/images/lonceng.png',
+                'assets/images/loncengfull.png',
                 width: 22,
                 height: 22,
               ),
@@ -188,7 +188,7 @@ class BerandaMurid extends StatelessWidget {
             ),
             padding: const EdgeInsets.all(10),
             child: Image.asset(
-              'assets/images/tangan isyarat.png',
+              'assets/images/user.png',
               fit: BoxFit.contain,
             ),
           ),
