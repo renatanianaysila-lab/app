@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'forgot_password_page.dart';
-import 'home_page.dart';
+import 'package:app/pages/role_page.dart';
 import 'sign_up_page.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -78,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => const HomePage(),
+          builder: (context) => const RolePage(),
         ),
       );
     } else {
@@ -96,19 +96,6 @@ class _LoginScreenState extends State<LoginScreen> {
         _confirmPasswordController.clear();
       });
     }
-  }
-
-  void _toggleAuthMode() {
-    setState(() {
-      isLogin = !isLogin;
-      isPasswordHidden = true;
-      isConfirmPasswordHidden = true;
-      _nameController.clear();
-      _emailController.clear();
-      _passwordController.clear();
-      _confirmPasswordController.clear();
-      _formKey.currentState?.reset();
-    });
   }
 
   @override
