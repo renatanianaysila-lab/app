@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'metode_pembayaran.dart';
 
 class PaymentPage extends StatefulWidget {
   const PaymentPage({super.key});
@@ -8,7 +9,6 @@ class PaymentPage extends StatefulWidget {
 }
 
 class _PaymentPageState extends State<PaymentPage> {
-
   bool isExpanded1 = false;
   bool isExpanded2 = false;
 
@@ -28,7 +28,6 @@ class _PaymentPageState extends State<PaymentPage> {
           ),
           onPressed: () => Navigator.pop(context),
         ),
-        titleSpacing: 0,
         title: const Text(
           'Transaksi',
           style: TextStyle(
@@ -43,7 +42,6 @@ class _PaymentPageState extends State<PaymentPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             // ===================== CARD PAKET =====================
             Container(
               width: double.infinity,
@@ -73,7 +71,6 @@ class _PaymentPageState extends State<PaymentPage> {
                             ),
                           ),
                           const SizedBox(height: 8),
-
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 10,
@@ -104,7 +101,6 @@ class _PaymentPageState extends State<PaymentPage> {
                           ),
                         ],
                       ),
-
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
@@ -137,41 +133,40 @@ class _PaymentPageState extends State<PaymentPage> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 24),
-
                   _buildBenefit(
                     icon: Icons.menu_book_rounded,
                     bgColor: const Color(0xFFE0E7FF),
                     iconColor: const Color(0xFF2563EB),
                     text: 'Akses semua materi\npembelajaran',
                   ),
-
                   const SizedBox(height: 18),
-
                   _buildBenefit(
                     icon: Icons.verified_rounded,
                     bgColor: const Color(0xFFDCFCE7),
                     iconColor: const Color(0xFF16A34A),
                     text: 'Sertifikat digital',
                   ),
-
                   const SizedBox(height: 18),
-
                   _buildBenefit(
                     icon: Icons.support_agent_rounded,
                     bgColor: const Color(0xFFF3E8FF),
                     iconColor: const Color(0xFF9333EA),
                     text: 'Konsultasi dengan mentor',
                   ),
-
                   const SizedBox(height: 24),
-
                   SizedBox(
                     width: double.infinity,
                     height: 48,
                     child: ElevatedButton.icon(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const MetodePembayaranPage(),
+                          ),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF2563EB),
                         elevation: 0,
@@ -197,9 +192,7 @@ class _PaymentPageState extends State<PaymentPage> {
                 ],
               ),
             ),
-
             const SizedBox(height: 28),
-
             const Text(
               'Riwayat Transaksi',
               style: TextStyle(
@@ -208,9 +201,7 @@ class _PaymentPageState extends State<PaymentPage> {
                 color: Color(0xFF111827),
               ),
             ),
-
             const SizedBox(height: 14),
-
             // ================= CARD 1 =================
             _buildTransactionCard(
               paket: 'Paket Premium',
@@ -261,7 +252,6 @@ class _PaymentPageState extends State<PaymentPage> {
                     ),
                   ),
                   const SizedBox(height: 18),
-
                   Center(
                     child: SizedBox(
                       width: 220,
@@ -294,9 +284,7 @@ class _PaymentPageState extends State<PaymentPage> {
                 ],
               ),
             ),
-
             const SizedBox(height: 14),
-
             // ================= CARD 2 =================
             _buildTransactionCard(
               paket: 'Paket Premium',
@@ -339,7 +327,6 @@ class _PaymentPageState extends State<PaymentPage> {
                     ),
                   ),
                   const SizedBox(height: 18),
-
                   Center(
                     child: SizedBox(
                       width: 220,
@@ -434,7 +421,6 @@ class _PaymentPageState extends State<PaymentPage> {
       ),
       child: Column(
         children: [
-
           // HEADER
           Padding(
             padding: const EdgeInsets.all(16),
@@ -461,9 +447,7 @@ class _PaymentPageState extends State<PaymentPage> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 6),
-
                 Row(
                   children: [
                     Icon(
@@ -500,17 +484,13 @@ class _PaymentPageState extends State<PaymentPage> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 14),
-
                 Divider(
                   color: Colors.grey.shade200,
                   thickness: 1,
                   height: 1,
                 ),
-
                 const SizedBox(height: 14),
-
                 Row(
                   children: [
                     Icon(
@@ -527,7 +507,6 @@ class _PaymentPageState extends State<PaymentPage> {
                       ),
                     ),
                     const Spacer(),
-
                     InkWell(
                       onTap: onTap,
                       child: Row(
@@ -541,7 +520,6 @@ class _PaymentPageState extends State<PaymentPage> {
                             ),
                           ),
                           const SizedBox(width: 2),
-
                           AnimatedRotation(
                             turns: expanded ? 0.5 : 0,
                             duration: const Duration(milliseconds: 200),
@@ -559,7 +537,6 @@ class _PaymentPageState extends State<PaymentPage> {
               ],
             ),
           ),
-
           // EXPANDED CONTENT
           AnimatedCrossFade(
             firstChild: const SizedBox(),
