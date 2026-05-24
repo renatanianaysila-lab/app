@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
 import 'materi_murid.dart';
 import 'riwayat_page.dart';
+import 'edit_profilepage.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  String nama = 'Naysila';
+  String email = 'naysila@student.com';
+  String noTelp = '+62 812 3456 7890';
+  String tanggalLahir = '15 Maret 2005';
 
   @override
   Widget build(BuildContext context) {
@@ -20,9 +31,9 @@ class ProfilePage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 24),
-                    _buildAvatarSection(),
+                    _buildAvatarSection(context),
                     const SizedBox(height: 24),
-                    _buildInfoPribadi(),
+                    _buildInfoPribadi(context),
                     const SizedBox(height: 20),
                     _buildPaketAktif(),
                     const SizedBox(height: 24),
@@ -68,7 +79,7 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildAvatarSection() {
+  Widget _buildAvatarSection(BuildContext context) {
     return Center(
       child: Column(
         children: [
@@ -89,23 +100,28 @@ class ProfilePage extends StatelessWidget {
               Positioned(
                 bottom: 0,
                 right: 0,
-                child: Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF3B72FF),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
+                child: GestureDetector(
+                  onTap: () {
+                    // TODO: ganti foto profil
+                  },
+                  child: Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3B72FF),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    child: const Icon(Icons.camera_alt, size: 14, color: Colors.white),
                   ),
-                  child: const Icon(Icons.camera_alt, size: 14, color: Colors.white),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Naysila',
-            style: TextStyle(
+          Text(
+            nama,
+            style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w900,
               color: Color(0xFF1A1D2E),
@@ -113,9 +129,9 @@ class ProfilePage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
-            'naysila@student.com',
-            style: TextStyle(
+          Text(
+            email,
+            style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
               color: Color(0xFF6B7280),
@@ -124,7 +140,27 @@ class ProfilePage extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           ElevatedButton.icon(
-            onPressed: () {},
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => EditProfilePage(
+                    nama: nama,
+                    email: email,
+                    noTelp: noTelp,
+                    tanggalLahir: tanggalLahir,
+                  ),
+                ),
+              );
+              if (result != null && result is Map<String, String>) {
+                setState(() {
+                  nama = result['nama'] ?? nama;
+                  email = result['email'] ?? email;
+                  noTelp = result['noTelp'] ?? noTelp;
+                  tanggalLahir = result['tanggalLahir'] ?? tanggalLahir;
+                });
+              }
+            },
             icon: const Icon(Icons.edit, size: 16),
             label: const Text(
               'Edit Profil',
@@ -143,7 +179,7 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoPribadi() {
+  Widget _buildInfoPribadi(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -171,14 +207,102 @@ class ProfilePage extends StatelessWidget {
           ),
           child: Column(
             children: [
-              _buildInfoItem(iconPath: 'assets/images/namaprofile.png', label: 'Nama Lengkap', value: 'Naysila', isLast: false),
-              _buildInfoItem(iconPath: 'assets/images/emailprofile.png', label: 'Email', value: 'naysila@student.com', isLast: false),
-              _buildInfoItem(iconPath: 'assets/images/notelpprofile.png', label: 'No. Telepon', value: '+62 812 3456 7890', isLast: false),
-              _buildInfoItem(iconPath: 'assets/images/ttlprofile.png', label: 'Tanggal Lahir', value: '15 Maret 2005', isLast: true),
+              _buildInfoItem(
+                iconPath: 'assets/images/namaprofile.png',
+                label: 'Nama Lengkap',
+                value: nama,
+                isLast: false,
+                onTap: () => _showEditDialog(context, 'Nama Lengkap', nama, (val) {
+                  setState(() => nama = val);
+                }),
+              ),
+              _buildInfoItem(
+                iconPath: 'assets/images/emailprofile.png',
+                label: 'Email',
+                value: email,
+                isLast: false,
+                onTap: () => _showEditDialog(context, 'Email', email, (val) {
+                  setState(() => email = val);
+                }),
+              ),
+              _buildInfoItem(
+                iconPath: 'assets/images/notelpprofile.png',
+                label: 'No. Telepon',
+                value: noTelp,
+                isLast: false,
+                onTap: () => _showEditDialog(context, 'No. Telepon', noTelp, (val) {
+                  setState(() => noTelp = val);
+                }),
+              ),
+              _buildInfoItem(
+                iconPath: 'assets/images/ttlprofile.png',
+                label: 'Tanggal Lahir',
+                value: tanggalLahir,
+                isLast: true,
+                onTap: () => _showEditDialog(context, 'Tanggal Lahir', tanggalLahir, (val) {
+                  setState(() => tanggalLahir = val);
+                }),
+              ),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  void _showEditDialog(
+    BuildContext context,
+    String label,
+    String currentValue,
+    Function(String) onSave,
+  ) {
+    final controller = TextEditingController(text: currentValue);
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text(
+          'Edit $label',
+          style: const TextStyle(fontWeight: FontWeight.w800, fontFamily: 'Poppins', fontSize: 16),
+        ),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          style: const TextStyle(fontFamily: 'Poppins'),
+          decoration: InputDecoration(
+            hintText: 'Masukkan $label',
+            hintStyle: const TextStyle(fontFamily: 'Poppins', color: Color(0xFF9CA3AF)),
+            filled: true,
+            fillColor: const Color(0xFFF3F4F6),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal', style: TextStyle(fontFamily: 'Poppins', color: Color(0xFF6B7280))),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (controller.text.trim().isNotEmpty) {
+                onSave(controller.text.trim());
+                Navigator.pop(context);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF3B72FF),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              elevation: 0,
+            ),
+            child: const Text('Simpan', style: TextStyle(fontWeight: FontWeight.w700, fontFamily: 'Poppins')),
+          ),
+        ],
+      ),
     );
   }
 
@@ -187,39 +311,68 @@ class ProfilePage extends StatelessWidget {
     required String label,
     required String value,
     required bool isLast,
+    required VoidCallback onTap,
   }) {
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEEF2FF),
-                  borderRadius: BorderRadius.circular(10),
+        InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.vertical(
+            top: isLast == false ? Radius.zero : const Radius.circular(18),
+            bottom: isLast ? const Radius.circular(18) : Radius.zero,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEEF2FF),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.all(9),
+                  child: Image.asset(
+                    iconPath,
+                    fit: BoxFit.contain,
+                    color: const Color(0xFF3B72FF),
+                  ),
                 ),
-                padding: const EdgeInsets.all(9),
-                child: Image.asset(iconPath, fit: BoxFit.contain, color: const Color(0xFF3B72FF)),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Color(0xFF9CA3AF), fontFamily: 'Poppins')),
-                    const SizedBox(height: 2),
-                    Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF1A1D2E), fontFamily: 'Poppins')),
-                  ],
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF9CA3AF),
+                          fontFamily: 'Poppins',
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        value,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF1A1D2E),
+                          fontFamily: 'Poppins',
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const Icon(Icons.chevron_right, color: Color(0xFF9CA3AF), size: 20),
-            ],
+                const Icon(Icons.chevron_right, color: Color(0xFF9CA3AF), size: 20),
+              ],
+            ),
           ),
         ),
-        if (!isLast) const Divider(height: 1, indent: 70, endIndent: 16, color: Color(0xFFF0F0F0)),
+        if (!isLast)
+          const Divider(height: 1, indent: 70, endIndent: 16, color: Color(0xFFF0F0F0)),
       ],
     );
   }
@@ -230,7 +383,12 @@ class ProfilePage extends StatelessWidget {
       children: [
         const Text(
           'Paket Aktif',
-          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFF1A1D2E), fontFamily: 'Poppins'),
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w800,
+            color: Color(0xFF1A1D2E),
+            fontFamily: 'Poppins',
+          ),
         ),
         const SizedBox(height: 12),
         Container(
@@ -250,12 +408,31 @@ class ProfilePage extends StatelessWidget {
                 children: [
                   const Text('👑', style: TextStyle(fontSize: 18)),
                   const SizedBox(width: 8),
-                  const Text('Paket Premium', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white, fontFamily: 'Poppins')),
+                  const Text(
+                    'Paket Premium',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      fontFamily: 'Poppins',
+                    ),
+                  ),
                   const Spacer(),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.25), borderRadius: BorderRadius.circular(8)),
-                    child: const Text('Aktif', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white, fontFamily: 'Poppins')),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.25),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'Aktif',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        fontFamily: 'Poppins',
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -271,9 +448,25 @@ class ProfilePage extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Berlaku hingga', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Colors.white.withOpacity(0.75), fontFamily: 'Poppins')),
+                      Text(
+                        'Berlaku hingga',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white.withOpacity(0.75),
+                          fontFamily: 'Poppins',
+                        ),
+                      ),
                       const SizedBox(height: 2),
-                      const Text('15 Maret 2026', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white, fontFamily: 'Poppins')),
+                      const Text(
+                        '15 Maret 2026',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          fontFamily: 'Poppins',
+                        ),
+                      ),
                     ],
                   ),
                   const Spacer(),
@@ -286,7 +479,10 @@ class ProfilePage extends StatelessWidget {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       elevation: 0,
                     ),
-                    child: const Text('Perpanjang', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, fontFamily: 'Poppins')),
+                    child: const Text(
+                      'Perpanjang',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, fontFamily: 'Poppins'),
+                    ),
                   ),
                 ],
               ),
@@ -302,7 +498,15 @@ class ProfilePage extends StatelessWidget {
       children: [
         const Icon(Icons.check, color: Colors.white, size: 16),
         const SizedBox(width: 8),
-        Text(text, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.white, fontFamily: 'Poppins')),
+        Text(
+          text,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+            fontFamily: 'Poppins',
+          ),
+        ),
       ],
     );
   }
@@ -316,12 +520,21 @@ class ProfilePage extends StatelessWidget {
             context: context,
             builder: (_) => AlertDialog(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-              title: const Text('Keluar dari Akun', style: TextStyle(fontWeight: FontWeight.w800, fontFamily: 'Poppins')),
-              content: const Text('Apakah kamu yakin ingin keluar dari akun?', style: TextStyle(fontFamily: 'Poppins')),
+              title: const Text(
+                'Keluar dari Akun',
+                style: TextStyle(fontWeight: FontWeight.w800, fontFamily: 'Poppins'),
+              ),
+              content: const Text(
+                'Apakah kamu yakin ingin keluar dari akun?',
+                style: TextStyle(fontFamily: 'Poppins'),
+              ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Batal', style: TextStyle(fontFamily: 'Poppins', color: Color(0xFF6B7280))),
+                  child: const Text(
+                    'Batal',
+                    style: TextStyle(fontFamily: 'Poppins', color: Color(0xFF6B7280)),
+                  ),
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -334,14 +547,20 @@ class ProfilePage extends StatelessWidget {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     elevation: 0,
                   ),
-                  child: const Text('Keluar', style: TextStyle(fontWeight: FontWeight.w700, fontFamily: 'Poppins')),
+                  child: const Text(
+                    'Keluar',
+                    style: TextStyle(fontWeight: FontWeight.w700, fontFamily: 'Poppins'),
+                  ),
                 ),
               ],
             ),
           );
         },
         icon: const Icon(Icons.logout, color: Color(0xFFE53E3E), size: 18),
-        label: const Text('Keluar dari Akun', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFFE53E3E))),
+        label: const Text(
+          'Keluar dari Akun',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFFE53E3E)),
+        ),
         style: OutlinedButton.styleFrom(
           side: const BorderSide(color: Color(0xFFFFE5E5), width: 1.5),
           backgroundColor: const Color(0xFFFFF5F5),
@@ -383,7 +602,8 @@ class ProfilePage extends StatelessWidget {
               } else if (label == 'Materi') {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const MateriMurid(initialLevel: 'Beginner')),
+                  MaterialPageRoute(
+                      builder: (_) => const MateriMurid(initialLevel: 'Beginner')),
                 );
               } else if (label == 'Riwayat') {
                 Navigator.push(
