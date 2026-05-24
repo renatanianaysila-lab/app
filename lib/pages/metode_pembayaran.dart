@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'metode_pembayaran_qris.dart';
+import 'metode_pembayaran_kartu.dart';
 
 class MetodePembayaranPage extends StatefulWidget {
   const MetodePembayaranPage({super.key});
@@ -12,16 +13,19 @@ class MetodePembayaranPage extends StatefulWidget {
 class _MetodePembayaranPageState
     extends State<MetodePembayaranPage> {
 
+  // default belum pilih
   int selectedMethod = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
+      backgroundColor:
+          const Color(0xFFF3F4F6),
 
       // ================= APPBAR =================
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF3F4F6),
+        backgroundColor:
+            const Color(0xFFF3F4F6),
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
@@ -30,7 +34,8 @@ class _MetodePembayaranPageState
             color: Color(0xFF111827),
             size: 20,
           ),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () =>
+              Navigator.pop(context),
         ),
         title: const Text(
           'Pembayaran',
@@ -42,7 +47,7 @@ class _MetodePembayaranPageState
         ),
       ),
 
-      // ================= BOTTOM BAR =================
+      // ================= BOTTOM =================
       bottomNavigationBar: Container(
         padding: const EdgeInsets.fromLTRB(
           16,
@@ -64,15 +69,19 @@ class _MetodePembayaranPageState
             // TOTAL
             const Expanded(
               child: Column(
-                mainAxisSize: MainAxisSize.min,
+                mainAxisSize:
+                    MainAxisSize.min,
                 crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                    CrossAxisAlignment
+                        .start,
                 children: [
                   Text(
                     'Total',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Color(0xFF9CA3AF),
+                      color: Color(
+                        0xFF9CA3AF,
+                      ),
                     ),
                   ),
                   SizedBox(height: 2),
@@ -80,8 +89,12 @@ class _MetodePembayaranPageState
                     'Rp 30.000',
                     style: TextStyle(
                       fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF111827),
+                      fontWeight:
+                          FontWeight
+                              .w700,
+                      color: Color(
+                        0xFF111827,
+                      ),
                     ),
                   ),
                 ],
@@ -93,21 +106,82 @@ class _MetodePembayaranPageState
               width: 160,
               height: 46,
               child: ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
+                onPressed: () {
+
+                  // ================= QRIS =================
+                  if (selectedMethod ==
+                      1) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) =>
+                                const MetodePembayaranQrisPage(),
+                      ),
+                    );
+                  }
+
+                  // ================= KARTU =================
+                  else if (selectedMethod ==
+                      2) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) =>
+                                const MetodePembayaranKartuPage(),
+                      ),
+                    );
+                  }
+
+                  // ================= VA =================
+                  else if (selectedMethod ==
+                      3) {
+                    ScaffoldMessenger.of(
+                            context)
+                        .showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Fitur Virtual Account segera hadir',
+                        ),
+                      ),
+                    );
+                  }
+
+                  // ================= BELUM PILIH =================
+                  else {
+                    ScaffoldMessenger.of(
+                            context)
+                        .showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Pilih metode pembayaran terlebih dahulu',
+                        ),
+                      ),
+                    );
+                  }
+                },
+                style:
+                    ElevatedButton.styleFrom(
                   backgroundColor:
-                      const Color(0xFF2563EB),
+                      const Color(
+                    0xFF2563EB,
+                  ),
                   elevation: 0,
-                  shape: RoundedRectangleBorder(
+                  shape:
+                      RoundedRectangleBorder(
                     borderRadius:
-                        BorderRadius.circular(14),
+                        BorderRadius
+                            .circular(
+                                14),
                   ),
                 ),
                 child: const Text(
                   'Lanjutkan',
                   style: TextStyle(
                     fontSize: 15,
-                    fontWeight: FontWeight.w600,
+                    fontWeight:
+                        FontWeight.w600,
                     color: Colors.white,
                   ),
                 ),
@@ -119,7 +193,8 @@ class _MetodePembayaranPageState
 
       // ================= BODY =================
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(
+            16),
         child: Column(
           crossAxisAlignment:
               CrossAxisAlignment.start,
@@ -134,38 +209,50 @@ class _MetodePembayaranPageState
                 vertical: 14,
               ),
               decoration: BoxDecoration(
-                color: const Color(0xFF2563EB),
+                color:
+                    const Color(0xFF2563EB),
                 borderRadius:
-                    BorderRadius.circular(14),
+                    BorderRadius.circular(
+                        14),
               ),
               child: const Row(
                 mainAxisAlignment:
-                    MainAxisAlignment.spaceBetween,
+                    MainAxisAlignment
+                        .spaceBetween,
                 children: [
+
                   Text(
                     'Total',
                     style: TextStyle(
                       color: Colors.white,
-                      fontWeight: FontWeight.w600,
+                      fontWeight:
+                          FontWeight.w600,
                       fontSize: 15,
                     ),
                   ),
+
                   Row(
                     children: [
+
                       Text(
                         'Rp 30.000',
                         style: TextStyle(
-                          color: Colors.white,
+                          color:
+                              Colors.white,
                           fontSize: 15,
                           fontWeight:
-                              FontWeight.w500,
+                              FontWeight
+                                  .w500,
                         ),
                       ),
+
                       SizedBox(width: 6),
+
                       Icon(
                         Icons
                             .keyboard_arrow_down_rounded,
-                        color: Colors.white,
+                        color:
+                            Colors.white,
                         size: 20,
                       ),
                     ],
@@ -181,8 +268,11 @@ class _MetodePembayaranPageState
               'Metode Pembayaran',
               style: TextStyle(
                 fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF111827),
+                fontWeight:
+                    FontWeight.w700,
+                color: Color(
+                  0xFF111827,
+                ),
               ),
             ),
 
@@ -191,17 +281,9 @@ class _MetodePembayaranPageState
             // ================= QRIS =================
             _buildPaymentCard(
               id: 1,
-              icon: Icons.qr_code_rounded,
+              icon:
+                  Icons.qr_code_rounded,
               title: 'QRIS',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        const MetodePembayaranQrisPage(),
-                  ),
-                );
-              },
             ),
 
             const SizedBox(height: 12),
@@ -209,19 +291,10 @@ class _MetodePembayaranPageState
             // ================= KARTU =================
             _buildPaymentCard(
               id: 2,
-              icon: Icons.credit_card_rounded,
-              title: 'Kartu Kredit / Debit',
-              onTap: () {
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(
-                  const SnackBar(
-                    content:
-                        Text('Fitur segera hadir'),
-                    backgroundColor:
-                        Colors.orange,
-                  ),
-                );
-              },
+              icon: Icons
+                  .credit_card_rounded,
+              title:
+                  'Kartu Kredit / Debit',
             ),
 
             const SizedBox(height: 12),
@@ -229,21 +302,10 @@ class _MetodePembayaranPageState
             // ================= VA =================
             _buildPaymentCard(
               id: 3,
-              icon:
-                  Icons.account_balance_rounded,
+              icon: Icons
+                  .account_balance_rounded,
               title:
                   'Virtual Account Transfer',
-              onTap: () {
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(
-                  const SnackBar(
-                    content:
-                        Text('Fitur segera hadir'),
-                    backgroundColor:
-                        Colors.orange,
-                  ),
-                );
-              },
             ),
           ],
         ),
@@ -251,32 +313,24 @@ class _MetodePembayaranPageState
     );
   }
 
-  // ================= PAYMENT CARD =================
+  // ================= CARD =================
   Widget _buildPaymentCard({
     required int id,
     required IconData icon,
     required String title,
-    required VoidCallback onTap,
   }) {
 
-    bool isSelected = selectedMethod == id;
+    bool isSelected =
+        selectedMethod == id;
 
     return InkWell(
-      borderRadius: BorderRadius.circular(14),
+      borderRadius:
+          BorderRadius.circular(14),
 
-      onTap: () async {
-
-        // GANTI RADIO
+      onTap: () {
         setState(() {
           selectedMethod = id;
         });
-
-        // BIAR SEMPAT KELIHATAN BIRU
-        await Future.delayed(
-          const Duration(milliseconds: 150),
-        );
-
-        onTap();
       },
 
       child: Container(
@@ -286,70 +340,100 @@ class _MetodePembayaranPageState
           horizontal: 14,
           vertical: 16,
         ),
+
         decoration: BoxDecoration(
           color: Colors.white,
+
           borderRadius:
-              BorderRadius.circular(14),
+              BorderRadius.circular(
+                  14),
+
           border: Border.all(
             color: isSelected
-                ? const Color(0xFF2563EB)
-                : const Color(0xFFE5E7EB),
+                ? const Color(
+                    0xFF2563EB)
+                : const Color(
+                    0xFFE5E7EB),
             width: 1.5,
           ),
         ),
+
         child: Row(
           children: [
 
-            // ICON
             Icon(
               icon,
               size: 22,
-              color: const Color(0xFF111827),
+              color: const Color(
+                0xFF111827,
+              ),
             ),
 
             const SizedBox(width: 12),
 
-            // TITLE
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(
+                style:
+                    const TextStyle(
                   fontSize: 14,
                   fontWeight:
                       FontWeight.w500,
-                  color: Color(0xFF374151),
+                  color: Color(
+                    0xFF374151,
+                  ),
                 ),
               ),
             ),
 
-            // RADIO
+            // ================= RADIO =================
             AnimatedContainer(
               duration:
-                  const Duration(milliseconds: 200),
+                  const Duration(
+                      milliseconds:
+                          200),
+
               width: 20,
               height: 20,
+
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
+
                 border: Border.all(
                   color: isSelected
-                      ? const Color(0xFF2563EB)
-                      : const Color(0xFFD1D5DB),
+                      ? const Color(
+                          0xFF2563EB)
+                      : const Color(
+                          0xFFD1D5DB),
                   width: 2,
                 ),
               ),
+
               child: Center(
-                child: AnimatedContainer(
-                  duration: const Duration(
-                    milliseconds: 200,
-                  ),
+                child:
+                    AnimatedContainer(
+                  duration:
+                      const Duration(
+                          milliseconds:
+                              200),
+
                   width:
-                      isSelected ? 10 : 0,
+                      isSelected
+                          ? 10
+                          : 0,
+
                   height:
-                      isSelected ? 10 : 0,
+                      isSelected
+                          ? 10
+                          : 0,
+
                   decoration:
                       const BoxDecoration(
-                    color: Color(0xFF2563EB),
-                    shape: BoxShape.circle,
+                    color: Color(
+                      0xFF2563EB,
+                    ),
+                    shape:
+                        BoxShape.circle,
                   ),
                 ),
               ),
