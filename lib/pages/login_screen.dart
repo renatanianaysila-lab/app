@@ -39,18 +39,25 @@ class _LoginScreenState extends State<LoginScreen> {
     return InputDecoration(
       hintText: hintText,
       hintStyle: const TextStyle(color: Color(0xFF9AA1AC)),
-      prefixIcon: Icon(prefixIcon, color: const Color(0xFF9AA1AC)),
+      prefixIcon: Icon(
+        prefixIcon,
+        color: const Color(0xFF9AA1AC),
+      ),
       suffixIcon: suffixIcon,
       filled: true,
       fillColor: const Color(0xFFF3F3F3),
       contentPadding: const EdgeInsets.symmetric(vertical: 20),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(22),
-        borderSide: const BorderSide(color: Color(0xFFD9D9D9)),
+        borderSide: const BorderSide(
+          color: Color(0xFFD9D9D9),
+        ),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(22),
-        borderSide: const BorderSide(color: Color(0xFFD9D9D9)),
+        borderSide: const BorderSide(
+          color: Color(0xFFD9D9D9),
+        ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(22),
@@ -82,13 +89,17 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pendaftaran berhasil diproses')),
+        const SnackBar(
+          content: Text('Pendaftaran berhasil diproses'),
+        ),
       );
 
       setState(() {
         isLogin = true;
+
         isPasswordHidden = true;
         isConfirmPasswordHidden = true;
+
         _nameController.clear();
         _emailController.clear();
         _passwordController.clear();
@@ -100,12 +111,15 @@ class _LoginScreenState extends State<LoginScreen> {
   void _toggleAuthMode() {
     setState(() {
       isLogin = !isLogin;
+
       isPasswordHidden = true;
       isConfirmPasswordHidden = true;
+
       _nameController.clear();
       _emailController.clear();
       _passwordController.clear();
       _confirmPasswordController.clear();
+
       _formKey.currentState?.reset();
     });
   }
@@ -129,19 +143,34 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 28,
+              vertical: 20,
+            ),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const SizedBox(height: 8),
+
                   Image.asset(
                     'assets/images/logo.png',
                     width: 110,
                     height: 110,
+                    fit: BoxFit.contain,
+                    errorBuilder:
+                        (context, error, stackTrace) {
+                      return const Icon(
+                        Icons.image_not_supported,
+                        size: 110,
+                        color: Colors.grey,
+                      );
+                    },
                   ),
+
                   const SizedBox(height: 12),
+
                   const Text(
                     'IsyaratKita',
                     style: TextStyle(
@@ -151,7 +180,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: Color(0xFF273043),
                     ),
                   ),
+
                   const SizedBox(height: 4),
+
                   const Text(
                     'Belajar Bahasa Isyarat Bersama',
                     style: TextStyle(
@@ -159,16 +190,22 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: Color(0xFF5D6470),
                     ),
                   ),
+
                   const SizedBox(height: 26),
+
                   Text(
-                    isLogin ? 'Selamat Datang' : 'Daftar Akun',
+                    isLogin
+                        ? 'Selamat Datang'
+                        : 'Daftar Akun',
                     style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w800,
                       color: Color(0xFF273043),
                     ),
                   ),
+
                   const SizedBox(height: 10),
+
                   Text(
                     isLogin
                         ? 'Masuk ke akun Anda untuk melanjutkan\npembelajaran'
@@ -180,7 +217,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: Color(0xFF5D6470),
                     ),
                   ),
+
                   const SizedBox(height: 30),
+
                   if (!isLogin) ...[
                     const Align(
                       alignment: Alignment.centerLeft,
@@ -193,22 +232,32 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
+
                     const SizedBox(height: 10),
+
                     TextFormField(
                       controller: _nameController,
                       decoration: _inputDecoration(
-                        hintText: 'Masukkan nama lengkap',
-                        prefixIcon: Icons.person_outline,
+                        hintText:
+                            'Masukkan nama lengkap',
+                        prefixIcon:
+                            Icons.person_outline,
                       ),
                       validator: (value) {
-                        if (!isLogin && (value == null || value.trim().isEmpty)) {
+                        if (!isLogin &&
+                            (value == null ||
+                                value
+                                    .trim()
+                                    .isEmpty)) {
                           return 'Nama wajib diisi';
                         }
                         return null;
                       },
                     ),
+
                     const SizedBox(height: 22),
                   ],
+
                   const Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
@@ -220,28 +269,41 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
+
                   const SizedBox(height: 10),
+
                   TextFormField(
                     controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
+                    keyboardType:
+                        TextInputType.emailAddress,
                     decoration: _inputDecoration(
-                      hintText: 'Masukkan email Anda',
-                      prefixIcon: Icons.email_outlined,
+                      hintText:
+                          'Masukkan email Anda',
+                      prefixIcon:
+                          Icons.email_outlined,
                     ),
                     validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
+                      if (value == null ||
+                          value.trim().isEmpty) {
                         return 'Email wajib diisi';
                       }
+
                       final emailRegex = RegExp(
                         r'^[\w\-.]+@([\w-]+\.)+[\w-]{2,4}$',
                       );
-                      if (!emailRegex.hasMatch(value.trim())) {
+
+                      if (!emailRegex.hasMatch(
+                        value.trim(),
+                      )) {
                         return 'Format email tidak valid';
                       }
+
                       return null;
                     },
                   ),
+
                   const SizedBox(height: 22),
+
                   const Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
@@ -253,39 +315,52 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
+
                   const SizedBox(height: 10),
+
                   TextFormField(
                     controller: _passwordController,
                     obscureText: isPasswordHidden,
                     decoration: _inputDecoration(
-                      hintText: 'Masukkan password Anda',
-                      prefixIcon: Icons.lock_outline,
+                      hintText:
+                          'Masukkan password Anda',
+                      prefixIcon:
+                          Icons.lock_outline,
                       suffixIcon: IconButton(
                         onPressed: () {
                           setState(() {
-                            isPasswordHidden = !isPasswordHidden;
+                            isPasswordHidden =
+                                !isPasswordHidden;
                           });
                         },
                         icon: Icon(
                           isPasswordHidden
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
-                          color: const Color(0xFF9AA1AC),
+                              ? Icons
+                                  .visibility_outlined
+                              : Icons
+                                  .visibility_off_outlined,
+                          color:
+                              const Color(0xFF9AA1AC),
                         ),
                       ),
                     ),
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
+                      if (value == null ||
+                          value.isEmpty) {
                         return 'Password wajib diisi';
                       }
+
                       if (value.length < 8) {
                         return 'Password minimal 8 karakter';
                       }
+
                       return null;
                     },
                   ),
+
                   if (!isLogin) ...[
                     const SizedBox(height: 22),
+
                     const Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
@@ -297,13 +372,19 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
+
                     const SizedBox(height: 10),
+
                     TextFormField(
-                      controller: _confirmPasswordController,
-                      obscureText: isConfirmPasswordHidden,
+                      controller:
+                          _confirmPasswordController,
+                      obscureText:
+                          isConfirmPasswordHidden,
                       decoration: _inputDecoration(
-                        hintText: 'Ulangi password',
-                        prefixIcon: Icons.lock_outline,
+                        hintText:
+                            'Ulangi password',
+                        prefixIcon:
+                            Icons.lock_outline,
                         suffixIcon: IconButton(
                           onPressed: () {
                             setState(() {
@@ -313,79 +394,133 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                           icon: Icon(
                             isConfirmPasswordHidden
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined,
-                            color: const Color(0xFF9AA1AC),
+                                ? Icons
+                                    .visibility_outlined
+                                : Icons
+                                    .visibility_off_outlined,
+                            color:
+                                const Color(0xFF9AA1AC),
                           ),
                         ),
                       ),
                       validator: (value) {
                         if (!isLogin) {
-                          if (value == null || value.isEmpty) {
+                          if (value == null ||
+                              value.isEmpty) {
                             return 'Konfirmasi password wajib diisi';
                           }
-                          if (value != _passwordController.text) {
+
+                          if (value !=
+                              _passwordController
+                                  .text) {
                             return 'Password tidak sama';
                           }
                         }
+
                         return null;
                       },
                     ),
                   ],
+
                   if (isLogin) ...[
                     const SizedBox(height: 12),
+
                     Align(
-                      alignment: Alignment.centerRight,
+                      alignment:
+                          Alignment.centerRight,
                       child: TextButton(
                         onPressed: () {
-                          Navigator.of(context).push(
+                          Navigator.of(context)
+                              .push(
                             MaterialPageRoute(
-                              builder: (_) => const ForgotPasswordPage(),
-                            ),  
+                              builder: (_) =>
+                                  const ForgotPasswordPage(),
+                            ),
                           );
                         },
                         child: const Text(
                           'Lupa Password?',
                           style: TextStyle(
-                            color: Color(0xFF5F8DFF),
+                            color:
+                                Color(0xFF5F8DFF),
                             fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                            fontWeight:
+                                FontWeight.w500,
                           ),
                         ),
                       ),
                     ),
                   ],
+
                   const SizedBox(height: 8),
+
                   SizedBox(
                     width: double.infinity,
                     height: 58,
                     child: ElevatedButton.icon(
                       onPressed: _submit,
+
                       icon: Icon(
-                        isLogin ? Icons.login : Icons.person_add_alt_1,
+                        isLogin
+                            ? Icons.login
+                            : Icons
+                                .person_add_alt_1,
                         color: Colors.white,
                       ),
+
                       label: Text(
-                        isLogin ? 'Masuk' : 'Daftar',
+                        isLogin
+                            ? 'Masuk'
+                            : 'Daftar',
                         style: const TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.w700,
+                          fontWeight:
+                              FontWeight.w700,
                           color: Colors.white,
                         ),
                       ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF5F8DFF),
-                        elevation: 6,
-                        shadowColor: Colors.black26,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(22),
+
+                      style: ButtonStyle(
+                        backgroundColor:
+                            WidgetStateProperty
+                                .all(
+                          const Color(
+                            0xFF5F8DFF,
+                          ),
+                        ),
+
+                        overlayColor:
+                            WidgetStateProperty
+                                .all(
+                          const Color(
+                            0xFF4D7CFF,
+                          ),
+                        ),
+
+                        elevation:
+                            WidgetStateProperty
+                                .all(6),
+
+                        shape:
+                            WidgetStateProperty
+                                .all(
+                          RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius
+                                    .circular(
+                              22,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
+
                   const SizedBox(height: 34),
+
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment:
+                        MainAxisAlignment.center,
                     children: [
                       Text(
                         isLogin
@@ -396,14 +531,20 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: Color(0xFF5D6470),
                         ),
                       ),
+
                       TextButton(
-                        onPressed: _toggleAuthMode,
+                        onPressed:
+                            _toggleAuthMode,
                         child: Text(
-                          isLogin ? 'Daftar' : 'Masuk',
+                          isLogin
+                              ? 'Daftar'
+                              : 'Masuk',
                           style: const TextStyle(
                             fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF5F8DFF),
+                            fontWeight:
+                                FontWeight.w700,
+                            color:
+                                Color(0xFF5F8DFF),
                           ),
                         ),
                       ),
