@@ -159,7 +159,7 @@ class DummyProfilPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.between,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text('👑 Paket Premium', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                       Container(
@@ -175,7 +175,7 @@ class DummyProfilPage extends StatelessWidget {
                   _buildPremiumCheck('Konsultasi dengan mentor'),
                   const SizedBox(height: 12),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.between,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text('Berlaku hingga\n15 Maret 2026', style: TextStyle(color: Colors.white70, fontSize: 11)),
                       ElevatedButton(
