@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
 
-class PaymentPage extends StatelessWidget {
+class PaymentPage extends StatefulWidget {
   const PaymentPage({super.key});
+
+  @override
+  State<PaymentPage> createState() => _PaymentPageState();
+}
+
+class _PaymentPageState extends State<PaymentPage> {
+
+  bool isExpanded1 = false;
+  bool isExpanded2 = false;
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +43,7 @@ class PaymentPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+
             // ===================== CARD PAKET =====================
             Container(
               width: double.infinity,
@@ -64,7 +74,6 @@ class PaymentPage extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
 
-                          // Badge Aktif
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 10,
@@ -202,6 +211,7 @@ class PaymentPage extends StatelessWidget {
 
             const SizedBox(height: 14),
 
+            // ================= CARD 1 =================
             _buildTransactionCard(
               paket: 'Paket Premium',
               harga: 'Rp 30.000',
@@ -210,10 +220,84 @@ class PaymentPage extends StatelessWidget {
               status: 'Berhasil',
               statusBg: const Color(0xFFDCFCE7),
               statusColor: const Color(0xFF16A34A),
+              expanded: isExpanded1,
+              onTap: () {
+                setState(() {
+                  isExpanded1 = !isExpanded1;
+                });
+              },
+              detailWidget: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'ID Transaksi: INV/20240215/12345',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF6B7280),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  const Text(
+                    'ID Pesanan: #ORDER9876',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF6B7280),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Metode: Transfer Bank BCA',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF6B7280),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  const Text(
+                    'Tanggal Bayar: 15 Feb 2024 14:23 WIB',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF6B7280),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+
+                  Center(
+                    child: SizedBox(
+                      width: 220,
+                      height: 36,
+                      child: ElevatedButton.icon(
+                        onPressed: () {},
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2563EB),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        icon: const Icon(
+                          Icons.download_rounded,
+                          size: 16,
+                          color: Colors.white,
+                        ),
+                        label: const Text(
+                          'Download Invoice',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
 
             const SizedBox(height: 14),
 
+            // ================= CARD 2 =================
             _buildTransactionCard(
               paket: 'Paket Premium',
               harga: 'Rp 30.000',
@@ -222,6 +306,66 @@ class PaymentPage extends StatelessWidget {
               status: 'Menunggu',
               statusBg: const Color(0xFFFEF3C7),
               statusColor: const Color(0xFFD97706),
+              expanded: isExpanded2,
+              onTap: () {
+                setState(() {
+                  isExpanded2 = !isExpanded2;
+                });
+              },
+              detailWidget: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'BCA 123456789 a/n PT Startup',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF6B7280),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  const Text(
+                    'Total: Rp 299.000',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF6B7280),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  const Text(
+                    'Batas bayar: 26 Des 2023 23:59',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF6B7280),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+
+                  Center(
+                    child: SizedBox(
+                      width: 220,
+                      height: 36,
+                      child: ElevatedButton(
+                        onPressed: () {},
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFE5E7EB),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        child: const Text(
+                          'Konfirmasi Pembayaran',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF2563EB),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -275,10 +419,12 @@ class PaymentPage extends StatelessWidget {
     required String status,
     required Color statusBg,
     required Color statusColor,
+    required bool expanded,
+    required VoidCallback onTap,
+    required Widget detailWidget,
   }) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
@@ -288,115 +434,144 @@ class PaymentPage extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Paket Premium',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF111827),
-                ),
-              ),
-              Text(
-                harga,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF111827),
-                ),
-              ),
-            ],
-          ),
 
-          const SizedBox(height: 6),
-
-          Row(
-            children: [
-              Icon(
-                Icons.calendar_today_rounded,
-                size: 14,
-                color: Colors.grey.shade500,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                tanggal,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey.shade500,
-                ),
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: statusBg,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  status,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: statusColor,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 14),
-
-          Divider(
-            color: Colors.grey.shade200,
-            thickness: 1,
-            height: 1,
-          ),
-
-          const SizedBox(height: 14),
-
-          Row(
-            children: [
-              Icon(
-                Icons.credit_card_rounded,
-                size: 16,
-                color: Colors.grey.shade500,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                metode,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-              const Spacer(),
-              InkWell(
-                onTap: () {},
-                child: const Row(
+          // HEADER
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Lihat Detail',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF2563EB),
+                      paket,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF111827),
                       ),
                     ),
-                    SizedBox(width: 2),
-                    Icon(
-                      Icons.chevron_right_rounded,
-                      size: 18,
-                      color: Color(0xFF2563EB),
+                    Text(
+                      harga,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF111827),
+                      ),
                     ),
                   ],
                 ),
-              ),
-            ],
+
+                const SizedBox(height: 6),
+
+                Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today_rounded,
+                      size: 14,
+                      color: Colors.grey.shade500,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      tanggal,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: statusBg,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        status,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: statusColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 14),
+
+                Divider(
+                  color: Colors.grey.shade200,
+                  thickness: 1,
+                  height: 1,
+                ),
+
+                const SizedBox(height: 14),
+
+                Row(
+                  children: [
+                    Icon(
+                      Icons.credit_card_rounded,
+                      size: 16,
+                      color: Colors.grey.shade500,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      metode,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    const Spacer(),
+
+                    InkWell(
+                      onTap: onTap,
+                      child: Row(
+                        children: [
+                          const Text(
+                            'Lihat Detail',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF2563EB),
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+
+                          AnimatedRotation(
+                            turns: expanded ? 0.5 : 0,
+                            duration: const Duration(milliseconds: 200),
+                            child: const Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              size: 18,
+                              color: Color(0xFF2563EB),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // EXPANDED CONTENT
+          AnimatedCrossFade(
+            firstChild: const SizedBox(),
+            secondChild: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: detailWidget,
+            ),
+            crossFadeState: expanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 250),
           ),
         ],
       ),
