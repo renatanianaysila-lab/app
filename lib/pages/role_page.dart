@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:app/routes/index.dart'; 
 
 class RolePage extends StatelessWidget {
   const RolePage({super.key});
@@ -46,6 +47,10 @@ class RolePage extends StatelessWidget {
                 ],
                 buttonText: "Pilih Murid",
                 buttonColor: const Color(0xFF5B8DEF),
+                onTap: () {
+                  // 🔥 Saat tombol murid ditekan, pindah ke dashboard utama
+                  Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
+                },
               ),
 
               const SizedBox(height: 20),
@@ -64,6 +69,10 @@ class RolePage extends StatelessWidget {
                 ],
                 buttonText: "Pilih Guru",
                 buttonColor: const Color(0xFFF4C542),
+                onTap: () {
+                  // Sementara diarahkan ke dashboard juga, atau bisa kamu ganti ke halaman guru nanti
+                  Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
+                },
               ),
 
               const SizedBox(height: 20),
@@ -75,8 +84,8 @@ class RolePage extends StatelessWidget {
                   color: Colors.grey.shade300,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Column(
-                  children: const [
+                child: const Column(
+                  children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -107,7 +116,7 @@ class RolePage extends StatelessWidget {
     );
   }
 
-  /// CARD
+  /// CARD WIDGET (Sudah ditambahkan parameter VoidCallback onTap)
   Widget roleCard({
     required String imagePath,
     required Color colorTop,
@@ -116,6 +125,7 @@ class RolePage extends StatelessWidget {
     required List<String> points,
     required String buttonText,
     required Color buttonColor,
+    required VoidCallback onTap, // 🔥 Parameter baru untuk mendeteksi klik tombol
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -195,16 +205,17 @@ class RolePage extends StatelessWidget {
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: buttonColor,
+                foregroundColor: Colors.white, // Warna teks & ikon panah jadi putih biar kontras
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              onPressed: () {},
+              onPressed: onTap, // 🔥 Memanggil fungsi onTap yang dikirim dari atas
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(buttonText),
+                  Text(buttonText, style: const TextStyle(fontWeight: FontWeight.bold)),
                   const SizedBox(width: 8),
                   const Icon(Icons.arrow_forward),
                 ],
