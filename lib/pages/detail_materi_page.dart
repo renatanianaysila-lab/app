@@ -80,7 +80,7 @@ class DetailMateriPage extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(context),
+      // ─── NAVBAR DOBEL LAMA SUDAH DIHAPUS BERSIH DI SINI ───
     );
   }
 
@@ -107,7 +107,24 @@ class DetailMateriPage extends StatelessWidget {
               ),
             ),
           ),
-          Image.asset('assets/images/lonceng.png', width: 26, height: 26),
+          // 🔥 Lonceng baru: Ukuran lingkaran 46 pas dan presisi!
+          Container(
+            width: 46,
+            height: 46,
+            decoration: const BoxDecoration(
+              color: Color(0xFFEEF2FF),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: Image.asset(
+                'assets/images/loncengfull.png',
+                width: 22,
+                height: 22,
+              ),
+              onPressed: () {},
+              padding: EdgeInsets.zero,
+            ),
+          ),
         ],
       ),
     );
@@ -354,9 +371,7 @@ class DetailMateriPage extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: locked
-                          ? const Color(0xFF9CA3AF)
-                          : const Color(0xFF1A1D2E),
+                      color: locked ? const Color(0xFF9CA3AF) : const Color(0xFF1A1D2E),
                       fontFamily: 'Poppins',
                     ),
                   ),
@@ -449,62 +464,6 @@ class DetailMateriPage extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-
-  // ─── BOTTOM NAV ────────────────────────────────────────
-  Widget _buildBottomNav(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFEBEBEB))),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem('assets/images/home.png', 'Beranda', false),
-          _buildNavItem('assets/images/materinavbar.png', 'Materi', true),
-          _buildNavItem('assets/images/forum.png', 'Forum', false),
-          _buildNavItem('assets/images/history.png', 'Riwayat', false),
-          _buildNavItem('assets/images/profile.png', 'Profil', false),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem(String iconPath, String label, bool isActive) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: isActive
-              ? const EdgeInsets.symmetric(horizontal: 12, vertical: 4)
-              : EdgeInsets.zero,
-          decoration: isActive
-              ? BoxDecoration(
-                  color: const Color(0xFFEEF2FF),
-                  borderRadius: BorderRadius.circular(10),
-                )
-              : null,
-          child: Image.asset(
-            iconPath,
-            width: 22,
-            height: 22,
-            color: isActive ? const Color(0xFF3B72FF) : const Color(0xFF6B7280),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: isActive ? const Color(0xFF3B72FF) : const Color(0xFF6B7280),
-            fontFamily: 'Poppins',
-          ),
-        ),
-      ],
     );
   }
 }

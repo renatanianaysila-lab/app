@@ -195,7 +195,24 @@ class _MateriMuridState extends State<MateriMurid> {
               ),
             ),
           ),
-          Image.asset('assets/images/loncengfull.png', width: 26, height: 26),
+          // 🔥 Disisipkan di sini biar ukuran loncengnya jadi 46 bulat cantik!
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEEF2FF),
+              borderRadius: BorderRadius.circular(50),
+            ),
+            child: IconButton(
+              icon: Image.asset(
+                'assets/images/loncengfull.png',
+                width: 22,
+                height: 22,
+              ),
+              onPressed: () {},
+              padding: EdgeInsets.zero,
+            ),
+          ),
         ],
       ),
     );

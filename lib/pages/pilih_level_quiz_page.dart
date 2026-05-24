@@ -114,7 +114,7 @@ class PilihLevelQuizPage extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(context),
+      // ─── NAVBAR DOBEL LAMA SUDAH DIHAPUS BERSIH DI SINI ───
     );
   }
 
@@ -141,7 +141,24 @@ class PilihLevelQuizPage extends StatelessWidget {
               ),
             ),
           ),
-          Image.asset('assets/images/lonceng.png', width: 26, height: 26),
+          // 🔥 Lonceng baru: Dibungkus Container ukuran 46 pas bulat cantik!
+          Container(
+            width: 46,
+            height: 46,
+            decoration: const BoxDecoration(
+              color: Color(0xFFEEF2FF),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: Image.asset(
+                'assets/images/loncengfull.png',
+                width: 22,
+                height: 22,
+              ),
+              onPressed: () {},
+              padding: EdgeInsets.zero,
+            ),
+          ),
         ],
       ),
     );
@@ -169,9 +186,7 @@ class PilihLevelQuizPage extends StatelessWidget {
         border: Border.all(
           color: isFinal
               ? const Color(0xFFF5A623).withOpacity(0.35)
-              : locked
-                  ? const Color(0xFFE5E7EB)
-                  : const Color(0xFFE5E7EB),
+              : const Color(0xFFE5E7EB),
         ),
         boxShadow: locked
             ? []
@@ -207,9 +222,7 @@ class PilihLevelQuizPage extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w900,
-                            color: locked
-                                ? const Color(0xFF9CA3AF)
-                                : iconColor,
+                            color: locked ? const Color(0xFF9CA3AF) : iconColor,
                             fontFamily: 'Poppins',
                           ),
                         ),
@@ -227,20 +240,15 @@ class PilihLevelQuizPage extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w800,
-                              color: locked
-                                  ? const Color(0xFF9CA3AF)
-                                  : const Color(0xFF1A1D2E),
+                              color: locked ? const Color(0xFF9CA3AF) : const Color(0xFF1A1D2E),
                               fontFamily: 'Poppins',
                             ),
                           ),
                           const SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
-                              color: locked
-                                  ? const Color(0xFFE5E7EB)
-                                  : badgeColor.withOpacity(0.15),
+                              color: locked ? const Color(0xFFE5E7EB) : badgeColor.withOpacity(0.15),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -248,9 +256,7 @@ class PilihLevelQuizPage extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w800,
-                                color: locked
-                                    ? const Color(0xFF9CA3AF)
-                                    : badgeColor,
+                                color: locked ? const Color(0xFF9CA3AF) : badgeColor,
                                 fontFamily: 'Poppins',
                                 letterSpacing: 0.5,
                               ),
@@ -261,8 +267,7 @@ class PilihLevelQuizPage extends StatelessWidget {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          const Icon(Icons.quiz_outlined,
-                              size: 13, color: Color(0xFF9CA3AF)),
+                          const Icon(Icons.quiz_outlined, size: 13, color: Color(0xFF9CA3AF)),
                           const SizedBox(width: 4),
                           Text(
                             '${level['soal']} Soal',
@@ -274,8 +279,7 @@ class PilihLevelQuizPage extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 10),
-                          const Icon(Icons.timer_outlined,
-                              size: 13, color: Color(0xFF9CA3AF)),
+                          const Icon(Icons.timer_outlined, size: 13, color: Color(0xFF9CA3AF)),
                           const SizedBox(width: 4),
                           Text(
                             '${level['durasi']}',
@@ -337,10 +341,8 @@ class PilihLevelQuizPage extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: locked ? null : () {},
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      locked ? const Color(0xFFE5E7EB) : const Color(0xFF3B72FF),
-                  foregroundColor:
-                      locked ? const Color(0xFF9CA3AF) : Colors.white,
+                  backgroundColor: locked ? const Color(0xFFE5E7EB) : const Color(0xFF3B72FF),
+                  foregroundColor: locked ? const Color(0xFF9CA3AF) : Colors.white,
                   disabledBackgroundColor: const Color(0xFFE5E7EB),
                   disabledForegroundColor: const Color(0xFF9CA3AF),
                   padding: const EdgeInsets.symmetric(vertical: 13),
@@ -392,62 +394,6 @@ class PilihLevelQuizPage extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  // ─── BOTTOM NAV ────────────────────────────────────────
-  Widget _buildBottomNav(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFEBEBEB))),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem('assets/images/home.png', 'Beranda', false),
-          _buildNavItem('assets/images/materinavbar.png', 'Materi', true),
-          _buildNavItem('assets/images/forum.png', 'Forum', false),
-          _buildNavItem('assets/images/history.png', 'Riwayat', false),
-          _buildNavItem('assets/images/profile.png', 'Profil', false),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem(String iconPath, String label, bool isActive) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: isActive
-              ? const EdgeInsets.symmetric(horizontal: 12, vertical: 4)
-              : EdgeInsets.zero,
-          decoration: isActive
-              ? BoxDecoration(
-                  color: const Color(0xFFEEF2FF),
-                  borderRadius: BorderRadius.circular(10),
-                )
-              : null,
-          child: Image.asset(
-            iconPath,
-            width: 22,
-            height: 22,
-            color: isActive ? const Color(0xFF3B72FF) : const Color(0xFF6B7280),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: isActive ? const Color(0xFF3B72FF) : const Color(0xFF6B7280),
-            fontFamily: 'Poppins',
-          ),
-        ),
-      ],
     );
   }
 }
