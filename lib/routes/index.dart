@@ -3,14 +3,14 @@ import 'package:app/pages/splash_screen.dart';
 import 'package:app/pages/login_screen.dart';
 import 'package:app/pages/sign_up_page.dart';
 import 'package:app/pages/forgot_password_page.dart';
-import 'package:app/pages/role_page.dart';
-import 'package:app/pages/main_navigation.dart'; // 🔥 1. Import file navigasi baru kita
+import 'package:app/pages/beranda_murid.dart';
+import 'package:app/pages/payment_page.dart';
 import 'auth_route.dart';
+import 'package:app/pages/role_page.dart';
 
 class AppRoutes {
   static const String splash = '/';
   static const String home = '/home';
-  static const String dashboard = '/dashboard'; // 🔥 2. Tambahkan string rute dashboard baru
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -41,13 +41,6 @@ class AppRoutes {
       case home:
         return MaterialPageRoute(
           builder: (_) => const RolePage(),
-          settings: settings,
-        );
-
-      // 🔥 3. Daftarkan rute dashboard agar mengarah ke MainNavigation
-      case dashboard:
-        return MaterialPageRoute(
-          builder: (_) => const MainNavigation(),
           settings: settings,
         );
 
