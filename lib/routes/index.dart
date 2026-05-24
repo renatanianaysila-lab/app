@@ -3,8 +3,6 @@ import 'package:app/pages/splash_screen.dart';
 import 'package:app/pages/login_screen.dart';
 import 'package:app/pages/sign_up_page.dart';
 import 'package:app/pages/forgot_password_page.dart';
-import 'package:app/pages/beranda_murid.dart';
-import 'package:app/pages/payment_page.dart';
 import 'auth_route.dart';
 import 'package:app/pages/role_page.dart';
 
