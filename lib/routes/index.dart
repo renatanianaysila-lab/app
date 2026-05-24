@@ -4,6 +4,7 @@ import 'package:app/pages/login_screen.dart';
 import 'package:app/pages/sign_up_page.dart';
 import 'package:app/pages/forgot_password_page.dart';
 import 'package:app/pages/home_page.dart';
+import 'package:app/pages/payment_page.dart';
 import 'auth_route.dart';
 
 class AppRoutes {

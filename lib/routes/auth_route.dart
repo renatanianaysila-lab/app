@@ -3,3 +3,7 @@ class AuthRoute {
   static const String signUp = '/sign-up';
   static const String forgotPassword = '/forgot-password';
 }
+
+class PaymentRoute {
+  static const String payment = '/payment';
+}
