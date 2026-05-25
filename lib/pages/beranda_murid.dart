@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'materi_murid.dart';
+import 'profil_page.dart';
+import 'riwayat_page.dart';
 
 class BerandaMurid extends StatelessWidget {
   const BerandaMurid({super.key});
@@ -83,10 +85,10 @@ class BerandaMurid extends StatelessWidget {
           ],
         ),
       ),
+      bottomNavigationBar: _buildBottomNav(context),
     );
   }
 
-  // ─── TOP BAR ───────────────────────────────────────────
   Widget _buildTopBar() {
     return Container(
       color: Colors.white,
@@ -96,10 +98,12 @@ class BerandaMurid extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(50),
             child: Image.asset(
-              'assets/images/user.png',
+              'assets/images/murid.png',
               width: 44,
               height: 44,
               fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) =>
+                  const CircleAvatar(child: Icon(Icons.person)),
             ),
           ),
           const SizedBox(width: 10),
@@ -129,17 +133,19 @@ class BerandaMurid extends StatelessWidget {
             ),
           ),
           Container(
-            width: 46,
-            height: 46,
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
               color: const Color(0xFFEEF2FF),
               borderRadius: BorderRadius.circular(50),
             ),
             child: IconButton(
               icon: Image.asset(
-                'assets/images/loncengfull.png',
+                'assets/images/lonceng.png',
                 width: 22,
                 height: 22,
+                errorBuilder: (_, __, ___) =>
+                    const Icon(Icons.notifications_none, color: Color(0xFF3B72FF)),
               ),
               onPressed: () {},
               padding: EdgeInsets.zero,
@@ -150,7 +156,6 @@ class BerandaMurid extends StatelessWidget {
     );
   }
 
-  // ─── HERO BANNER ───────────────────────────────────────
   Widget _buildHeroBanner() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -187,8 +192,10 @@ class BerandaMurid extends StatelessWidget {
             ),
             padding: const EdgeInsets.all(10),
             child: Image.asset(
-              'assets/images/user.png',
+              'assets/images/img.png',
               fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) =>
+                  const Icon(Icons.sign_language, color: Colors.white, size: 32),
             ),
           ),
         ],
@@ -196,7 +203,6 @@ class BerandaMurid extends StatelessWidget {
     );
   }
 
-  // ─── CTA BUTTON ────────────────────────────────────────
   Widget _buildCTAButton(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -206,7 +212,8 @@ class BerandaMurid extends StatelessWidget {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const MateriMurid(initialLevel: 'Beginner')),
+              MaterialPageRoute(
+                  builder: (_) => const MateriMurid(initialLevel: 'Beginner')),
             );
           },
           style: ElevatedButton.styleFrom(
@@ -231,7 +238,6 @@ class BerandaMurid extends StatelessWidget {
     );
   }
 
-  // ─── LEVEL CARD ────────────────────────────────────────
   Widget _buildLevelCard(BuildContext context, Map<String, dynamic> level) {
     final bool locked = level['locked'] as bool;
     final double progress = level['progress'] as double;
@@ -257,16 +263,12 @@ class BerandaMurid extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header row
           Row(
             children: [
               Container(
                 width: 36,
                 height: 36,
-                decoration: BoxDecoration(
-                  color: bgColor,
-                  shape: BoxShape.circle,
-                ),
+                decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
                 alignment: Alignment.center,
                 child: Text(
                   '${level['number']}',
@@ -282,24 +284,14 @@ class BerandaMurid extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    level['title'],
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF1A1D2E),
-                      fontFamily: 'Poppins',
-                    ),
-                  ),
-                  Text(
-                    level['subtitle'],
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF6B7280),
-                      fontFamily: 'Poppins',
-                    ),
-                  ),
+                  Text(level['title'],
+                      style: const TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.w800,
+                          color: Color(0xFF1A1D2E), fontFamily: 'Poppins')),
+                  Text(level['subtitle'],
+                      style: const TextStyle(
+                          fontSize: 11, fontWeight: FontWeight.w500,
+                          color: Color(0xFF6B7280), fontFamily: 'Poppins')),
                 ],
               ),
               const Spacer(),
@@ -310,70 +302,40 @@ class BerandaMurid extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: 14),
           const Divider(height: 1, color: Color(0xFFEBEBEB)),
           const SizedBox(height: 14),
-
-          // Stats row
           Row(
             children: [
-              _buildStat(
-                iconPath: 'assets/images/materi.png',
-                label: 'Materi',
-                value: '${level['materi']} Topik',
-                color: color,
-              ),
+              _buildStat(icon: Icons.menu_book, label: 'Materi',
+                  value: '${level['materi']} Topik', color: color),
               const SizedBox(width: 24),
-              _buildStat(
-                iconPath: 'assets/images/materinavbar.png',
-                label: 'Bank Soal',
-                value: '${level['soal']} Soal',
-                color: color,
-              ),
+              _buildStat(icon: Icons.quiz, label: 'Bank Soal',
+                  value: '${level['soal']} Soal', color: color),
             ],
           ),
-
           const SizedBox(height: 14),
-
-          // Progress bar
           Row(
             children: [
-              const Text(
-                'Progress',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF6B7280),
-                  fontFamily: 'Poppins',
-                ),
-              ),
+              const Text('Progress',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
+                      color: Color(0xFF6B7280), fontFamily: 'Poppins')),
               const Spacer(),
-              Text(
-                '$progressPercent%',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: color,
-                  fontFamily: 'Poppins',
-                ),
-              ),
+              Text('$progressPercent%',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800,
+                      color: color, fontFamily: 'Poppins')),
             ],
           ),
           const SizedBox(height: 6),
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 8,
+              value: progress, minHeight: 8,
               backgroundColor: const Color(0xFFEBEBEB),
               valueColor: AlwaysStoppedAnimation<Color>(color),
             ),
           ),
-
           const SizedBox(height: 14),
-
-          // Mulai Belajar button
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -384,34 +346,26 @@ class BerandaMurid extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (_) => MateriMurid(
-                            initialLevel: level['title'] as String,
-                          ),
+                              initialLevel: level['title'] as String),
                         ),
                       );
                     },
               style: ElevatedButton.styleFrom(
                 backgroundColor: locked ? const Color(0xFFEBEBEB) : color,
-                foregroundColor:
-                    locked ? const Color(0xFF6B7280) : Colors.white,
+                foregroundColor: locked ? const Color(0xFF6B7280) : Colors.white,
                 disabledBackgroundColor: const Color(0xFFEBEBEB),
                 disabledForegroundColor: const Color(0xFF6B7280),
                 padding: const EdgeInsets.symmetric(vertical: 13),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
+                    borderRadius: BorderRadius.circular(14)),
                 elevation: 0,
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    locked ? 'Terkunci' : 'Mulai Belajar',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      fontFamily: 'Poppins',
-                    ),
-                  ),
+                  Text(locked ? 'Terkunci' : 'Mulai Belajar',
+                      style: const TextStyle(fontSize: 14,
+                          fontWeight: FontWeight.w800, fontFamily: 'Poppins')),
                   if (!locked) ...[
                     const SizedBox(width: 6),
                     const Icon(Icons.arrow_forward, size: 16),
@@ -426,44 +380,94 @@ class BerandaMurid extends StatelessWidget {
   }
 
   Widget _buildStat({
-    required String iconPath,
+    required IconData icon,
     required String label,
     required String value,
     required Color color,
   }) {
     return Row(
       children: [
-        Image.asset(
-          iconPath,
-          width: 16,
-          height: 16,
-          color: color,
-        ),
+        Icon(icon, size: 16, color: color),
         const SizedBox(width: 6),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF6B7280),
-                fontFamily: 'Poppins',
-              ),
-            ),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF1A1D2E),
-                fontFamily: 'Poppins',
-              ),
-            ),
+            Text(label,
+                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500,
+                    color: Color(0xFF6B7280), fontFamily: 'Poppins')),
+            Text(value,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800,
+                    color: Color(0xFF1A1D2E), fontFamily: 'Poppins')),
           ],
         ),
       ],
+    );
+  }
+
+  // ─── BOTTOM NAV ────────────────────────────────────────
+  Widget _buildBottomNav(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Color(0xFFEBEBEB))),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildNavItem(context, 'assets/images/home.png', 'Beranda', true, null),
+          _buildNavItem(context, 'assets/images/materinavbar.png', 'Materi', false, () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const MateriMurid()));
+          }),
+          _buildNavItem(context, 'assets/images/forum.png', 'Forum', false, null),
+          _buildNavItem(context, 'assets/images/history.png', 'Riwayat', false, () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const RiwayatPage()));
+          }),
+          _buildNavItem(context, 'assets/images/profile.png', 'Profil', false, () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const ProfilPage()));
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavItem(BuildContext context, String iconPath, String label,
+      bool isActive, VoidCallback? onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: isActive
+                ? const EdgeInsets.symmetric(horizontal: 12, vertical: 4)
+                : EdgeInsets.zero,
+            decoration: isActive
+                ? BoxDecoration(
+                    color: const Color(0xFFEEF2FF),
+                    borderRadius: BorderRadius.circular(10))
+                : null,
+            child: Image.asset(
+              iconPath,
+              width: 22,
+              height: 22,
+              color: isActive ? const Color(0xFF3B72FF) : const Color(0xFF6B7280),
+              errorBuilder: (_, __, ___) => Icon(Icons.circle,
+                  size: 22,
+                  color: isActive ? const Color(0xFF3B72FF) : const Color(0xFF6B7280)),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(label,
+              style: TextStyle(
+                  fontSize: 11, fontWeight: FontWeight.w700,
+                  color: isActive ? const Color(0xFF3B72FF) : const Color(0xFF6B7280),
+                  fontFamily: 'Poppins')),
+        ],
+      ),
     );
   }
 }
