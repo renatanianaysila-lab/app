@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'edit_profil_page.dart'; // 🔥 Mengenalkan file edit profil baru
+import 'edit_profil_page.dart'; // 🔥 Tetap mengarah ke file form terpisah
 
 class ProfilPage extends StatefulWidget {
   const ProfilPage({super.key});
@@ -142,9 +142,8 @@ class _ProfilPageState extends State<ProfilPage> {
           const SizedBox(height: 14),
           ElevatedButton.icon(
             onPressed: () {
-              // 🔥 Sekarang transisinya dijamin langsung loncat ke form edit!
-              Navigator.push(
-                context,
+              // 🔥 Menggunakan rootNavigator tembus tumpukan utama navbar kelompok
+              Navigator.of(context, rootNavigator: true).push(
                 MaterialPageRoute(builder: (context) => const EditProfilPage()),
               );
             },
@@ -248,9 +247,8 @@ class _ProfilPageState extends State<ProfilPage> {
         InkWell(
           borderRadius: BorderRadius.circular(18),
           onTap: () {
-            // 🔥 Baris list pribadi ini juga lancar jaya buat diklik!
-            Navigator.push(
-              context,
+            // 🔥 Baris list pribadi ini juga menggunakan rootNavigator
+            Navigator.of(context, rootNavigator: true).push(
               MaterialPageRoute(builder: (context) => const EditProfilPage()),
             );
           },
@@ -565,7 +563,6 @@ class _ProfilPageState extends State<ProfilPage> {
   Widget _buildNavItem(BuildContext context, String iconPath, String label, bool isActive) {
     return GestureDetector(
       onTap: isActive ? null : () {
-        // 🔥 Navigasi aman untuk tombol menu bar bawah lainnya
         Navigator.pop(context);
       },
       child: Column(
