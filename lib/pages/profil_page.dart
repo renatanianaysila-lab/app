@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
-import 'edit_profil_page.dart'; // 🔥 Import file edit profil baru
+import 'edit_profil_page.dart'; // 🔥 Mengenalkan file edit profil baru
 
-class ProfilPage extends StatelessWidget {
+class ProfilPage extends StatefulWidget {
   const ProfilPage({super.key});
 
+  @override
+  State<ProfilPage> createState() => _ProfilPageState();
+}
+
+class _ProfilPageState extends State<ProfilPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,9 +24,9 @@ class ProfilPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 24),
-                    _buildAvatarSection(context), // 💡 Dioper context agar bisa pindah halaman
+                    _buildAvatarSection(context), 
                     const SizedBox(height: 24),
-                    _buildInfoPribadi(context),  // 💡 Dioper context agar bisa pindah halaman
+                    _buildInfoPribadi(context),  
                     const SizedBox(height: 20),
                     _buildPaketAktif(),
                     const SizedBox(height: 24),
@@ -90,6 +95,7 @@ class ProfilPage extends StatelessWidget {
                   child: Image.asset(
                     'assets/images/user.png',
                     fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 50),
                   ),
                 ),
               ),
@@ -136,10 +142,10 @@ class ProfilPage extends StatelessWidget {
           const SizedBox(height: 14),
           ElevatedButton.icon(
             onPressed: () {
-              // 🔥 Halaman berpindah ke edit profil pas tombol biru diklik!
+              // 🔥 Sekarang transisinya dijamin langsung loncat ke form edit!
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const EditProfilPage()),
+                MaterialPageRoute(builder: (context) => const EditProfilPage()),
               );
             },
             icon: const Icon(Icons.edit, size: 16),
@@ -242,10 +248,10 @@ class ProfilPage extends StatelessWidget {
         InkWell(
           borderRadius: BorderRadius.circular(18),
           onTap: () {
-            // 🔥 Baris list pribadi ini sekarang juga bisa diklik untuk edit
+            // 🔥 Baris list pribadi ini juga lancar jaya buat diklik!
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const EditProfilPage()),
+              MaterialPageRoute(builder: (context) => const EditProfilPage()),
             );
           },
           child: Padding(
@@ -264,6 +270,7 @@ class ProfilPage extends StatelessWidget {
                     iconPath,
                     fit: BoxFit.contain,
                     color: const Color(0xFF3B72FF),
+                    errorBuilder: (_, __, ___) => const Icon(Icons.info, color: Color(0xFF3B72FF)),
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -557,7 +564,10 @@ class ProfilPage extends StatelessWidget {
 
   Widget _buildNavItem(BuildContext context, String iconPath, String label, bool isActive) {
     return GestureDetector(
-      onTap: isActive ? null : () => Navigator.pop(context),
+      onTap: isActive ? null : () {
+        // 🔥 Navigasi aman untuk tombol menu bar bawah lainnya
+        Navigator.pop(context);
+      },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
