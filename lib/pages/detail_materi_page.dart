@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'pilih_level_quiz_page.dart';
+import 'video_player_widget.dart'; // 🔥 Import widget player youtube yang baru
 
 class DetailMateriPage extends StatelessWidget {
   final String title;
@@ -41,6 +42,8 @@ class DetailMateriPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
+                    
+                    // ─── TOMBOL PELAJARI (DENGAN LOGIKA VIDEO YOUTUBE) ───
                     _buildMateriItem(
                       icon: 'A',
                       iconBg: const Color(0xFFEEF2FF),
@@ -48,9 +51,36 @@ class DetailMateriPage extends StatelessWidget {
                       title: 'Pelajari',
                       subtitle: 'Video Pembelajaran Interaktif',
                       locked: false,
-                      onTap: () {},
+                      onTap: () {
+                        // 1. Set video default (untuk kategori Abjad A-Z)
+                        String targetUrl = 'https://youtu.be/Py6Ch1vBvL0?si=_uvNg0de10GJ7Aa5';
+                        String targetTitle = 'ABJAD JARI BISINDO';
+
+                        // 2. Cek jika halaman yang dibuka adalah Angka 1-10
+                        if (title == 'Angka 1-10') {
+                          targetUrl = 'https://youtu.be/5UN60jB4eKg?si=IozPkqVxXs36zXE5';
+                          targetTitle = 'Belajar Bahasa Isyarat BISINDO angka';
+                        } 
+                        // 3. Cek jika halaman yang dibuka adalah Ekspresi
+                        else if (title == 'Ekspresi') {
+                          targetUrl = 'https://youtu.be/50oEnzX2GtE?si=aEJO3Y_8jRA7QK37';
+                          targetTitle = 'Kata "ISTIMEWA" dalan Bahasa Isyarat BISINDO';
+                        }
+
+                        // 4. Buka halaman player bawa data url + judul yang pas!
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => VideoPlayerWidget(
+                              title: targetTitle,
+                              videoUrl: targetUrl,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 10),
+                    
                     _buildMateriItem(
                       icon: '#',
                       iconBg: const Color(0xFFE8F9F0),
@@ -80,11 +110,10 @@ class DetailMateriPage extends StatelessWidget {
           ],
         ),
       ),
-      // ─── NAVBAR DOBEL LAMA SUDAH DIHAPUS BERSIH DI SINI ───
     );
   }
 
-  // ─── TOP BAR ───────────────────────────────────────────
+  // ─── TOP BAR (LONCENG 46 BULAT CANTIK) ─────────────────
   Widget _buildTopBar(BuildContext context) {
     return Container(
       color: Colors.white,
@@ -107,7 +136,7 @@ class DetailMateriPage extends StatelessWidget {
               ),
             ),
           ),
-          // 🔥 Lonceng baru: Ukuran lingkaran 46 pas dan presisi!
+          // 🔥 Lonceng bulat ukuran 46 pas presisi
           Container(
             width: 46,
             height: 46,
@@ -149,7 +178,6 @@ class DetailMateriPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Badge level selesai
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
             decoration: BoxDecoration(
@@ -186,9 +214,13 @@ class DetailMateriPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    const Text(
-                      'Pelajari alfabet dasar dalam bahasa isyarat',
-                      style: TextStyle(
+                    Text(
+                      title == 'Abjad A-Z'
+                          ? 'Pelajari alfabet dasar dalam bahasa isyarat'
+                          : title == 'Angka 1-10'
+                              ? 'Pelajari angka dasar 1 sampai 10 dalam bahasa isyarat'
+                              : 'Pelajari ekspresi wajah dan isyarat sehari-hari',
+                      style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                         color: Color(0xFF6B7280),
@@ -218,7 +250,6 @@ class DetailMateriPage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          // Progress bar
           Row(
             children: [
               const Text(
@@ -313,7 +344,7 @@ class DetailMateriPage extends StatelessWidget {
     );
   }
 
-  // ─── MATERI ITEM ───────────────────────────────────────
+  // ─── MATERI ITEM BUILDER ───────────────────────────────
   Widget _buildMateriItem({
     required String icon,
     required Color iconBg,
