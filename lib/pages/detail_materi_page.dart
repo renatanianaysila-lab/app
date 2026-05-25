@@ -52,32 +52,32 @@ class DetailMateriPage extends StatelessWidget {
                       subtitle: 'Video Pembelajaran Interaktif',
                       locked: false,
                       onTap: () {
-                        // 1. Set video default (untuk kategori Abjad A-Z)
-                        String targetUrl = 'https://youtu.be/Py6Ch1vBvL0?si=_uvNg0de10GJ7Aa5';
-                        String targetTitle = 'ABJAD JARI BISINDO';
+  // 1. Tetapkan video default (untuk kategori Abjad A-Z)
+  String targetUrl = 'https://youtu.be/Py6Ch1vBvL0?si=_uvNg0de10GJ7Aa5';
+  String targetTitle = 'ABJAD JARI BISINDO';
 
-                        // 2. Cek jika halaman yang dibuka adalah Angka 1-10
-                        if (title == 'Angka 1-10') {
-                          targetUrl = 'https://youtu.be/5UN60jB4eKg?si=IozPkqVxXs36zXE5';
-                          targetTitle = 'Belajar Bahasa Isyarat BISINDO angka';
-                        } 
-                        // 3. Cek jika halaman yang dibuka adalah Ekspresi
-                        else if (title == 'Ekspresi') {
-                          targetUrl = 'https://youtu.be/50oEnzX2GtE?si=aEJO3Y_8jRA7QK37';
-                          targetTitle = 'Kata "ISTIMEWA" dalan Bahasa Isyarat BISINDO';
-                        }
+  // 2. Deteksi kata 'Angka' (Bisa membaca Angka 1-10 maupun Angka dalam Bahasa Isyarat 1-100)
+  if (title.contains('Angka')) {
+    targetUrl = 'https://youtu.be/5UN60jB4eKg?si=IozPkqVxXs36zXE5';
+    targetTitle = 'Belajar Bahasa Isyarat BISINDO angka';
+  } 
+  // 3. Deteksi kata 'Ekspresi'
+  else if (title.contains('Ekspresi')) {
+    targetUrl = 'https://youtu.be/50oEnzX2GtE?si=aEJO3Y_8jRA7QK37';
+    targetTitle = 'Kata "ISTIMEWA" dalan Bahasa Isyarat BISINDO';
+  }
 
-                        // 4. Buka halaman player bawa data url + judul yang pas!
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => VideoPlayerWidget(
-                              title: targetTitle,
-                              videoUrl: targetUrl,
-                            ),
-                          ),
-                        );
-                      },
+  // 4. Buka halaman player bawa data url + judul yang pas
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => VideoPlayerWidget(
+        title: targetTitle,
+        videoUrl: targetUrl,
+      ),
+    ),
+  );
+},
                     ),
                     const SizedBox(height: 10),
                     
