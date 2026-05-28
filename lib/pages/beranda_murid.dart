@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'materi_murid.dart';
 
 class BerandaMurid extends StatelessWidget {
   const BerandaMurid({super.key});
@@ -10,10 +11,7 @@ class BerandaMurid extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // TOP BAR
             _buildTopBar(),
-
-            // SCROLL CONTENT
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.only(bottom: 20),
@@ -21,18 +19,10 @@ class BerandaMurid extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 16),
-
-                    // HERO BANNER
                     _buildHeroBanner(),
-
                     const SizedBox(height: 16),
-
-                    // MULAI BELAJAR BUTTON
-                    _buildCTAButton(),
-
+                    _buildCTAButton(context),
                     const SizedBox(height: 20),
-
-                    // MATERI SECTION TITLE
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16),
                       child: Text(
@@ -45,11 +35,9 @@ class BerandaMurid extends StatelessWidget {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 12),
-
-                    // MATERI LIST
                     _buildMateriCard(
+                      context: context,
                       iconPath: 'assets/images/A.png',
                       iconBg: const Color(0xFFEEF2FF),
                       title: 'Abjad A–Z',
@@ -58,6 +46,7 @@ class BerandaMurid extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     _buildMateriCard(
+                      context: context,
                       iconPath: 'assets/images/#.png',
                       iconBg: const Color(0xFFE8F9F0),
                       title: 'Angka 1–10',
@@ -66,6 +55,7 @@ class BerandaMurid extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     _buildMateriCard(
+                      context: context,
                       iconPath: 'assets/images/ekspresi.png',
                       iconBg: const Color(0xFFFFF8EC),
                       title: 'Ekspresi Dasar',
@@ -74,6 +64,7 @@ class BerandaMurid extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     _buildMateriCard(
+                      context: context,
                       iconPath: 'assets/images/percakapan.png',
                       iconBg: const Color(0xFFF5EEFF),
                       title: 'Percakapan Dasar',
@@ -87,9 +78,7 @@ class BerandaMurid extends StatelessWidget {
           ],
         ),
       ),
-
-      // BOTTOM NAVIGATION
-      bottomNavigationBar: _buildBottomNav(),
+      bottomNavigationBar: _buildBottomNav(context),
     );
   }
 
@@ -100,7 +89,6 @@ class BerandaMurid extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          // Avatar
           ClipRRect(
             borderRadius: BorderRadius.circular(50),
             child: Image.asset(
@@ -111,8 +99,6 @@ class BerandaMurid extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-
-          // Greeting
           const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,25 +124,24 @@ class BerandaMurid extends StatelessWidget {
               ],
             ),
           ),
-
-          // Notif button
+          // Notif button — ukuran normal
           Container(
-  width: 70,
-  height: 70,
-  decoration: BoxDecoration(
-    color: const Color(0xFFEEF2FF),
-    borderRadius: BorderRadius.circular(50),
-  ),
-  child: IconButton(
-    icon: Image.asset(
-      'assets/images/lonceng.png',
-      width: 60,
-      height: 60,
-    ),
-    onPressed: () {},
-    padding: EdgeInsets.zero,
-  ),
-),
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEEF2FF),
+              borderRadius: BorderRadius.circular(50),
+            ),
+            child: IconButton(
+              icon: Image.asset(
+                'assets/images/lonceng.png',
+                width: 22,
+                height: 22,
+              ),
+              onPressed: () {},
+              padding: EdgeInsets.zero,
+            ),
+          ),
         ],
       ),
     );
@@ -177,7 +162,6 @@ class BerandaMurid extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Text
           const Expanded(
             child: Text(
               'Mulai perjalanan belajar bahasa isyarat dan jadikan komunikasi lebih inklusif.',
@@ -191,8 +175,6 @@ class BerandaMurid extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-
-          // Hand icon
           Container(
             width: 62,
             height: 62,
@@ -212,13 +194,18 @@ class BerandaMurid extends StatelessWidget {
   }
 
   // ─── CTA BUTTON ────────────────────────────────────────
-  Widget _buildCTAButton() {
+  Widget _buildCTAButton(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: SizedBox(
         width: double.infinity,
         child: ElevatedButton(
-          onPressed: () {},
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const MateriMurid()),
+            );
+          },
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF3B72FF),
             foregroundColor: Colors.white,
@@ -243,6 +230,7 @@ class BerandaMurid extends StatelessWidget {
 
   // ─── MATERI CARD ───────────────────────────────────────
   Widget _buildMateriCard({
+    required BuildContext context,
     required String iconPath,
     required Color iconBg,
     required String title,
@@ -265,7 +253,6 @@ class BerandaMurid extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Icon
           Container(
             width: 48,
             height: 48,
@@ -277,8 +264,6 @@ class BerandaMurid extends StatelessWidget {
             child: Image.asset(iconPath, fit: BoxFit.contain),
           ),
           const SizedBox(width: 14),
-
-          // Title & subtitle
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -306,12 +291,14 @@ class BerandaMurid extends StatelessWidget {
               ],
             ),
           ),
-
           const SizedBox(width: 10),
-
-          // Mulai button
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const MateriMurid()),
+              );
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: btnColor,
               foregroundColor: Colors.white,
@@ -338,7 +325,7 @@ class BerandaMurid extends StatelessWidget {
   }
 
   // ─── BOTTOM NAV ────────────────────────────────────────
-  Widget _buildBottomNav() {
+  Widget _buildBottomNav(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -348,48 +335,61 @@ class BerandaMurid extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildNavItem('assets/images/home.png', 'Beranda', true),
-          _buildNavItem('assets/images/materi.png', 'Materi', false),
-          _buildNavItem('assets/images/forum.png', 'Forum', false),
-          _buildNavItem('assets/images/history.png', 'Riwayat', false),
-          _buildNavItem('assets/images/profile.png', 'Profil', false),
+          _buildNavItem('assets/images/home.png', 'Beranda', true, null),
+          _buildNavItem('assets/images/materinavbar.png', 'Materi', false, () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const MateriMurid()),
+            );
+          }),
+          _buildNavItem('assets/images/forum.png', 'Forum', false, null),
+          _buildNavItem('assets/images/history.png', 'Riwayat', false, null),
+          _buildNavItem('assets/images/profile.png', 'Profil', false, null),
         ],
       ),
     );
   }
 
-  Widget _buildNavItem(String iconPath, String label, bool isActive) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: isActive
-              ? const EdgeInsets.symmetric(horizontal: 12, vertical: 4)
-              : EdgeInsets.zero,
-          decoration: isActive
-              ? BoxDecoration(
-                  color: const Color(0xFFEEF2FF),
-                  borderRadius: BorderRadius.circular(10),
-                )
-              : null,
-          child: Image.asset(
-            iconPath,
-            width: 22,
-            height: 22,
-            color: isActive ? const Color(0xFF3B72FF) : const Color(0xFF6B7280),
+  Widget _buildNavItem(
+      String iconPath, String label, bool isActive, VoidCallback? onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: isActive
+                ? const EdgeInsets.symmetric(horizontal: 12, vertical: 4)
+                : EdgeInsets.zero,
+            decoration: isActive
+                ? BoxDecoration(
+                    color: const Color(0xFFEEF2FF),
+                    borderRadius: BorderRadius.circular(10),
+                  )
+                : null,
+            child: Image.asset(
+              iconPath,
+              width: 22,
+              height: 22,
+              color: isActive
+                  ? const Color(0xFF3B72FF)
+                  : const Color(0xFF6B7280),
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: isActive ? const Color(0xFF3B72FF) : const Color(0xFF6B7280),
-            fontFamily: 'Poppins',
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: isActive
+                  ? const Color(0xFF3B72FF)
+                  : const Color(0xFF6B7280),
+              fontFamily: 'Poppins',
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
