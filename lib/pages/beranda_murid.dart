@@ -1,44 +1,7 @@
 import 'package:flutter/material.dart';
-import 'materi_murid.dart';
 
 class BerandaMurid extends StatelessWidget {
   const BerandaMurid({super.key});
-
-  final List<Map<String, dynamic>> levels = const [
-    {
-      'number': 1,
-      'title': 'Beginner',
-      'subtitle': 'Level Dasar',
-      'materi': 12,
-      'soal': 120,
-      'progress': 0.75,
-      'locked': false,
-      'color': Color(0xFF3B72FF),
-      'bgColor': Color(0xFFEEF2FF),
-    },
-    {
-      'number': 2,
-      'title': 'Intermediate',
-      'subtitle': 'Level Menengah',
-      'materi': 18,
-      'soal': 180,
-      'progress': 0.45,
-      'locked': false,
-      'color': Color(0xFF4CAF7D),
-      'bgColor': Color(0xFFE8F9F0),
-    },
-    {
-      'number': 3,
-      'title': 'Advanced',
-      'subtitle': 'Level Lanjutan',
-      'materi': 24,
-      'soal': 240,
-      'progress': 0.0,
-      'locked': true,
-      'color': Color(0xFF9B59B6),
-      'bgColor': Color(0xFFF5EEFF),
-    },
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +10,10 @@ class BerandaMurid extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
+            // TOP BAR
             _buildTopBar(),
+
+            // SCROLL CONTENT
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.only(bottom: 20),
@@ -55,14 +21,22 @@ class BerandaMurid extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 16),
+
+                    // HERO BANNER
                     _buildHeroBanner(),
+
                     const SizedBox(height: 16),
-                    _buildCTAButton(context),
-                    const SizedBox(height: 24),
+
+                    // MULAI BELAJAR BUTTON
+                    _buildCTAButton(),
+
+                    const SizedBox(height: 20),
+
+                    // MATERI SECTION TITLE
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16),
                       child: Text(
-                        'Level Pembelajaran',
+                        'Materi untuk Pemula',
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w900,
@@ -71,11 +45,41 @@ class BerandaMurid extends StatelessWidget {
                         ),
                       ),
                     ),
+
                     const SizedBox(height: 12),
-                    ...levels.map((level) => Padding(
-                          padding: const EdgeInsets.only(bottom: 14),
-                          child: _buildLevelCard(context, level),
-                        )),
+
+                    // MATERI LIST
+                    _buildMateriCard(
+                      iconPath: 'assets/images/A.png',
+                      iconBg: const Color(0xFFEEF2FF),
+                      title: 'Abjad A–Z',
+                      subtitle: 'Pelajari huruf abjad\ndalam bahasa isyarat',
+                      btnColor: const Color(0xFF3B72FF),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildMateriCard(
+                      iconPath: 'assets/images/#.png',
+                      iconBg: const Color(0xFFE8F9F0),
+                      title: 'Angka 1–10',
+                      subtitle: 'Pelajari angka dasar\ndalam bahasa isyarat',
+                      btnColor: const Color(0xFF4CAF7D),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildMateriCard(
+                      iconPath: 'assets/images/ekspresi.png',
+                      iconBg: const Color(0xFFFFF8EC),
+                      title: 'Ekspresi Dasar',
+                      subtitle: 'Pelajari ekspresi dan\nemosi dasar',
+                      btnColor: const Color(0xFFF5A623),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildMateriCard(
+                      iconPath: 'assets/images/percakapan.png',
+                      iconBg: const Color(0xFFF5EEFF),
+                      title: 'Percakapan Dasar',
+                      subtitle: 'Pelajari percakapan\nsehari-hari',
+                      btnColor: const Color(0xFF9B59B6),
+                    ),
                   ],
                 ),
               ),
@@ -83,6 +87,9 @@ class BerandaMurid extends StatelessWidget {
           ],
         ),
       ),
+
+      // BOTTOM NAVIGATION
+      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
@@ -93,6 +100,7 @@ class BerandaMurid extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
+          // Avatar
           ClipRRect(
             borderRadius: BorderRadius.circular(50),
             child: Image.asset(
@@ -103,6 +111,8 @@ class BerandaMurid extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
+
+          // Greeting
           const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,18 +138,20 @@ class BerandaMurid extends StatelessWidget {
               ],
             ),
           ),
+
+          // Notif button
           Container(
-            width: 46,
-            height: 46,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
               color: const Color(0xFFEEF2FF),
               borderRadius: BorderRadius.circular(50),
             ),
             child: IconButton(
               icon: Image.asset(
-                'assets/images/loncengfull.png',
-                width: 22,
-                height: 22,
+                'assets/images/lonceng.png',
+                width: 20,
+                height: 20,
               ),
               onPressed: () {},
               padding: EdgeInsets.zero,
@@ -165,6 +177,7 @@ class BerandaMurid extends StatelessWidget {
       ),
       child: Row(
         children: [
+          // Text
           const Expanded(
             child: Text(
               'Mulai perjalanan belajar bahasa isyarat dan jadikan komunikasi lebih inklusif.',
@@ -178,6 +191,8 @@ class BerandaMurid extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
+
+          // Hand icon
           Container(
             width: 62,
             height: 62,
@@ -187,7 +202,7 @@ class BerandaMurid extends StatelessWidget {
             ),
             padding: const EdgeInsets.all(10),
             child: Image.asset(
-              'assets/images/user.png',
+              'assets/images/tangan isyarat.png',
               fit: BoxFit.contain,
             ),
           ),
@@ -197,18 +212,13 @@ class BerandaMurid extends StatelessWidget {
   }
 
   // ─── CTA BUTTON ────────────────────────────────────────
-  Widget _buildCTAButton(BuildContext context) {
+  Widget _buildCTAButton() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: SizedBox(
         width: double.infinity,
         child: ElevatedButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const MateriMurid(initialLevel: 'Beginner')),
-            );
-          },
+          onPressed: () {},
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF3B72FF),
             foregroundColor: Colors.white,
@@ -231,192 +241,94 @@ class BerandaMurid extends StatelessWidget {
     );
   }
 
-  // ─── LEVEL CARD ────────────────────────────────────────
-  Widget _buildLevelCard(BuildContext context, Map<String, dynamic> level) {
-    final bool locked = level['locked'] as bool;
-    final double progress = level['progress'] as double;
-    final Color color = level['color'] as Color;
-    final Color bgColor = level['bgColor'] as Color;
-    final int progressPercent = (progress * 100).toInt();
-
+  // ─── MATERI CARD ───────────────────────────────────────
+  Widget _buildMateriCard({
+    required String iconPath,
+    required Color iconBg,
+    required String title,
+    required String subtitle,
+    required Color btnColor,
+  }) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.25), width: 1.5),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.06),
             blurRadius: 12,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          // Header row
-          Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: bgColor,
-                  shape: BoxShape.circle,
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  '${level['number']}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
-                    color: color,
+          // Icon
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: iconBg,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            padding: const EdgeInsets.all(10),
+            child: Image.asset(iconPath, fit: BoxFit.contain),
+          ),
+          const SizedBox(width: 14),
+
+          // Title & subtitle
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF1A1D2E),
                     fontFamily: 'Poppins',
                   ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    level['title'],
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF1A1D2E),
-                      fontFamily: 'Poppins',
-                    ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF6B7280),
+                    fontFamily: 'Poppins',
+                    height: 1.4,
                   ),
-                  Text(
-                    level['subtitle'],
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF6B7280),
-                      fontFamily: 'Poppins',
-                    ),
-                  ),
-                ],
-              ),
-              const Spacer(),
-              Icon(
-                locked ? Icons.lock : Icons.lock_open,
-                color: locked ? const Color(0xFF6B7280) : color,
-                size: 20,
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 14),
-          const Divider(height: 1, color: Color(0xFFEBEBEB)),
-          const SizedBox(height: 14),
-
-          // Stats row
-          Row(
-            children: [
-              _buildStat(
-                iconPath: 'assets/images/materi.png',
-                label: 'Materi',
-                value: '${level['materi']} Topik',
-                color: color,
-              ),
-              const SizedBox(width: 24),
-              _buildStat(
-                iconPath: 'assets/images/materinavbar.png',
-                label: 'Bank Soal',
-                value: '${level['soal']} Soal',
-                color: color,
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 14),
-
-          // Progress bar
-          Row(
-            children: [
-              const Text(
-                'Progress',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF6B7280),
-                  fontFamily: 'Poppins',
                 ),
-              ),
-              const Spacer(),
-              Text(
-                '$progressPercent%',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: color,
-                  fontFamily: 'Poppins',
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 8,
-              backgroundColor: const Color(0xFFEBEBEB),
-              valueColor: AlwaysStoppedAnimation<Color>(color),
+              ],
             ),
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(width: 10),
 
-          // Mulai Belajar button
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: locked
-                  ? null
-                  : () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => MateriMurid(
-                            initialLevel: level['title'] as String,
-                          ),
-                        ),
-                      );
-                    },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: locked ? const Color(0xFFEBEBEB) : color,
-                foregroundColor:
-                    locked ? const Color(0xFF6B7280) : Colors.white,
-                disabledBackgroundColor: const Color(0xFFEBEBEB),
-                disabledForegroundColor: const Color(0xFF6B7280),
-                padding: const EdgeInsets.symmetric(vertical: 13),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                elevation: 0,
+          // Mulai button
+          ElevatedButton(
+            onPressed: () {},
+            style: ElevatedButton.styleFrom(
+              backgroundColor: btnColor,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    locked ? 'Terkunci' : 'Mulai Belajar',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      fontFamily: 'Poppins',
-                    ),
-                  ),
-                  if (!locked) ...[
-                    const SizedBox(width: 6),
-                    const Icon(Icons.arrow_forward, size: 16),
-                  ],
-                ],
+              elevation: 0,
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: const Text(
+              'Mulai',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                fontFamily: 'Poppins',
               ),
             ),
           ),
@@ -425,43 +337,57 @@ class BerandaMurid extends StatelessWidget {
     );
   }
 
-  Widget _buildStat({
-    required String iconPath,
-    required String label,
-    required String value,
-    required Color color,
-  }) {
-    return Row(
+  // ─── BOTTOM NAV ────────────────────────────────────────
+  Widget _buildBottomNav() {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Color(0xFFEBEBEB))),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildNavItem('assets/images/home.png', 'Beranda', true),
+          _buildNavItem('assets/images/materi.png', 'Materi', false),
+          _buildNavItem('assets/images/img.png', 'Forum', false),
+          _buildNavItem('assets/images/history.png', 'Riwayat', false),
+          _buildNavItem('assets/images/profile.png', 'Profil', false),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavItem(String iconPath, String label, bool isActive) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Image.asset(
-          iconPath,
-          width: 16,
-          height: 16,
-          color: color,
+        Container(
+          padding: isActive
+              ? const EdgeInsets.symmetric(horizontal: 12, vertical: 4)
+              : EdgeInsets.zero,
+          decoration: isActive
+              ? BoxDecoration(
+                  color: const Color(0xFFEEF2FF),
+                  borderRadius: BorderRadius.circular(10),
+                )
+              : null,
+          child: Image.asset(
+            iconPath,
+            width: 22,
+            height: 22,
+            color: isActive ? const Color(0xFF3B72FF) : const Color(0xFF6B7280),
+          ),
         ),
-        const SizedBox(width: 6),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF6B7280),
-                fontFamily: 'Poppins',
-              ),
-            ),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF1A1D2E),
-                fontFamily: 'Poppins',
-              ),
-            ),
-          ],
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: isActive ? const Color(0xFF3B72FF) : const Color(0xFF6B7280),
+            fontFamily: 'Poppins',
+          ),
         ),
       ],
     );
