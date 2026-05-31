@@ -409,7 +409,7 @@ class _BerandaAdminState extends State<BerandaAdmin> {
                       color: Color(0xFF6B7280), fontFamily: 'Poppins')),
               const SizedBox(height: 16),
               _buildDialogOption(
-                iconPath: 'assets/images/materiadmin.png',
+                iconPath: 'assets/images/materi.png',
                 label: 'Materi',
                 sublabel: 'Tambah modul atau video',
                 color: const Color(0xFF3B72FF),
@@ -417,7 +417,7 @@ class _BerandaAdminState extends State<BerandaAdmin> {
               ),
               const SizedBox(height: 10),
               _buildDialogOption(
-                iconPath: 'assets/images/kategoriadmin.png',
+                iconPath: 'assets/images/kategori.png',
                 label: 'Kategori',
                 sublabel: 'Tambah kategori baru',
                 color: const Color(0xFF4CAF7D),
@@ -425,7 +425,7 @@ class _BerandaAdminState extends State<BerandaAdmin> {
               ),
               const SizedBox(height: 10),
               _buildDialogOption(
-                iconPath: 'assets/images/guruadmin.png',
+                iconPath: 'assets/images/guru(2).png',
                 label: 'Guru',
                 sublabel: 'Tambahkan guru',
                 color: const Color(0xFFF5A623),
