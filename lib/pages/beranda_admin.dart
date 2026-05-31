@@ -219,7 +219,7 @@ class _BerandaAdminState extends State<BerandaAdmin> {
         _buildStatCard(
           iconPath: 'assets/images/totalpengguna.png',
           iconBg: const Color(0xFFF5A623),
-          value: '1,234',
+          value: '50',
           label: 'Total Pengguna',
           change: '+12%',
           changePositive: true,
@@ -227,7 +227,7 @@ class _BerandaAdminState extends State<BerandaAdmin> {
         _buildStatCard(
           iconPath: 'assets/images/kontenaktif.png',
           iconBg: const Color(0xFF4CAF7D),
-          value: '456',
+          value: '20',
           label: 'Konten Aktif',
           change: '+8%',
           changePositive: true,
@@ -235,7 +235,7 @@ class _BerandaAdminState extends State<BerandaAdmin> {
         _buildStatCard(
           iconPath: 'assets/images/materibelajar.png',
           iconBg: const Color(0xFFF5A623),
-          value: '89',
+          value: '15',
           label: 'Materi Belajar',
           change: '+15%',
           changePositive: true,
@@ -243,7 +243,7 @@ class _BerandaAdminState extends State<BerandaAdmin> {
         _buildStatCard(
           iconPath: 'assets/images/pembelajaran.png',
           iconBg: const Color(0xFF4CAF7D),
-          value: '3.2K',
+          value: '45',
           label: 'Pembelanjaan',
           change: '+24%',
           changePositive: true,
