@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'materi_murid.dart';
-import 'riwayat_page.dart';
-import 'profile_page.dart';
 
 class BerandaMurid extends StatelessWidget {
-  const BerandaMurid({super.key});
+  final void Function(String level)? onOpenMateri;
+
+  const BerandaMurid({
+    super.key,
+    this.onOpenMateri,
+  });
 
   final List<Map<String, dynamic>> levels = const [
     {
@@ -85,7 +88,6 @@ class BerandaMurid extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(context),
     );
   }
 
@@ -207,10 +209,16 @@ class BerandaMurid extends StatelessWidget {
         width: double.infinity,
         child: ElevatedButton(
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const MateriMurid(initialLevel: 'Beginner')),
-            );
+            if (onOpenMateri != null) {
+              onOpenMateri!('Beginner');
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const MateriMurid(initialLevel: 'Beginner'),
+                ),
+              );
+            }
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF3B72FF),
@@ -379,14 +387,20 @@ class BerandaMurid extends StatelessWidget {
               onPressed: locked
                   ? null
                   : () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => MateriMurid(
-                            initialLevel: level['title'] as String,
+                      final selectedLevel = level['title'] as String;
+
+                      if (onOpenMateri != null) {
+                        onOpenMateri!(selectedLevel);
+                      } else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => MateriMurid(
+                              initialLevel: selectedLevel,
+                            ),
                           ),
-                        ),
-                      );
+                        );
+                      }
                     },
               style: ElevatedButton.styleFrom(
                 backgroundColor: locked ? const Color(0xFFEBEBEB) : color,
@@ -458,86 +472,6 @@ class BerandaMurid extends StatelessWidget {
           ],
         ),
       ],
-    );
-  }
-
-  // ─── BOTTOM NAV ────────────────────────────────────────
-  Widget _buildBottomNav(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFEBEBEB))),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem('assets/images/home.png', 'Beranda', true, null),
-          _buildNavItem('assets/images/materinavbar.png', 'Materi', false, () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => const MateriMurid(initialLevel: 'Beginner')),
-            );
-          }),
-          _buildNavItem('assets/images/forum.png', 'Forum', false, null),
-          _buildNavItem('assets/images/history.png', 'Riwayat', false, () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const RiwayatPage()),
-            );
-          }),
-          _buildNavItem('assets/images/profile.png', 'Profil', false, () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ProfilePage()),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem(
-      String iconPath, String label, bool isActive, VoidCallback? onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: isActive
-                ? const EdgeInsets.symmetric(horizontal: 12, vertical: 4)
-                : EdgeInsets.zero,
-            decoration: isActive
-                ? BoxDecoration(
-                    color: const Color(0xFFEEF2FF),
-                    borderRadius: BorderRadius.circular(10),
-                  )
-                : null,
-            child: Image.asset(
-              iconPath,
-              width: 22,
-              height: 22,
-              color: isActive
-                  ? const Color(0xFF3B72FF)
-                  : const Color(0xFF6B7280),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: isActive
-                  ? const Color(0xFF3B72FF)
-                  : const Color(0xFF6B7280),
-              fontFamily: 'Poppins',
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

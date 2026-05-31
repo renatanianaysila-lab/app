@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'materi_murid.dart';
-import 'riwayat_page.dart';
 import 'edit_profilepage.dart';
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({super.key});
+  final VoidCallback? onBackToHome;
+
+  const ProfilePage({
+    super.key,
+    this.onBackToHome,
+  });
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -46,7 +49,6 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(context),
     );
   }
 
@@ -57,7 +59,7 @@ class _ProfilePageState extends State<ProfilePage> {
       child: Row(
         children: [
           GestureDetector(
-            onTap: () => Navigator.pop(context),
+            onTap: widget.onBackToHome ?? () => Navigator.maybePop(context),
             child: const Icon(Icons.arrow_back, size: 22, color: Color(0xFF1A1D2E)),
           ),
           const Expanded(
@@ -567,82 +569,6 @@ class _ProfilePageState extends State<ProfilePage> {
           padding: const EdgeInsets.symmetric(vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
-      ),
-    );
-  }
-
-  Widget _buildBottomNav(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFEBEBEB))),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(context, 'assets/images/home.png', 'Beranda', false),
-          _buildNavItem(context, 'assets/images/materinavbar.png', 'Materi', false),
-          _buildNavItem(context, 'assets/images/forum.png', 'Forum', false),
-          _buildNavItem(context, 'assets/images/history.png', 'Riwayat', false),
-          _buildNavItem(context, 'assets/images/profile.png', 'Profil', true),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem(
-      BuildContext context, String iconPath, String label, bool isActive) {
-    return GestureDetector(
-      onTap: isActive
-          ? null
-          : () {
-              if (label == 'Beranda') {
-                Navigator.pop(context);
-              } else if (label == 'Materi') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const MateriMurid(initialLevel: 'Beginner')),
-                );
-              } else if (label == 'Riwayat') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const RiwayatPage()),
-                );
-              }
-            },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: isActive
-                ? const EdgeInsets.symmetric(horizontal: 12, vertical: 4)
-                : EdgeInsets.zero,
-            decoration: isActive
-                ? BoxDecoration(
-                    color: const Color(0xFFEEF2FF),
-                    borderRadius: BorderRadius.circular(10),
-                  )
-                : null,
-            child: Image.asset(
-              iconPath,
-              width: 22,
-              height: 22,
-              color: isActive ? const Color(0xFF3B72FF) : const Color(0xFF6B7280),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: isActive ? const Color(0xFF3B72FF) : const Color(0xFF6B7280),
-              fontFamily: 'Poppins',
-            ),
-          ),
-        ],
       ),
     );
   }
