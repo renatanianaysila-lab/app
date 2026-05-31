@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'edit_profilepage.dart';
 import 'payment_page.dart';
+import 'login_screen.dart';
 
 class ProfilePage extends StatefulWidget {
   final VoidCallback? onBackToHome;
@@ -662,7 +663,13 @@ class _ProfilePageState extends State<ProfilePage> {
                 ElevatedButton(
                   onPressed: () {
                     Navigator.pop(context);
-                    // TODO: navigasi ke login
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const LoginScreen(),
+                      ),
+                      (route) => false,
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFE53E3E),
