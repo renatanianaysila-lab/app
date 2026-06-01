@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:app/routes/auth_route.dart';
+import 'package:http/http.dart' as http; 
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -19,6 +21,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isLoading = false; 
 
   @override
   void dispose() {
@@ -29,11 +32,81 @@ class _SignUpPageState extends State<SignUpPage> {
     super.dispose();
   }
 
-  void _submitForm() {
-  if (_formKey.currentState!.validate()) {
-    Navigator.pushReplacementNamed(context, AuthRoute.login);
+  
+  Future<void> _submitForm() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      
+      const String url = 'http://10.0.2.2:8000/api/register/murid';
+
+      try {
+        final response = await http.post(
+          Uri.parse(url),
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: jsonEncode({
+            'nama_murid': _nameController.text.trim(),
+            'email_murid': _emailController.text.trim(),
+            'password_murid': _passwordController.text,
+            'tanggal_lahir': '2005-01-01', // Dummy default sesuai requirement database migration murid
+          }),
+        );
+
+        final responseData = jsonDecode(response.body);
+
+        if (response.statusCode == 201) {
+          // Registrasi Berhasil
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(responseData['message'] ?? 'Registrasi Berhasil!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+  
+            Navigator.pushReplacementNamed(context, AuthRoute.login);
+          }
+        } else {
+      
+          String errorMessage = 'Registrasi Gagal';
+          if (responseData['errors'] != null) {
+            errorMessage = responseData['errors'].toString();
+          } else if (responseData['message'] != null) {
+            errorMessage = responseData['message'];
+          }
+          
+          if (mounted) {
+            _showErrorSnackBar(errorMessage);
+          }
+        }
+      } catch (e) {
+      
+        if (mounted) {
+          _showErrorSnackBar('Gagal terhubung ke server backend: $e');
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    }
   }
-}
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
 
   InputDecoration _inputDecoration({
     required String hintText,
@@ -103,24 +176,26 @@ class _SignUpPageState extends State<SignUpPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Container(
-                            height: 72,
-                            width: 72,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF2F5EDB),
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Colors.black12,
-                                  blurRadius: 10,
-                                  offset: Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.person_add_alt_1_rounded,
-                              color: Colors.white,
-                              size: 34,
+                          Center(
+                            child: Container(
+                              height: 72,
+                              width: 72,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF2F5EDB),
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.black12,
+                                    blurRadius: 10,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.person_add_alt_1_rounded,
+                                color: Colors.white,
+                                size: 34,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 20),
@@ -276,14 +351,24 @@ class _SignUpPageState extends State<SignUpPage> {
                           ),
                           const SizedBox(height: 24),
 
+                          // 4. Integrasikan efek loading di tombol Daftar
                           SizedBox(
                             height: 54,
                             child: ElevatedButton.icon(
-                              onPressed: _submitForm,
-                              icon: const Icon(Icons.login_rounded),
-                              label: const Text(
-                                'Daftar',
-                                style: TextStyle(
+                              onPressed: _isLoading ? null : _submitForm,
+                              icon: _isLoading 
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Icon(Icons.login_rounded),
+                              label: Text(
+                                _isLoading ? 'Memproses...' : 'Daftar',
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
                                 ),

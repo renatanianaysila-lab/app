@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'forgot_password_page.dart';
 import 'package:app/pages/role_page.dart';
 import 'sign_up_page.dart';
 import 'beranda_admin.dart';
+import 'package:http/http.dart' as http; // 1. Tambahkan import package http
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,6 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isLogin = true;
   bool isPasswordHidden = true;
   bool isConfirmPasswordHidden = true;
+  bool _isLoading = false; // 2. Tambahkan state loading untuk indikator proses API
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -69,40 +72,126 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _submit() {
+  // 3. Ubah _submit menjadi async agar bisa memproses HTTP Request ke Laravel
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    if (isLogin) {
-      final email = _emailController.text.trim();
-      final password = _passwordController.text;
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
 
-      // ── ADMIN → langsung ke dashboard admin ────────────
+    setState(() {
+      _isLoading = true;
+    });
+
+    if (isLogin) {
+      // ── 1. LOGIKA LOGIN ──
+      
+      // Akun Admin Khusus (Hardcoded bypass tetap dipertahankan)
       if (email == 'admin@gmail.com' && password == '12345678') {
+        setState(() => _isLoading = false);
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const BerandaAdmin()),
         );
-      } else {
-        // ── SELAIN ADMIN → ke RolePage pilih Guru/Murid ──
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const RolePage()),
-        );
+        return;
       }
+
+      // Login Akun Murid/Guru ke Laravel
+      const String urlLogin = 'http://10.0.2.2:8000/api/login';
+      try {
+        final response = await http.post(
+          Uri.parse(urlLogin),
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: jsonEncode({
+            'email': email,
+            'password': password,
+            'role': 'murid', // Mengarahkan default role login ke murid
+          }),
+        );
+
+        final responseData = jsonDecode(response.body);
+
+        if (response.statusCode == 200) {
+          // Jika Login Sukses -> Lanjut ke RolePage bawaan kelompokmu
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Selamat datang kembali, ${responseData['user']['nama_murid']}!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const RolePage()),
+            );
+          }
+        } else {
+          // Gagal login (Kredensial salah)
+          if (mounted) {
+            _showSnackBar(responseData['message'] ?? 'Email atau password salah', Colors.red);
+          }
+        }
+      } catch (e) {
+        if (mounted) _showSnackBar('Gagal terhubung ke server: $e', Colors.red);
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
+
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pendaftaran berhasil diproses')),
-      );
-      setState(() {
-        isLogin = true;
-        isPasswordHidden = true;
-        isConfirmPasswordHidden = true;
-        _nameController.clear();
-        _emailController.clear();
-        _passwordController.clear();
-        _confirmPasswordController.clear();
-      });
+      // ── 2. LOGIKA REGISTRASI (JIKA isLogin == false) ──
+      const String urlRegister = 'http://10.0.2.2:8000/api/register/murid';
+      try {
+        final response = await http.post(
+          Uri.parse(urlRegister),
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: jsonEncode({
+            'nama_murid': _nameController.text.trim(),
+            'email_murid': email,
+            'password_murid': password,
+            'tanggal_lahir': '2005-01-01', // Parameter wajib database migration
+          }),
+        );
+
+        final responseData = jsonDecode(response.body);
+
+        if (response.statusCode == 201) {
+          if (mounted) {
+            _showSnackBar(responseData['message'] ?? 'Pendaftaran berhasil diproses!', Colors.green);
+            setState(() {
+              isLogin = true;
+              isPasswordHidden = true;
+              isConfirmPasswordHidden = true;
+              _nameController.clear();
+              _emailController.clear();
+              _passwordController.clear();
+              _confirmPasswordController.clear();
+            });
+          }
+        } else {
+          if (mounted) {
+            String errorMsg = responseData['message'] ?? 'Gagal memproses pendaftaran';
+            if (responseData['errors'] != null) errorMsg = responseData['errors'].toString();
+            _showSnackBar(errorMsg, Colors.red);
+          }
+        }
+      } catch (e) {
+        if (mounted) _showSnackBar('Gagal terhubung ke server: $e', Colors.red);
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
     }
+  }
+
+  void _showSnackBar(String message, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: color),
+    );
   }
 
   @override
@@ -120,230 +209,236 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 8),
-                  Image.asset('assets/images/logo.png', width: 110, height: 110),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'IsyaratKita',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.5,
-                      color: Color(0xFF273043),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Belajar Bahasa Isyarat Bersama',
-                    style: TextStyle(fontSize: 14, color: Color(0xFF5D6470)),
-                  ),
-                  const SizedBox(height: 26),
-                  Text(
-                    isLogin ? 'Selamat Datang' : 'Daftar Akun',
-                    style: const TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF273043),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    isLogin
-                        ? 'Masuk ke akun Anda untuk melanjutkan\npembelajaran'
-                        : 'Buat akun baru untuk memulai',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        fontSize: 14, height: 1.5, color: Color(0xFF5D6470)),
-                  ),
-                  const SizedBox(height: 30),
-                  if (!isLogin) ...[
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text('Nama',
-                          style: TextStyle(fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF414A57))),
-                    ),
-                    const SizedBox(height: 10),
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: _inputDecoration(
-                          hintText: 'Masukkan nama lengkap',
-                          prefixIcon: Icons.person_outline),
-                      validator: (value) {
-                        if (!isLogin && (value == null || value.trim().isEmpty)) {
-                          return 'Nama wajib diisi';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 22),
-                  ],
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text('Email',
-                        style: TextStyle(fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF414A57))),
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: _inputDecoration(
-                        hintText: 'Masukkan email Anda',
-                        prefixIcon: Icons.email_outlined),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Email wajib diisi';
-                      }
-                      final emailRegex =
-                          RegExp(r'^[\w\-.]+@([\w-]+\.)+[\w-]{2,4}$');
-                      if (!emailRegex.hasMatch(value.trim())) {
-                        return 'Format email tidak valid';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 22),
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text('Password',
-                        style: TextStyle(fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF414A57))),
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: _passwordController,
-                    obscureText: isPasswordHidden,
-                    decoration: _inputDecoration(
-                      hintText: 'Masukkan password Anda',
-                      prefixIcon: Icons.lock_outline,
-                      suffixIcon: IconButton(
-                        onPressed: () =>
-                            setState(() => isPasswordHidden = !isPasswordHidden),
-                        icon: Icon(
-                          isPasswordHidden
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
-                          color: const Color(0xFF9AA1AC),
-                        ),
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) return 'Password wajib diisi';
-                      if (value.length < 8) return 'Password minimal 8 karakter';
-                      return null;
-                    },
-                  ),
-                  if (!isLogin) ...[
-                    const SizedBox(height: 22),
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text('Konfirmasi Password',
-                          style: TextStyle(fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF414A57))),
-                    ),
-                    const SizedBox(height: 10),
-                    TextFormField(
-                      controller: _confirmPasswordController,
-                      obscureText: isConfirmPasswordHidden,
-                      decoration: _inputDecoration(
-                        hintText: 'Ulangi password',
-                        prefixIcon: Icons.lock_outline,
-                        suffixIcon: IconButton(
-                          onPressed: () => setState(() =>
-                              isConfirmPasswordHidden = !isConfirmPasswordHidden),
-                          icon: Icon(
-                            isConfirmPasswordHidden
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined,
-                            color: const Color(0xFF9AA1AC),
+          child: _isLoading 
+              ? const Center(child: CircularProgressIndicator(color: Color(0xFF5F8DFF)))
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 8),
+                        Image.asset('assets/images/logo.png', width: 110, height: 110, errorBuilder: (context, error, stackTrace) => const Icon(Icons.image, size: 110)),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'IsyaratKita',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 24,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                            color: Color(0xFF273043),
                           ),
                         ),
-                      ),
-                      validator: (value) {
-                        if (!isLogin) {
-                          if (value == null || value.isEmpty) {
-                            return 'Konfirmasi password wajib diisi';
-                          }
-                          if (value != _passwordController.text) {
-                            return 'Password tidak sama';
-                          }
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
-                  if (isLogin) ...[
-                    const SizedBox(height: 12),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                              builder: (_) => const ForgotPasswordPage()),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Belajar Bahasa Isyarat Bersama',
+                          style: TextStyle(fontSize: 14, color: Color(0xFF5D6470)),
                         ),
-                        child: const Text('Lupa Password?',
-                            style: TextStyle(color: Color(0xFF5F8DFF),
-                                fontSize: 14, fontWeight: FontWeight.w500)),
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 58,
-                    child: ElevatedButton.icon(
-                      onPressed: _submit,
-                      icon: Icon(
-                          isLogin ? Icons.login : Icons.person_add_alt_1,
-                          color: Colors.white),
-                      label: Text(
-                        isLogin ? 'Masuk' : 'Daftar',
-                        style: const TextStyle(fontSize: 16,
-                            fontWeight: FontWeight.w700, color: Colors.white),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF5F8DFF),
-                        elevation: 6,
-                        shadowColor: Colors.black26,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(22)),
-                      ),
+                        const SizedBox(height: 26),
+                        Text(
+                          isLogin ? 'Selamat Datang' : 'Daftar Akun',
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 28,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF273043),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          isLogin
+                              ? 'Masuk ke akun Anda untuk melanjutkan\npembelajaran'
+                              : 'Buat akun baru untuk memulai',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                              fontSize: 14, height: 1.5, color: Color(0xFF5D6470)),
+                        ),
+                        const SizedBox(height: 30),
+                        if (!isLogin) ...[
+                          const Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text('Nama',
+                                style: TextStyle(fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF414A57))),
+                          ),
+                          const SizedBox(height: 10),
+                          TextFormField(
+                            controller: _nameController,
+                            decoration: _inputDecoration(
+                                hintText: 'Masukkan nama lengkap',
+                                prefixIcon: Icons.person_outline),
+                            validator: (value) {
+                              if (!isLogin && (value == null || value.trim().isEmpty)) {
+                                return 'Nama wajib diisi';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 22),
+                        ],
+                        const Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text('Email',
+                              style: TextStyle(fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF414A57))),
+                        ),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: _inputDecoration(
+                              hintText: 'Masukkan email Anda',
+                              prefixIcon: Icons.email_outlined),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Email wajib diisi';
+                            }
+                            final emailRegex =
+                                RegExp(r'^[\w\-.]+@([\w-]+\.)+[\w-]{2,4}$');
+                            if (!emailRegex.hasMatch(value.trim())) {
+                              return 'Format email tidak valid';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 22),
+                        const Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text('Password',
+                              style: TextStyle(fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF414A57))),
+                        ),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          controller: _passwordController,
+                          obscureText: isPasswordHidden,
+                          decoration: _inputDecoration(
+                            hintText: 'Masukkan password Anda',
+                            prefixIcon: Icons.lock_outline,
+                            suffixIcon: IconButton(
+                              onPressed: () =>
+                                  setState(() => isPasswordHidden = !isPasswordHidden),
+                              icon: Icon(
+                                isPasswordHidden
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                                color: const Color(0xFF9AA1AC),
+                              ),
+                            ),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) return 'Password wajib diisi';
+                            if (value.length < 8) return 'Password minimal 8 karakter';
+                            return null;
+                          },
+                        ),
+                        if (!isLogin) ...[
+                          const SizedBox(height: 22),
+                          const Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text('Konfirmasi Password',
+                                style: TextStyle(fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF414A57))),
+                          ),
+                          const SizedBox(height: 10),
+                          TextFormField(
+                            controller: _confirmPasswordController,
+                            obscureText: isConfirmPasswordHidden,
+                            decoration: _inputDecoration(
+                              hintText: 'Ulangi password',
+                              prefixIcon: Icons.lock_outline,
+                              suffixIcon: IconButton(
+                                onPressed: () => setState(() =>
+                                    isConfirmPasswordHidden = !isConfirmPasswordHidden),
+                                icon: Icon(
+                                  isConfirmPasswordHidden
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                  color: const Color(0xFF9AA1AC),
+                                ),
+                              ),
+                            ),
+                            validator: (value) {
+                              if (!isLogin) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Konfirmasi password wajib diisi';
+                                }
+                                if (value != _passwordController.text) {
+                                  return 'Password tidak sama';
+                                }
+                              }
+                              return null;
+                            },
+                          ),
+                        ],
+                        if (isLogin) ...[
+                          const SizedBox(height: 12),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                    builder: (_) => const ForgotPasswordPage()),
+                              ),
+                              child: const Text('Lupa Password?',
+                                  style: TextStyle(color: Color(0xFF5F8DFF),
+                                      fontSize: 14, fontWeight: FontWeight.w500)),
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 58,
+                          child: ElevatedButton.icon(
+                            onPressed: _submit,
+                            icon: Icon(
+                                isLogin ? Icons.login : Icons.person_add_alt_1,
+                                color: Colors.white),
+                            label: Text(
+                              isLogin ? 'Masuk' : 'Daftar',
+                              style: const TextStyle(fontSize: 16,
+                                  fontWeight: FontWeight.w700, color: Colors.white),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF5F8DFF),
+                              elevation: 6,
+                              shadowColor: Colors.black26,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(22)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 34),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              isLogin ? 'Belum punya akun? ' : 'Sudah punya akun? ',
+                              style: const TextStyle(
+                                  fontSize: 14, color: Color(0xFF5D6470)),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  isLogin = !isLogin;
+                                  _formKey.currentState?.reset();
+                                });
+                              },
+                              child: Text(isLogin ? 'Daftar' : 'Masuk'),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 34),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        isLogin ? 'Belum punya akun? ' : 'Sudah punya akun? ',
-                        style: const TextStyle(
-                            fontSize: 14, color: Color(0xFF5D6470)),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.push(context,
-                            MaterialPageRoute(builder: (_) => const SignUpPage())),
-                        child: const Text('Daftar'),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
+                ),
         ),
       ),
     );

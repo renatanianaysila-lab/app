@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'materi_murid.dart';
+import 'package:http/http.dart' as http; // 1. Tambahkan import http
 
-class BerandaMurid extends StatelessWidget {
+class BerandaMurid extends StatefulWidget {
   final void Function(String level)? onOpenMateri;
 
   const BerandaMurid({
@@ -9,41 +11,84 @@ class BerandaMurid extends StatelessWidget {
     this.onOpenMateri,
   });
 
-  final List<Map<String, dynamic>> levels = const [
+  @override
+  State<BerandaMurid> createState() => _BerandaMuridState();
+}
+
+class _BerandaMuridState extends State<BerandaMurid> {
+  bool _isLoading = true;
+  
+  // List levels sekarang dibuat dinamis agar bisa menampung update jumlah topik dari Laravel
+  List<Map<String, dynamic>> _levelsData = [
     {
       'number': 1,
       'title': 'Beginner',
       'subtitle': 'Level Dasar',
-      'materi': 12,
+      'materi': 0, // Akan di-update dari API
       'soal': 120,
       'progress': 0.75,
       'locked': false,
-      'color': Color(0xFF3B72FF),
-      'bgColor': Color(0xFFEEF2FF),
+      'color': const Color(0xFF3B72FF),
+      'bgColor': const Color(0xFFEEF2FF),
     },
     {
       'number': 2,
       'title': 'Intermediate',
       'subtitle': 'Level Menengah',
-      'materi': 18,
+      'materi': 0, // Akan di-update dari API
       'soal': 180,
       'progress': 0.45,
       'locked': false,
-      'color': Color(0xFF4CAF7D),
-      'bgColor': Color(0xFFE8F9F0),
+      'color': const Color(0xFF4CAF7D),
+      'bgColor': const Color(0xFFE8F9F0),
     },
     {
       'number': 3,
       'title': 'Advanced',
       'subtitle': 'Level Lanjutan',
-      'materi': 24,
+      'materi': 0, // Akan di-update dari API
       'soal': 240,
       'progress': 0.0,
       'locked': true,
-      'color': Color(0xFF9B59B6),
-      'bgColor': Color(0xFFF5EEFF),
+      'color': const Color(0xFF9B59B6),
+      'bgColor': const Color(0xFFF5EEFF),
     },
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMateriCount();
+  }
+
+  // 2. Fungsi untuk mengambil data materi dari Laravel
+  Future<void> _loadMateriCount() async {
+    const String url = 'http://10.0.2.2:8000/api/materi';
+    try {
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        List<dynamic> materiFromApi = responseData['data'];
+
+        // Menghitung jumlah topik per kategori dari backend Laravel
+        int beginnerCount = materiFromApi.where((m) => m['kategori'] == 'Abjad' || m['kategori'] == 'Angka').length;
+        int intermediateCount = materiFromApi.where((m) => m['kategori'] == 'Percakapan').length;
+
+        setState(() {
+          _levelsData[0]['materi'] = beginnerCount > 0 ? beginnerCount : 12; // fallback ke data UTS kelompokmu jika API kosong
+          _levelsData[1]['materi'] = intermediateCount > 0 ? intermediateCount : 18;
+          _levelsData[2]['materi'] = 24; 
+          _isLoading = false;
+        });
+      } else {
+        setState(() => _isLoading = false);
+      }
+    } catch (e) {
+      // Jika server offline, tetap pakai data mock agar UI kelompokmu tidak eror/kosong saat demo
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,36 +99,42 @@ class BerandaMurid extends StatelessWidget {
           children: [
             _buildTopBar(),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.only(bottom: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 16),
-                    _buildHeroBanner(),
-                    const SizedBox(height: 16),
-                    _buildCTAButton(context),
-                    const SizedBox(height: 24),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        'Level Pembelajaran',
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF1A1D2E),
-                          fontFamily: 'Poppins',
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF3B72FF)))
+                  : RefreshIndicator(
+                      onRefresh: _loadMateriCount,
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 16),
+                            _buildHeroBanner(),
+                            const SizedBox(height: 16),
+                            _buildCTAButton(context),
+                            const SizedBox(height: 24),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 16),
+                              child: Text(
+                                'Level Pembelajaran',
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFF1A1D2E),
+                                  fontFamily: 'Poppins',
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            ..._levelsData.map((level) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 14),
+                                  child: _buildLevelCard(context, level),
+                                )),
+                          ],
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    ...levels.map((level) => Padding(
-                          padding: const EdgeInsets.only(bottom: 14),
-                          child: _buildLevelCard(context, level),
-                        )),
-                  ],
-                ),
-              ),
             ),
           ],
         ),
@@ -105,6 +156,7 @@ class BerandaMurid extends StatelessWidget {
               width: 44,
               height: 44,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => const Icon(Icons.account_circle, size: 44),
             ),
           ),
           const SizedBox(width: 10),
@@ -141,11 +193,12 @@ class BerandaMurid extends StatelessWidget {
               borderRadius: BorderRadius.circular(50),
             ),
             child: IconButton(
-  icon: Image.asset(
-    'assets/images/lonceng.png',
-    width: 28,  
-    height: 28,
-  ),
+              icon: Image.asset(
+                'assets/images/lonceng.png',
+                width: 28,  
+                height: 28,
+                errorBuilder: (context, error, stackTrace) => const Icon(Icons.notifications, color: Color(0xFF3B72FF)),
+              ),
               onPressed: () {},
               padding: EdgeInsets.zero,
             ),
@@ -194,6 +247,7 @@ class BerandaMurid extends StatelessWidget {
             child: Image.asset(
               'assets/images/tangan isyarat.png',
               fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) => const Icon(Icons.back_hand, color: Colors.white),
             ),
           ),
         ],
@@ -209,8 +263,8 @@ class BerandaMurid extends StatelessWidget {
         width: double.infinity,
         child: ElevatedButton(
           onPressed: () {
-            if (onOpenMateri != null) {
-              onOpenMateri!('Beginner');
+            if (widget.onOpenMateri != null) {
+              widget.onOpenMateri!('Beginner');
             } else {
               Navigator.push(
                 context,
@@ -389,8 +443,8 @@ class BerandaMurid extends StatelessWidget {
                   : () {
                       final selectedLevel = level['title'] as String;
 
-                      if (onOpenMateri != null) {
-                        onOpenMateri!(selectedLevel);
+                      if (widget.onOpenMateri != null) {
+                        widget.onOpenMateri!(selectedLevel);
                       } else {
                         Navigator.push(
                           context,
@@ -404,8 +458,7 @@ class BerandaMurid extends StatelessWidget {
                     },
               style: ElevatedButton.styleFrom(
                 backgroundColor: locked ? const Color(0xFFEBEBEB) : color,
-                foregroundColor:
-                    locked ? const Color(0xFF6B7280) : Colors.white,
+                foregroundColor: locked ? const Color(0xFF6B7280) : Colors.white,
                 disabledBackgroundColor: const Color(0xFFEBEBEB),
                 disabledForegroundColor: const Color(0xFF6B7280),
                 padding: const EdgeInsets.symmetric(vertical: 13),
@@ -446,7 +499,13 @@ class BerandaMurid extends StatelessWidget {
   }) {
     return Row(
       children: [
-        Image.asset(iconPath, width: 16, height: 16, color: color),
+        Image.asset(
+          iconPath, 
+          width: 16, 
+          height: 16, 
+          color: color,
+          errorBuilder: (context, error, stackTrace) => Icon(Icons.menu_book, size: 16, color: color),
+        ),
         const SizedBox(width: 6),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
