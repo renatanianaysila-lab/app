@@ -326,7 +326,6 @@ class _ForumPageState extends State<ForumPage> {
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
@@ -551,24 +550,6 @@ class _ForumPageState extends State<ForumPage> {
           color: isGuru ? const Color(0xFFD97706) : const Color(0xFF2563EB),
         ),
       ),
-    );
-  }
-
-  Widget _buildBottomNav() {
-    return BottomNavigationBar(
-      currentIndex: 2,
-      type: BottomNavigationBarType.fixed,
-      selectedItemColor: const Color(0xFF2563EB),
-      unselectedItemColor: const Color(0xFF9CA3AF),
-      selectedFontSize: 10,
-      unselectedFontSize: 10,
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Beranda'),
-        BottomNavigationBarItem(icon: Icon(Icons.menu_book_rounded), label: 'Materi'),
-        BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_rounded), label: 'Forum'),
-        BottomNavigationBarItem(icon: Icon(Icons.history_rounded), label: 'Riwayat'),
-        BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profil'),
-      ],
     );
   }
 }

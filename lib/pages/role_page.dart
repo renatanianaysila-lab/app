@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'beranda_murid.dart';
+import 'main_navigation.dart';
 
 class RolePage extends StatelessWidget {
   const RolePage({super.key});
@@ -33,9 +33,7 @@ class RolePage extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              /// MURID
               roleCard(
-                context: context, // ← tambahkan ini
                 imagePath: "assets/images/murid.png",
                 colorTop: const Color(0xFF5B8DEF),
                 title: "Murid",
@@ -48,11 +46,12 @@ class RolePage extends StatelessWidget {
                 ],
                 buttonText: "Pilih Murid",
                 buttonColor: const Color(0xFF5B8DEF),
+                icon: Icons.school,
                 onPressed: () {
-                  Navigator.push(
+                  Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const BerandaMurid(),
+                      builder: (_) => const MainNavigation(initialIndex: 0),
                     ),
                   );
                 },
@@ -60,9 +59,7 @@ class RolePage extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              /// GURU
               roleCard(
-                context: context, // ← tambahkan ini
                 imagePath: "assets/images/guru.png",
                 colorTop: const Color(0xFFF4C542),
                 title: "Guru",
@@ -75,22 +72,26 @@ class RolePage extends StatelessWidget {
                 ],
                 buttonText: "Pilih Guru",
                 buttonColor: const Color(0xFFF4C542),
+                icon: Icons.menu_book_rounded,
                 onPressed: () {
-                  // nanti arahkan ke halaman guru
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Halaman guru belum tersedia.'),
+                    ),
+                  );
                 },
               ),
 
               const SizedBox(height: 20),
 
-              /// INFO
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.grey.shade300,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Column(
-                  children: const [
+                child: const Column(
+                  children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -121,9 +122,7 @@ class RolePage extends StatelessWidget {
     );
   }
 
-  /// CARD — sekarang punya parameter context & onPressed
   Widget roleCard({
-    required BuildContext context,
     required String imagePath,
     required Color colorTop,
     required String title,
@@ -131,6 +130,7 @@ class RolePage extends StatelessWidget {
     required List<String> points,
     required String buttonText,
     required Color buttonColor,
+    required IconData icon,
     required VoidCallback onPressed,
   }) {
     return Container(
@@ -143,12 +143,11 @@ class RolePage extends StatelessWidget {
             blurRadius: 10,
             color: Colors.black.withOpacity(0.1),
             offset: const Offset(0, 5),
-          )
+          ),
         ],
       ),
       child: Column(
         children: [
-          /// IMAGE
           Container(
             height: 150,
             decoration: BoxDecoration(
@@ -159,6 +158,13 @@ class RolePage extends StatelessWidget {
               child: Image.asset(
                 imagePath,
                 height: 120,
+                errorBuilder: (_, __, ___) {
+                  return Icon(
+                    icon,
+                    size: 80,
+                    color: Colors.white,
+                  );
+                },
               ),
             ),
           ),
@@ -169,13 +175,15 @@ class RolePage extends StatelessWidget {
             children: [
               CircleAvatar(
                 backgroundColor: colorTop.withOpacity(0.2),
-                child: Icon(Icons.school, color: colorTop),
+                child: Icon(icon, color: colorTop),
               ),
               const SizedBox(width: 10),
               Text(
                 title,
                 style: const TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.bold),
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
@@ -192,12 +200,15 @@ class RolePage extends StatelessWidget {
           Column(
             children: points
                 .map(
-                  (e) => Row(
-                    children: [
-                      Icon(Icons.check_circle, color: colorTop, size: 18),
-                      const SizedBox(width: 8),
-                      Expanded(child: Text(e)),
-                    ],
+                  (point) => Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(
+                      children: [
+                        Icon(Icons.check_circle, color: colorTop, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text(point)),
+                      ],
+                    ),
                   ),
                 )
                 .toList(),
@@ -210,12 +221,13 @@ class RolePage extends StatelessWidget {
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: buttonColor,
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              onPressed: onPressed, // ← pakai parameter ini
+              onPressed: onPressed,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

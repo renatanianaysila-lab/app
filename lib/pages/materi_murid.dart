@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'riwayat_page.dart';
-import 'profile_page.dart';
-
 class MateriMurid extends StatefulWidget {
   final String initialLevel;
   const MateriMurid({super.key, this.initialLevel = 'Beginner'});
@@ -170,7 +167,6 @@ class _MateriMuridState extends State<MateriMurid> {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(context),
     );
   }
 
@@ -682,88 +678,6 @@ class _MateriMuridState extends State<MateriMurid> {
               ),
             ),
           ],
-        ],
-      ),
-    );
-  }
-
-  // ─── BOTTOM NAV ────────────────────────────────────────
-  Widget _buildBottomNav(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFEBEBEB))),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(context, 'assets/images/home.png', 'Beranda', false),
-          _buildNavItem(
-              context, 'assets/images/materinavbar.png', 'Materi', true),
-          _buildNavItem(context, 'assets/images/forum.png', 'Forum', false),
-          _buildNavItem(
-              context, 'assets/images/history.png', 'Riwayat', false),
-          _buildNavItem(context, 'assets/images/profile.png', 'Profil', false),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem(
-      BuildContext context, String iconPath, String label, bool isActive) {
-    return GestureDetector(
-      onTap: isActive
-          ? null
-          : () {
-              if (label == 'Beranda') {
-                Navigator.pop(context);
-              } else if (label == 'Riwayat') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const RiwayatPage()),
-                );
-              } else if (label == 'Profil') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ProfilePage()),
-                );
-              }
-            },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: isActive
-                ? const EdgeInsets.symmetric(horizontal: 12, vertical: 4)
-                : EdgeInsets.zero,
-            decoration: isActive
-                ? BoxDecoration(
-                    color: const Color(0xFFEEF2FF),
-                    borderRadius: BorderRadius.circular(10),
-                  )
-                : null,
-            child: Image.asset(
-              iconPath,
-              width: 22,
-              height: 22,
-              color: isActive
-                  ? const Color(0xFF3B72FF)
-                  : const Color(0xFF6B7280),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: isActive
-                  ? const Color(0xFF3B72FF)
-                  : const Color(0xFF6B7280),
-              fontFamily: 'Poppins',
-            ),
-          ),
         ],
       ),
     );
