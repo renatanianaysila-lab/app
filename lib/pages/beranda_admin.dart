@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'pengguna_admin.dart';
 
 class BerandaAdmin extends StatefulWidget {
   const BerandaAdmin({super.key});
@@ -733,7 +734,16 @@ class _BerandaAdminState extends State<BerandaAdmin> {
         children: List.generate(items.length, (i) {
           final isActive = _selectedNav == i;
           return GestureDetector(
-            onTap: () => setState(() => _selectedNav = i),
+            onTap: () {
+                setState(() => _selectedNav = i);
+                if (i == 1) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const PenggunaAdmin()),
+                  );
+                }
+              },
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
