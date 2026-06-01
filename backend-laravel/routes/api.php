@@ -5,7 +5,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\MateriController;
 
-Route::get('/materi', [MateriController::php, 'index']);
+Route::get('/materi', [MateriController::class, 'index']);
 
 // Route Payment yang sudah ada sebelumnya
 Route::post('/payment', [PaymentController::class, 'createPayment']);
