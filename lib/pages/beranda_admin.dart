@@ -85,8 +85,10 @@ class _BerandaAdminState extends State<BerandaAdmin> {
                     const SizedBox(height: 20),
                     const Text('Statistik Utama',
                         style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w800,
-                            color: Color(0xFF1A1D2E), fontFamily: 'Poppins')),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF1A1D2E),
+                            fontFamily: 'Poppins')),
                     const SizedBox(height: 12),
                     _buildStatistikGrid(),
                     const SizedBox(height: 20),
@@ -94,15 +96,19 @@ class _BerandaAdminState extends State<BerandaAdmin> {
                       children: [
                         const Text('Ringkasan Aktivitas',
                             style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w800,
-                                color: Color(0xFF1A1D2E), fontFamily: 'Poppins')),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF1A1D2E),
+                                fontFamily: 'Poppins')),
                         const Spacer(),
                         GestureDetector(
                           onTap: () {},
                           child: const Text('Lihat Semua',
                               style: TextStyle(
-                                  fontSize: 13, fontWeight: FontWeight.w600,
-                                  color: Color(0xFFF5A623), fontFamily: 'Poppins')),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFFF5A623),
+                                  fontFamily: 'Poppins')),
                         ),
                       ],
                     ),
@@ -132,13 +138,18 @@ class _BerandaAdminState extends State<BerandaAdmin> {
           const Expanded(
             child: Text('Beranda',
                 style: TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.w800,
-                    color: Color(0xFF1A1D2E), fontFamily: 'Poppins')),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF1A1D2E),
+                    fontFamily: 'Poppins')),
           ),
           Image.asset('assets/images/loncengadmin.png',
-              width: 26, height: 26,
-              errorBuilder: (_, __, ___) =>
-                  const Icon(Icons.notifications_none, color: Color(0xFF1A1D2E), size: 26)),
+              width: 26,
+              height: 26,
+              errorBuilder: (_, __, ___) => const Icon(
+                  Icons.notifications_none,
+                  color: Color(0xFF1A1D2E),
+                  size: 26)),
         ],
       ),
     );
@@ -184,21 +195,27 @@ class _BerandaAdminState extends State<BerandaAdmin> {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: const Color(0xFFE5E7EB)),
             boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.04),
-                  blurRadius: 6, offset: const Offset(0, 2)),
+              BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2)),
             ],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset(iconPath, width: 16, height: 16,
-                  errorBuilder: (_, __, ___) =>
-                      const Icon(Icons.add, size: 16, color: Color(0xFF1A1D2E))),
+              Image.asset(iconPath,
+                  width: 16,
+                  height: 16,
+                  errorBuilder: (_, __, ___) => const Icon(Icons.add,
+                      size: 16, color: Color(0xFF1A1D2E))),
               const SizedBox(width: 6),
               Text(label,
                   style: const TextStyle(
-                      fontSize: 13, fontWeight: FontWeight.w700,
-                      color: Color(0xFF1A1D2E), fontFamily: 'Poppins')),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1A1D2E),
+                      fontFamily: 'Poppins')),
             ],
           ),
         ),
@@ -212,7 +229,7 @@ class _BerandaAdminState extends State<BerandaAdmin> {
       crossAxisCount: 2,
       crossAxisSpacing: 12,
       mainAxisSpacing: 12,
-      childAspectRatio: 1.6,
+      childAspectRatio: 1.6, // lebih compact, tidak terlalu besar
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       children: [
@@ -261,32 +278,38 @@ class _BerandaAdminState extends State<BerandaAdmin> {
     required bool changePositive,
   }) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04),
-              blurRadius: 8, offset: const Offset(0, 2)),
+          BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2)),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
               Container(
-                width: 36, height: 36,
+                width: 32,
+                height: 32,
                 decoration: BoxDecoration(
-                    color: iconBg, borderRadius: BorderRadius.circular(10)),
-                padding: const EdgeInsets.all(8),
-                child: Image.asset(iconPath, fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) =>
-                        const Icon(Icons.bar_chart, color: Colors.white, size: 18)),
+                    color: iconBg, borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.all(6),
+                child: Image.asset(iconPath,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => const Icon(Icons.bar_chart,
+                        color: Colors.white, size: 16)),
               ),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: changePositive
                       ? const Color(0xFFE8F9F0)
@@ -295,7 +318,8 @@ class _BerandaAdminState extends State<BerandaAdmin> {
                 ),
                 child: Text(change,
                     style: TextStyle(
-                        fontSize: 11, fontWeight: FontWeight.w700,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
                         color: changePositive
                             ? const Color(0xFF4CAF7D)
                             : const Color(0xFFE53E3E),
@@ -303,15 +327,23 @@ class _BerandaAdminState extends State<BerandaAdmin> {
               ),
             ],
           ),
-          const Spacer(),
-          Text(value,
-              style: const TextStyle(
-                  fontSize: 20, fontWeight: FontWeight.w900,
-                  color: Color(0xFF1A1D2E), fontFamily: 'Poppins')),
-          Text(label,
-              style: const TextStyle(
-                  fontSize: 11, fontWeight: FontWeight.w500,
-                  color: Color(0xFF6B7280), fontFamily: 'Poppins')),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(value,
+                  style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF1A1D2E),
+                      fontFamily: 'Poppins')),
+              Text(label,
+                  style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF6B7280),
+                      fontFamily: 'Poppins')),
+            ],
+          ),
         ],
       ),
     );
@@ -326,14 +358,17 @@ class _BerandaAdminState extends State<BerandaAdmin> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04),
-              blurRadius: 6, offset: const Offset(0, 2)),
+          BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 6,
+              offset: const Offset(0, 2)),
         ],
       ),
       child: Row(
         children: [
           Container(
-            width: 42, height: 42,
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
               color: item['iconBg'] as Color,
               borderRadius: BorderRadius.circular(12),
@@ -341,8 +376,8 @@ class _BerandaAdminState extends State<BerandaAdmin> {
             padding: const EdgeInsets.all(8),
             child: Image.asset(item['iconPath'] as String,
                 fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) =>
-                    const Icon(Icons.info, color: Color(0xFF9CA3AF), size: 20)),
+                errorBuilder: (_, __, ___) => const Icon(Icons.info,
+                    color: Color(0xFF9CA3AF), size: 20)),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -351,13 +386,17 @@ class _BerandaAdminState extends State<BerandaAdmin> {
               children: [
                 Text(item['title'] as String,
                     style: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w700,
-                        color: Color(0xFF1A1D2E), fontFamily: 'Poppins')),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1A1D2E),
+                        fontFamily: 'Poppins')),
                 const SizedBox(height: 2),
                 Text(item['subtitle'] as String,
                     style: const TextStyle(
-                        fontSize: 11, fontWeight: FontWeight.w500,
-                        color: Color(0xFF9CA3AF), fontFamily: 'Poppins')),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF9CA3AF),
+                        fontFamily: 'Poppins')),
               ],
             ),
           ),
@@ -370,7 +409,8 @@ class _BerandaAdminState extends State<BerandaAdmin> {
             ),
             child: Text(item['time'] as String,
                 style: TextStyle(
-                    fontSize: 11, fontWeight: FontWeight.w700,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
                     color: item['timeColor'] as Color,
                     fontFamily: 'Poppins')),
           ),
@@ -384,7 +424,8 @@ class _BerandaAdminState extends State<BerandaAdmin> {
     showDialog(
       context: context,
       builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -394,8 +435,11 @@ class _BerandaAdminState extends State<BerandaAdmin> {
               Row(
                 children: [
                   const Text('Tambah',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800,
-                          color: Color(0xFF1A1D2E), fontFamily: 'Poppins')),
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF1A1D2E),
+                          fontFamily: 'Poppins')),
                   const Spacer(),
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
@@ -405,8 +449,11 @@ class _BerandaAdminState extends State<BerandaAdmin> {
               ),
               const SizedBox(height: 8),
               const Text('Pilih yang ingin ditambahkan:',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500,
-                      color: Color(0xFF6B7280), fontFamily: 'Poppins')),
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF6B7280),
+                      fontFamily: 'Poppins')),
               const SizedBox(height: 16),
               _buildDialogOption(
                 iconPath: 'assets/images/materi.png',
@@ -448,14 +495,17 @@ class _BerandaAdminState extends State<BerandaAdmin> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(14),
         ),
         child: Row(
           children: [
-            Image.asset(iconPath, width: 24, height: 24,
+            Image.asset(iconPath,
+                width: 24,
+                height: 24,
                 color: Colors.white,
                 errorBuilder: (_, __, ___) =>
                     const Icon(Icons.add, color: Colors.white, size: 24)),
@@ -464,11 +514,17 @@ class _BerandaAdminState extends State<BerandaAdmin> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(label,
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800,
-                        color: Colors.white, fontFamily: 'Poppins')),
+                    style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        fontFamily: 'Poppins')),
                 Text(sublabel,
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500,
-                        color: Colors.white70, fontFamily: 'Poppins')),
+                    style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white70,
+                        fontFamily: 'Poppins')),
               ],
             ),
           ],
@@ -482,7 +538,8 @@ class _BerandaAdminState extends State<BerandaAdmin> {
     showDialog(
       context: context,
       builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -492,8 +549,11 @@ class _BerandaAdminState extends State<BerandaAdmin> {
               Row(
                 children: [
                   const Text('Tinjau',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800,
-                          color: Color(0xFF1A1D2E), fontFamily: 'Poppins')),
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF1A1D2E),
+                          fontFamily: 'Poppins')),
                   const Spacer(),
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
@@ -511,8 +571,11 @@ class _BerandaAdminState extends State<BerandaAdmin> {
                 child: const Align(
                   alignment: Alignment.centerRight,
                   child: Text('Lihat Semua',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
-                          color: Color(0xFF3B72FF), fontFamily: 'Poppins')),
+                      style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF3B72FF),
+                          fontFamily: 'Poppins')),
                 ),
               ),
             ],
@@ -538,11 +601,17 @@ class _BerandaAdminState extends State<BerandaAdmin> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700,
-                        color: Color(0xFF1A1D2E), fontFamily: 'Poppins')),
+                    style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1A1D2E),
+                        fontFamily: 'Poppins')),
                 Text(email,
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500,
-                        color: Color(0xFF9CA3AF), fontFamily: 'Poppins')),
+                    style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF9CA3AF),
+                        fontFamily: 'Poppins')),
               ],
             ),
           ),
@@ -557,7 +626,8 @@ class _BerandaAdminState extends State<BerandaAdmin> {
     showDialog(
       context: context,
       builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -567,8 +637,11 @@ class _BerandaAdminState extends State<BerandaAdmin> {
               Row(
                 children: [
                   const Text('Lapor',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800,
-                          color: Color(0xFF1A1D2E), fontFamily: 'Poppins')),
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF1A1D2E),
+                          fontFamily: 'Poppins')),
                   const Spacer(),
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
@@ -577,8 +650,10 @@ class _BerandaAdminState extends State<BerandaAdmin> {
                 ],
               ),
               const SizedBox(height: 16),
-              _buildLaporItem('Alfabet A-Z', 'Konten tidak sesuai oleh pengguna'),
-              _buildLaporItem('Salam Dasar', 'Video tidak jelas dilaporkan murid'),
+              _buildLaporItem(
+                  'Alfabet A-Z', 'Konten tidak sesuai oleh pengguna'),
+              _buildLaporItem(
+                  'Salam Dasar', 'Video tidak jelas dilaporkan murid'),
               _buildLaporItem('Angka 1-10', 'Materi duplikat'),
               const SizedBox(height: 8),
               GestureDetector(
@@ -586,8 +661,11 @@ class _BerandaAdminState extends State<BerandaAdmin> {
                 child: const Align(
                   alignment: Alignment.centerRight,
                   child: Text('Lihat Semua',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
-                          color: Color(0xFF3B72FF), fontFamily: 'Poppins')),
+                      style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF3B72FF),
+                          fontFamily: 'Poppins')),
                 ),
               ),
             ],
@@ -613,11 +691,17 @@ class _BerandaAdminState extends State<BerandaAdmin> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700,
-                        color: Color(0xFF1A1D2E), fontFamily: 'Poppins')),
+                    style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1A1D2E),
+                        fontFamily: 'Poppins')),
                 Text(desc,
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500,
-                        color: Color(0xFF9CA3AF), fontFamily: 'Poppins')),
+                    style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF9CA3AF),
+                        fontFamily: 'Poppins')),
               ],
             ),
           ),
@@ -628,13 +712,14 @@ class _BerandaAdminState extends State<BerandaAdmin> {
   }
 
   // ─── BOTTOM NAV ────────────────────────────────────────
+  // FIX: ikon tetap gambar yang sama, hanya warna berubah kuning saat aktif
   Widget _buildBottomNav() {
-    final List<Map<String, dynamic>> items = [
-      {'iconPath': 'assets/images/berandaadmin.png', 'activeIcon': 'assets/images/Beranda.png', 'label': 'Beranda'},
-      {'iconPath': 'assets/images/penggunaadmin.png', 'activeIcon': 'assets/images/Pengguna.png', 'label': 'Pengguna'},
-      {'iconPath': 'assets/images/kontenadmin.png', 'activeIcon': 'assets/images/Konten.png', 'label': 'Konten'},
-      {'iconPath': 'assets/images/aktifitasadmin.png', 'activeIcon': 'assets/images/Aktifitas.png', 'label': 'Aktivitas'},
-      {'iconPath': 'assets/images/laporanadmin.png', 'activeIcon': 'assets/images/Laporan.png', 'label': 'Laporan'},
+    final List<Map<String, String>> items = [
+      {'iconPath': 'assets/images/berandaadmin.png', 'label': 'Beranda'},
+      {'iconPath': 'assets/images/penggunaadmin.png', 'label': 'Pengguna'},
+      {'iconPath': 'assets/images/kontenadmin.png', 'label': 'Konten'},
+      {'iconPath': 'assets/images/aktifitasadmin.png', 'label': 'Aktivitas'},
+      {'iconPath': 'assets/images/laporanadmin.png', 'label': 'Laporan'},
     ];
 
     return Container(
@@ -642,44 +727,48 @@ class _BerandaAdminState extends State<BerandaAdmin> {
         color: Colors.white,
         border: Border(top: BorderSide(color: Color(0xFFEBEBEB))),
       ),
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: List.generate(items.length, (i) {
           final isActive = _selectedNav == i;
-          final iconPath = isActive
-              ? items[i]['activeIcon'] as String
-              : items[i]['iconPath'] as String;
           return GestureDetector(
             onTap: () => setState(() => _selectedNav = i),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  padding: isActive
-                      ? const EdgeInsets.symmetric(horizontal: 12, vertical: 4)
-                      : EdgeInsets.zero,
-                  decoration: isActive
-                      ? BoxDecoration(
-                          color: const Color(0xFFFFF8EC),
-                          borderRadius: BorderRadius.circular(10))
-                      : null,
-                  child: Image.asset(iconPath, width: 22, height: 22,
-                      color: isActive ? const Color(0xFFF5A623) : const Color(0xFF6B7280),
-                      errorBuilder: (_, __, ___) => Icon(Icons.circle,
-                          size: 22,
-                          color: isActive
-                              ? const Color(0xFFF5A623)
-                              : const Color(0xFF6B7280))),
+                // Ikon tetap gambar yang sama, hanya warna berubah
+                ColorFiltered(
+                  colorFilter: ColorFilter.mode(
+                    isActive
+                        ? const Color(0xFFF5A623)
+                        : const Color(0xFF9CA3AF),
+                    BlendMode.srcIn,
+                  ),
+                  child: Image.asset(
+                    items[i]['iconPath']!,
+                    width: 22,
+                    height: 22,
+                    errorBuilder: (_, __, ___) => Icon(
+                      Icons.circle,
+                      size: 22,
+                      color: isActive
+                          ? const Color(0xFFF5A623)
+                          : const Color(0xFF9CA3AF),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 4),
-                Text(items[i]['label'] as String,
-                    style: TextStyle(
-                        fontSize: 11, fontWeight: FontWeight.w700,
-                        color: isActive
-                            ? const Color(0xFFF5A623)
-                            : const Color(0xFF6B7280),
-                        fontFamily: 'Poppins')),
+                Text(
+                  items[i]['label']!,
+                  style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: isActive
+                          ? const Color(0xFFF5A623)
+                          : const Color(0xFF9CA3AF),
+                      fontFamily: 'Poppins'),
+                ),
               ],
             ),
           );
