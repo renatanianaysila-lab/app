@@ -139,6 +139,7 @@ class _BerandaMuridState extends State<BerandaMurid> {
           ],
         ),
       ),
+      // bottomNavigationBar dikosongkan agar otomatis mengikuti Navbar Utama proyek kelompok
     );
   }
 
@@ -195,9 +196,14 @@ class _BerandaMuridState extends State<BerandaMurid> {
             child: IconButton(
               icon: Image.asset(
                 'assets/images/lonceng.png',
+<<<<<<< HEAD
                 width: 28,  
                 height: 28,
                 errorBuilder: (context, error, stackTrace) => const Icon(Icons.notifications, color: Color(0xFF3B72FF)),
+=======
+                width: 28,
+                height: 28,
+>>>>>>> 6844d39ccf9f68e90618237faa47edf4e156dcb4
               ),
               onPressed: () {},
               padding: EdgeInsets.zero,
