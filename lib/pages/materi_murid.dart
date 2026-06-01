@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'video_play_page.dart';
+import 'quiz_play_page.dart';
+
 class MateriMurid extends StatefulWidget {
   final String initialLevel;
   const MateriMurid({super.key, this.initialLevel = 'Beginner'});
@@ -15,45 +18,45 @@ class _MateriMuridState extends State<MateriMurid> {
   final List<Map<String, dynamic>> _kategoriBeginner = [
     {
       'icon': 'assets/images/A.png',
-      'iconBg': Color(0xFFDEEAFF),
+      'iconBg': const Color(0xFFDEEAFF),
       'title': 'Abjad A-Z',
       'subtitle': null,
       'videoCount': 1,
       'premium': false,
       'items': [
         {'type': 'video', 'title': 'Dasar Bahasa Isyarat - Alfabet A-Z', 'done': true},
-        {'type': 'kuis', 'title': 'Kuis: Abjad A-Z', 'score': '100/100', 'scoreColor': Color(0xFF4CAF7D)},
+        {'type': 'kuis', 'title': 'Kuis: Abjad A-Z', 'score': '100/100', 'scoreColor': const Color(0xFF4CAF7D)},
       ],
     },
     {
       'icon': 'assets/images/#.png',
-      'iconBg': Color(0xFFDEF7EC),
+      'iconBg': const Color(0xFFDEF7EC),
       'title': 'Angka 1-10',
       'subtitle': null,
       'videoCount': 1,
       'premium': false,
       'items': [
         {'type': 'video', 'title': 'Angka dalam Bahasa Isyarat 1-100', 'done': true},
-        {'type': 'kuis', 'title': 'Kuis: Angka 1-10', 'score': '60/100', 'scoreColor': Color(0xFFE53E3E)},
+        {'type': 'kuis', 'title': 'Kuis: Angka 1-10', 'score': '60/100', 'scoreColor': const Color(0xFFE53E3E)}, 
       ],
     },
     {
       'icon': 'assets/images/ekspresi.png',
-      'iconBg': Color(0xFFF3E8FF),
+      'iconBg': const Color(0xFFF3E8FF),
       'title': 'Ekspresi',
       'subtitle': null,
       'videoCount': 5,
       'premium': false,
       'items': [
         {'type': 'video', 'title': 'Ekspresi Sehari-hari - Salam', 'done': true},
-        {'type': 'kuis', 'title': 'Kuis: Ekspresi Sehari-hari', 'score': '95/100', 'scoreColor': Color(0xFF4CAF7D)},
+        {'type': 'kuis', 'title': 'Kuis: Ekspresi Sehari-hari', 'score': '95/100', 'scoreColor': const Color(0xFF4CAF7D)},
         {'type': 'video', 'title': 'Ekspresi Sehari-hari: Perasaan', 'done': false},
         {'type': 'kuis', 'title': 'Kuis: Ekspresi Perasaan', 'score': null, 'scoreColor': null},
       ],
     },
     {
       'icon': 'assets/images/percakapan.png',
-      'iconBg': Color(0xFFFFF3E0),
+      'iconBg': const Color(0xFFFFF3E0),
       'title': 'Percakapan Dasar',
       'subtitle': null,
       'videoCount': 10,
@@ -66,7 +69,7 @@ class _MateriMuridState extends State<MateriMurid> {
   final List<Map<String, dynamic>> _kategoriIntermediate = [
     {
       'icon': 'assets/images/materi.png',
-      'iconBg': Color(0xFFEEF2FF),
+      'iconBg': const Color(0xFFEEF2FF),
       'title': 'Kosakata Lanjutan',
       'subtitle': 'Transportasi · Pekerjaan · Pendidikan',
       'videoCount': 5,
@@ -75,7 +78,7 @@ class _MateriMuridState extends State<MateriMurid> {
     },
     {
       'icon': 'assets/images/percakapan.png',
-      'iconBg': Color(0xFFE8F9F0),
+      'iconBg': const Color(0xFFE8F9F0),
       'title': 'Percakapan Sehari-hari',
       'subtitle': '3-5 kalimat per sesi',
       'videoCount': 5,
@@ -84,7 +87,7 @@ class _MateriMuridState extends State<MateriMurid> {
     },
     {
       'icon': 'assets/images/ekspresi.png',
-      'iconBg': Color(0xFFF3E8FF),
+      'iconBg': const Color(0xFFF3E8FF),
       'title': 'Ekspresi Wajah Lanjutan',
       'subtitle': 'Lanjutan dari Ekspresi Dasar',
       'videoCount': 5,
@@ -93,7 +96,7 @@ class _MateriMuridState extends State<MateriMurid> {
     },
     {
       'icon': 'assets/images/img.png',
-      'iconBg': Color(0xFFFFF8EC),
+      'iconBg': const Color(0xFFFFF8EC),
       'title': 'Tanya Jawab Interaktif',
       'subtitle': 'Gabungan semua materi Dasar',
       'videoCount': 5,
@@ -615,63 +618,94 @@ class _MateriMuridState extends State<MateriMurid> {
                   final isDone = subItem['done'] ?? false;
                   final isKuis = subItem['type'] == 'kuis';
                   final score = subItem['score'];
-                  final scoreColor = subItem['scoreColor'];
+                  final scoreColor = subItem['scoreColor'] as Color?;
                   final hasScore = score != null;
 
+                  // ── WARNA BACKGROUND SUBITEM ──
                   Color bgColor;
-                  if (!hasScore && isKuis) {
-                    bgColor = const Color(0xFFF3F4F6);
+                  if (isKuis && hasScore && scoreColor != null) {
+                    bgColor = scoreColor.withOpacity(0.1); 
+                  } else if (!hasScore && isKuis) {
+                    bgColor = const Color(0xFFF3F4F6); 
                   } else if (!isDone && !isKuis) {
-                    bgColor = const Color(0xFFF3F4F6);
+                    bgColor = const Color(0xFFF3F4F6); 
                   } else {
-                    bgColor = const Color(0xFFDEF7EC);
+                    bgColor = const Color(0xFFDEF7EC); 
                   }
 
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: bgColor,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      children: [
-                        Image.asset(
-                          'assets/images/iconhijau.png',
-                          width: 24,
-                          height: 24,
-                          color: hasScore || isDone
-                              ? (isKuis
-                                  ? (scoreColor as Color?)
-                                  : const Color(0xFF2D9F6B))
-                              : const Color(0xFF9CA3AF),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            subItem['title'] as String,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: 'Poppins',
-                              color: hasScore || isDone
-                                  ? const Color(0xFF1A1D2E)
-                                  : const Color(0xFF6B7280),
+                  return GestureDetector(
+                    onTap: () {
+                      if (isKuis) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => QuizPlayPage(
+                              quizTitle: subItem['title'] as String,
                             ),
                           ),
-                        ),
-                        if (isKuis && hasScore)
-                          Text(
-                            score as String,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              fontFamily: 'Poppins',
-                              color: scoreColor as Color,
+                        );
+                      } else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => VideoPlayPage(
+                              videoId: 'video_01', 
+                              videoTitle: subItem['title'] as String, 
+                              commentsReference: const <Map<String, dynamic>>[], 
+                              onCommentUpdated: () {
+                                setState(() {});
+                              },
                             ),
                           ),
-                      ],
+                        );
+                      }
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: bgColor,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        children: [
+                          Image.asset(
+                            'assets/images/iconhijau.png',
+                            width: 24,
+                            height: 24,
+                            color: hasScore || isDone
+                                ? (isKuis
+                                    ? scoreColor
+                                    : const Color(0xFF2D9F6B))
+                                : const Color(0xFF9CA3AF),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              subItem['title'] as String,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                fontFamily: 'Poppins',
+                                color: hasScore || isDone
+                                    ? const Color(0xFF1A1D2E)
+                                    : const Color(0xFF6B7280),
+                              ),
+                            ),
+                          ),
+                          if (isKuis && hasScore)
+                            Text(
+                              score as String,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                fontFamily: 'Poppins',
+                                color: scoreColor,
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   );
                 }).toList(),
