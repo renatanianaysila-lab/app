@@ -1,11 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
-import 'package:http/http.dart' as http; 
-=======
 import 'video_play_page.dart';
 import 'quiz_play_page.dart';
->>>>>>> 6844d39ccf9f68e90618237faa47edf4e156dcb4
+import 'package:http/http.dart' as http;
 
 class MateriMurid extends StatefulWidget {
   final String initialLevel;
@@ -43,11 +40,7 @@ class _MateriMuridState extends State<MateriMurid> {
       'premium': false,
       'items': [
         {'type': 'video', 'title': 'Angka dalam Bahasa Isyarat 1-100', 'done': true},
-<<<<<<< HEAD
-        {'type': 'kuis', 'title': 'Kuis: Angka 1-10', 'score': '60/100', 'scoreColor': const Color(0xFFE53E3E)},
-=======
         {'type': 'kuis', 'title': 'Kuis: Angka 1-10', 'score': '60/100', 'scoreColor': const Color(0xFFE53E3E)}, 
->>>>>>> 6844d39ccf9f68e90618237faa47edf4e156dcb4
       ],
     },
     {
@@ -690,57 +683,6 @@ class _MateriMuridState extends State<MateriMurid> {
                     bgColor = const Color(0xFFDEF7EC); 
                   }
 
-<<<<<<< HEAD
-                  return InkWell(
-                    onTap: () {
-                      // Trigger notifikasi klik memutar video atau kuis
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Membuka: ${subItem['title']}'),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: bgColor,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        children: [
-                          Image.asset(
-                            'assets/images/iconhijau.png',
-                            width: 24,
-                            height: 24,
-                            color: hasScore || isDone
-                                ? (isKuis
-                                    ? (scoreColor as Color?)
-                                    : const Color(0xFF2D9F6B))
-                                : const Color(0xFF9CA3AF),
-                            errorBuilder: (_, __, ___) => Icon(
-                              isKuis ? Icons.quiz : Icons.play_circle,
-                              color: hasScore || isDone ? const Color(0xFF3B72FF) : Colors.grey,
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              subItem['title'] as String,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                fontFamily: 'Poppins',
-                                color: hasScore || isDone
-                                    ? const Color(0xFF1A1D2E)
-                                    : const Color(0xFF6B7280),
-                              ),
-                            ),
-                          ),
-=======
                   return GestureDetector(
                     onTap: () {
                       if (isKuis) {
@@ -802,7 +744,6 @@ class _MateriMuridState extends State<MateriMurid> {
                               ),
                             ),
                           ),
->>>>>>> 6844d39ccf9f68e90618237faa47edf4e156dcb4
                           if (isKuis && hasScore)
                             Text(
                               score as String,
@@ -810,11 +751,7 @@ class _MateriMuridState extends State<MateriMurid> {
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
                                 fontFamily: 'Poppins',
-<<<<<<< HEAD
-                                color: scoreColor as Color,
-=======
                                 color: scoreColor,
->>>>>>> 6844d39ccf9f68e90618237faa47edf4e156dcb4
                               ),
                             ),
                         ],
