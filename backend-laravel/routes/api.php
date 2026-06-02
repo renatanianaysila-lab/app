@@ -24,3 +24,19 @@ Route::get('/forum', function () {
         'data' => \Illuminate\Support\Facades\DB::table('forums')->get()
     ], 200);
 });
+
+Route::get('/quiz', function () {
+    return response()->json([
+        'success' => true,
+        'message' => 'Daftar soal kuis berhasil diambil',
+        'data' => \Illuminate\Support\Facades\DB::table('quizzes')->get()
+    ], 200);
+});
+
+Route::get('/packages', function () {
+    return response()->json([
+        'success' => true,
+        'message' => 'Daftar paket premium berhasil diambil',
+        'data' => \Illuminate\Support\Facades\DB::table('packages')->get()
+    ], 200);
+});
