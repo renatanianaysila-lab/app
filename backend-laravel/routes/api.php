@@ -7,13 +7,20 @@ use App\Http\Controllers\Api\MateriController;
 
 Route::get('/materi', [MateriController::class, 'index']);
 
-// Route Payment yang sudah ada sebelumnya
+
 Route::post('/payment', [PaymentController::class, 'createPayment']);
 Route::post('/payment/{id}/confirm', [PaymentController::class, 'confirmPayment']);
 Route::get('/transactions', [PaymentController::class, 'getTransactions']);
 
-// Tambahan Route untuk Registrasi dan Login IsyaratKita
+
 Route::post('/register/murid', [UserController::class, 'registerMurid']);
 Route::post('/login', [UserController::class, 'login']);
-Route::get('/forum', [App\Http\Controllers\ForumController::class, 'index']);
 
+
+Route::get('/forum', function () {
+    return response()->json([
+        'success' => true,
+        'message' => 'Daftar diskusi forum berhasil diambil',
+        'data' => \Illuminate\Support\Facades\DB::table('forums')->get()
+    ], 200);
+});
