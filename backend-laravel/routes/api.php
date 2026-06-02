@@ -15,4 +15,5 @@ Route::get('/transactions', [PaymentController::class, 'getTransactions']);
 // Tambahan Route untuk Registrasi dan Login IsyaratKita
 Route::post('/register/murid', [UserController::class, 'registerMurid']);
 Route::post('/login', [UserController::class, 'login']);
+Route::get('/forum', [App\Http\Controllers\ForumController::class, 'index']);
 
