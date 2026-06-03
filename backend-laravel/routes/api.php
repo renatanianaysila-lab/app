@@ -106,3 +106,31 @@ Route::get('/packages', function () {
         'data' => \Illuminate\Support\Facades\DB::table('packages')->get()
     ], 200);
 }); 
+
+// 1. Ambil status langganan aktif pengguna (GET)
+Route::get('/user/subscription/{user_id}', function ($user_id) {
+    $subscription = \Illuminate\Support\Facades\DB::table('user_subscriptions')
+        ->where('user_id', $user_id)
+        ->where('status', 'active')
+        ->first();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Status langganan berhasil dimuat',
+        'is_premium' => $subscription ? true : false,
+        'data' => $subscription
+    ], 200);
+});
+
+// 2. Ambil progress tontonan materi video murid (GET)
+Route::get('/user/progress/{user_id}', function ($user_id) {
+    $progress = \Illuminate\Support\Facades\DB::table('user_progress')
+        ->where('user_id', $user_id)
+        ->get();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Progress belajar berhasil diambil',
+        'data' => $progress
+    ], 200);
+});
