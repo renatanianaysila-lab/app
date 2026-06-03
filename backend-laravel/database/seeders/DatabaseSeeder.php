@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             QuizSeeder::class, // Seeder bank soal kuis baru kita
             PackageSeeder::class,  
             TransactionSeeder::class,
+            QuizScoreSeeder::class,
         ]);
     }
 }
