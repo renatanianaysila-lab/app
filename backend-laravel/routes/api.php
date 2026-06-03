@@ -87,6 +87,17 @@ Route::post('/quiz/score', function (\Illuminate\Http\Request $request) {
     ], 201);
 });
 
+// Ambil semua riwayat skor kuis untuk ditampilkan di riwayat_page.dart (GET)
+Route::get('/quiz/history', function () {
+    return response()->json([
+        'success' => true,
+        'message' => 'Semua riwayat nilai kuis berhasil diambil',
+        'data' => \Illuminate\Support\Facades\DB::table('quiz_scores')
+            ->orderBy('created_at', 'desc')
+            ->get()
+    ], 200);
+});
+
 // --- RUTE PAKET PREMIUM ---
 Route::get('/packages', function () {
     return response()->json([

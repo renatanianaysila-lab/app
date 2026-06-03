@@ -20,8 +20,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
             MateriSeeder::class, // Seeder materi video yang kemarin
             ForumSeeder::class,  // Seeder obrolan forum yang kemarin
-            QuizSeeder::class, 
-            PackageSeeder::class,  // Seeder bank soal kuis baru kita
+            QuizSeeder::class, // Seeder bank soal kuis baru kita
+            PackageSeeder::class,  
+            TransactionSeeder::class,
         ]);
     }
 }
