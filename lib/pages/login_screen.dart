@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'forgot_password_page.dart';
 import 'package:app/pages/role_page.dart';
 import 'beranda_admin.dart';
-import 'package:http/http.dart' as http; // 1. Tambahkan import package http
+import 'package:http/http.dart' as http;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,13 +18,12 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isLogin = true;
   bool isPasswordHidden = true;
   bool isConfirmPasswordHidden = true;
-  bool _isLoading = false; // 2. Tambahkan state loading untuk indikator proses API
+  bool _isLoading = false;
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
 
   @override
   void dispose() {
@@ -71,7 +70,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // 3. Ubah _submit menjadi async agar bisa memproses HTTP Request ke Laravel
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -84,8 +82,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (isLogin) {
       // ── 1. LOGIKA LOGIN ──
-      
-      // Akun Admin Khusus (Hardcoded bypass tetap dipertahankan)
       if (email == 'admin@gmail.com' && password == '12345678') {
         setState(() => _isLoading = false);
         Navigator.pushReplacement(
@@ -95,8 +91,8 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      // Login Akun Murid/Guru ke Laravel
       const String urlLogin = 'http://10.0.2.2:8000/api/login';
+      
       try {
         final response = await http.post(
           Uri.parse(urlLogin),
@@ -107,18 +103,17 @@ class _LoginScreenState extends State<LoginScreen> {
           body: jsonEncode({
             'email': email,
             'password': password,
-            'role': 'murid', // Mengarahkan default role login ke murid
+            'role': 'murid',
           }),
         );
 
         final responseData = jsonDecode(response.body);
 
         if (response.statusCode == 200) {
-          // Jika Login Sukses -> Lanjut ke RolePage bawaan kelompokmu
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Selamat datang kembali, ${responseData['user']['nama_murid']}!'),
+              const SnackBar(
+                content: Text('Selamat datang kembali!'),
                 backgroundColor: Colors.green,
               ),
             );
@@ -128,7 +123,6 @@ class _LoginScreenState extends State<LoginScreen> {
             );
           }
         } else {
-          // Gagal login (Kredensial salah)
           if (mounted) {
             _showSnackBar(responseData['message'] ?? 'Email atau password salah', Colors.red);
           }
@@ -140,7 +134,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
     } else {
-      // ── 2. LOGIKA REGISTRASI (JIKA isLogin == false) ──
+      // ── 2. LOGIKA REGISTRASI ──
       const String urlRegister = 'http://10.0.2.2:8000/api/register/murid';
       try {
         final response = await http.post(
@@ -153,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
             'nama_murid': _nameController.text.trim(),
             'email_murid': email,
             'password_murid': password,
-            'tanggal_lahir': '2005-01-01', // Parameter wajib database migration
+            'tanggal_lahir': '2005-01-01',
           }),
         );
 
@@ -251,24 +245,18 @@ class _LoginScreenState extends State<LoginScreen> {
                               ? 'Masuk ke akun Anda untuk melanjutkan\npembelajaran'
                               : 'Buat akun baru untuk memulai',
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
-                              fontSize: 14, height: 1.5, color: Color(0xFF5D6470)),
+                          style: const TextStyle(fontSize: 14, height: 1.5, color: Color(0xFF5D6470)),
                         ),
                         const SizedBox(height: 30),
                         if (!isLogin) ...[
                           const Align(
                             alignment: Alignment.centerLeft,
-                            child: Text('Nama',
-                                style: TextStyle(fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF414A57))),
+                            child: Text('Nama', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF414A57))),
                           ),
                           const SizedBox(height: 10),
                           TextFormField(
                             controller: _nameController,
-                            decoration: _inputDecoration(
-                                hintText: 'Masukkan nama lengkap',
-                                prefixIcon: Icons.person_outline),
+                            decoration: _inputDecoration(hintText: 'Masukkan nama lengkap', prefixIcon: Icons.person_outline),
                             validator: (value) {
                               if (!isLogin && (value == null || value.trim().isEmpty)) {
                                 return 'Nama wajib diisi';
@@ -280,24 +268,18 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                         const Align(
                           alignment: Alignment.centerLeft,
-                          child: Text('Email',
-                              style: TextStyle(fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF414A57))),
+                          child: Text('Email', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF414A57))),
                         ),
                         const SizedBox(height: 10),
                         TextFormField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
-                          decoration: _inputDecoration(
-                              hintText: 'Masukkan email Anda',
-                              prefixIcon: Icons.email_outlined),
+                          decoration: _inputDecoration(hintText: 'Masukkan email Anda', prefixIcon: Icons.email_outlined),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
                               return 'Email wajib diisi';
                             }
-                            final emailRegex =
-                                RegExp(r'^[\w\-.]+@([\w-]+\.)+[\w-]{2,4}$');
+                            final emailRegex = RegExp(r'^[\w\-.]+@([\w-]+\.)+[\w-]{2,4}$');
                             if (!emailRegex.hasMatch(value.trim())) {
                               return 'Format email tidak valid';
                             }
@@ -307,10 +289,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 22),
                         const Align(
                           alignment: Alignment.centerLeft,
-                          child: Text('Password',
-                              style: TextStyle(fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF414A57))),
+                          child: Text('Password', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF414A57))),
                         ),
                         const SizedBox(height: 10),
                         TextFormField(
@@ -320,12 +299,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             hintText: 'Masukkan password Anda',
                             prefixIcon: Icons.lock_outline,
                             suffixIcon: IconButton(
-                              onPressed: () =>
-                                  setState(() => isPasswordHidden = !isPasswordHidden),
+                              onPressed: () => setState(() => isPasswordHidden = !isPasswordHidden),
                               icon: Icon(
-                                isPasswordHidden
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
+                                isPasswordHidden ? Icons.visibility_outlined : Icons.visibility_off_outlined,
                                 color: const Color(0xFF9AA1AC),
                               ),
                             ),
@@ -340,10 +316,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 22),
                           const Align(
                             alignment: Alignment.centerLeft,
-                            child: Text('Konfirmasi Password',
-                                style: TextStyle(fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF414A57))),
+                            child: Text('Konfirmasi Password', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF414A57))),
                           ),
                           const SizedBox(height: 10),
                           TextFormField(
@@ -353,24 +326,17 @@ class _LoginScreenState extends State<LoginScreen> {
                               hintText: 'Ulangi password',
                               prefixIcon: Icons.lock_outline,
                               suffixIcon: IconButton(
-                                onPressed: () => setState(() =>
-                                    isConfirmPasswordHidden = !isConfirmPasswordHidden),
+                                onPressed: () => setState(() => isConfirmPasswordHidden = !isConfirmPasswordHidden),
                                 icon: Icon(
-                                  isConfirmPasswordHidden
-                                      ? Icons.visibility_outlined
-                                      : Icons.visibility_off_outlined,
+                                  isConfirmPasswordHidden ? Icons.visibility_outlined : Icons.visibility_off_outlined,
                                   color: const Color(0xFF9AA1AC),
                                 ),
                               ),
                             ),
                             validator: (value) {
                               if (!isLogin) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Konfirmasi password wajib diisi';
-                                }
-                                if (value != _passwordController.text) {
-                                  return 'Password tidak sama';
-                                }
+                                if (value == null || value.isEmpty) return 'Konfirmasi password wajib diisi';
+                                if (value != _passwordController.text) return 'Password tidak sama';
                               }
                               return null;
                             },
@@ -382,12 +348,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             alignment: Alignment.centerRight,
                             child: TextButton(
                               onPressed: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                    builder: (_) => const ForgotPasswordPage()),
+                                MaterialPageRoute(builder: (_) => const ForgotPasswordPage()),
                               ),
-                              child: const Text('Lupa Password?',
-                                  style: TextStyle(color: Color(0xFF5F8DFF),
-                                      fontSize: 14, fontWeight: FontWeight.w500)),
+                              child: const Text('Lupa Password?', style: TextStyle(color: Color(0xFF5F8DFF), fontSize: 14, fontWeight: FontWeight.w500)),
                             ),
                           ),
                         ],
@@ -397,20 +360,16 @@ class _LoginScreenState extends State<LoginScreen> {
                           height: 58,
                           child: ElevatedButton.icon(
                             onPressed: _submit,
-                            icon: Icon(
-                                isLogin ? Icons.login : Icons.person_add_alt_1,
-                                color: Colors.white),
+                            icon: Icon(isLogin ? Icons.login : Icons.person_add_alt_1, color: Colors.white),
                             label: Text(
                               isLogin ? 'Masuk' : 'Daftar',
-                              style: const TextStyle(fontSize: 16,
-                                  fontWeight: FontWeight.w700, color: Colors.white),
+                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white),
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF5F8DFF),
                               elevation: 6,
                               shadowColor: Colors.black26,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(22)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
                             ),
                           ),
                         ),
@@ -420,8 +379,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           children: [
                             Text(
                               isLogin ? 'Belum punya akun? ' : 'Sudah punya akun? ',
-                              style: const TextStyle(
-                                  fontSize: 14, color: Color(0xFF5D6470)),
+                              style: const TextStyle(fontSize: 14, color: Color(0xFF5D6470)),
                             ),
                             TextButton(
                               onPressed: () {

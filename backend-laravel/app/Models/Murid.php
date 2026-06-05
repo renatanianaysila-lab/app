@@ -3,11 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Laravel\Sanctum\HasApiTokens;
 
 class Murid extends Model
 {
-    use HasApiTokens;
 
        protected $table = 'murid';
        protected $primaryKey = 'murid_id';

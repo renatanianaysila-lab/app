@@ -2,16 +2,14 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Model; 
 
 class Guru extends Model
 {
-    use HasApiTokens;
 
        protected $table = 'guru';
        protected $primaryKey = 'guru_id';
-       public $incrementing = false; // Di PDM juga berupa CHAR(5)
+       public $incrementing = false; 
        protected $keyType = 'string';
 
        protected $fillable = [
