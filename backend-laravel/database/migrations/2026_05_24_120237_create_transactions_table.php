@@ -9,13 +9,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('transactions', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('payment_id')->constrained()->onDelete('cascade');
-            $table->string('transaction_code');
-            $table->integer('amount');
-            $table->string('status')->default('pending');
-            $table->timestamps();
-        });
+    $table->id();
+    $table->foreignId('user_id');          
+    $table->integer('package_id');          
+    $table->integer('total_harga');         // <-- Pastikan baris ini ada
+    $table->string('metode_pembayaran');    
+    $table->string('status');               
+    $table->timestamps();
+});
     }
 
     public function down(): void
