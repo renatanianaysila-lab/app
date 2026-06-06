@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'main_navigation.dart';
 import 'beranda_guru.dart';
+import 'main_navigation_guru.dart';
 
 class RolePage extends StatelessWidget {
   const RolePage({super.key});
@@ -80,7 +81,7 @@ class RolePage extends StatelessWidget {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const BerandaGuruMain(),
+                      builder: (_) => const MainNavigationGuru(initialIndex: 0),
                     ),
                   );
                 },
