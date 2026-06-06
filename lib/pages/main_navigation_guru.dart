@@ -16,11 +16,11 @@ class _MainNavigationGuruState extends State<MainNavigationGuru> {
 
   
   final List<Widget> _pages = [
-    const BerandaGuruMain(), // Index 0: Tampilan Awal Dashboard Guru kamu
-    const Center(child: Text("Halaman Materi Guru")), // Index 1: Sisa kk kelompokmu
-    const Center(child: Text("Halaman Forum Guru")),  // Index 2: Sisa kk kelompokmu
-    const ProgresGuruPage(),                          // Index 3: Kodingan Progres kita tadi!
-    const Center(child: Text("Halaman Profil Guru")), // Index 4: Sisa kk kelompokmu
+    const BerandaGuruMain(), // Index 0
+    const Center(child: Text("Halaman Materi Guru")), // Index 1
+    const Center(child: Text("Halaman Forum Guru")),  // Index 2
+    const ProgresGuruPage(),                          // Index 3
+    const ProfilGuruPage(),  // <-- GANTI BARIS INI YA, NAY!
   ];
 
   @override
