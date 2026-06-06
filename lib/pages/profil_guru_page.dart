@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'edit_profil_guru_page.dart';
+import 'role_page.dart'; 
 
 class ProfilGuruPage extends StatefulWidget {
   const ProfilGuruPage({super.key});
@@ -196,7 +197,10 @@ class _ProfilGuruPageState extends State<ProfilGuruPage> {
                   style: TextStyle(color: Color(0xFFEB5757), fontWeight: FontWeight.bold),
                 ),
                 onPressed: () {
-                  // Tambahkan fungsi logout atau balik ke RolePage di sini
+                  Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+    MaterialPageRoute(builder: (context) => const RolePage()), 
+    (Route<dynamic> route) => false,
+  );
                 },
               ),
             ),

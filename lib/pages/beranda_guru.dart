@@ -46,30 +46,6 @@ class _BerandaGuruMainState extends State<BerandaGuruMain> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FC),
       body: SafeArea(child: _pages[_selectedIndex]),
-      
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-            // Kalau pindah tab lain, reset sub-page beranda ke awal
-            if (index != 0) _currentSubPage = 'beranda';
-          });
-        },
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: const Color(0xFFFFB703),
-        unselectedItemColor: const Color(0xFF9CA3AF),
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w800, fontFamily: 'Poppins', fontSize: 11),
-        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontFamily: 'Poppins', fontSize: 11),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_filled, size: 24), label: 'Beranda'),
-          BottomNavigationBarItem(icon: Icon(Icons.assignment, size: 24), label: 'Materi'),
-          BottomNavigationBarItem(icon: Icon(Icons.chat, size: 24), label: 'Forum'),
-          BottomNavigationBarItem(icon: Icon(Icons.trending_up, size: 24), label: 'Progres'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_rounded, size: 24), label: 'Profil'),
-        ],
-      ),
     );
   }
 

@@ -20,7 +20,7 @@ class _MainNavigationGuruState extends State<MainNavigationGuru> {
     const Center(child: Text("Halaman Materi Guru")), // Index 1
     const Center(child: Text("Halaman Forum Guru")),  // Index 2
     const ProgresGuruPage(),                          // Index 3
-    const ProfilGuruPage(),  // <-- GANTI BARIS INI YA, NAY!
+    const ProfilGuruPage(), 
   ];
 
   @override
