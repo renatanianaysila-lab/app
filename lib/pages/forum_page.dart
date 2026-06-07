@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class ForumPage extends StatefulWidget {
   const ForumPage({super.key});
@@ -13,7 +15,9 @@ class _ForumPageState extends State<ForumPage> {
   final TextEditingController replyController = TextEditingController();
 
   String searchQuery = '';
+  bool isLoading = false;
 
+  // Data awal/statis jika database kosong (Bisa ditarik via API GET nanti)
   final List<Map<String, dynamic>> posts = [
     {
       'username': '@naysila123',
@@ -36,8 +40,7 @@ class _ForumPageState extends State<ForumPage> {
       'username': '@nadia_isl',
       'time': '3 hari yang lalu',
       'role': 'Murid',
-      'content':
-          'Gimana cara menghafal bahasa isyarat untuk percakapan sehari-hari biar lebih cepat paham ya?',
+      'content': 'Gimana cara menghafal bahasa isyarat untuk percakapan sehari-hari biar lebih cepat paham ya?',
       'image': null,
       'likes': 15,
       'liked': false,
@@ -56,24 +59,6 @@ class _ForumPageState extends State<ForumPage> {
         },
       ],
     },
-    {
-      'username': '@tifnyhys',
-      'time': '12 hari yang lalu',
-      'role': 'Murid',
-      'content':
-          'Boleh minta feedback nggak, gerakan bahasa isyaratku di video ini masih kaku atau sudah oke?',
-      'image': 'https://picsum.photos/seed/signlanguage/300/180',
-      'likes': 40,
-      'liked': false,
-      'replies': [
-        {
-          'username': '@mentor_rani',
-          'time': '10 hari yang lalu',
-          'role': 'Guru',
-          'content': 'Gerakannya sudah cukup jelas. Tinggal ekspresi wajahnya dibuat lebih natural.',
-        },
-      ],
-    },
   ];
 
   List<Map<String, dynamic>> get filteredPosts {
@@ -87,9 +72,87 @@ class _ForumPageState extends State<ForumPage> {
     }).toList();
   }
 
+  // ─── FUNGSI INTEGRASI DATABASE (POSTING BARU) ──────────────────────
+  Future<void> addPost() async {
+    final String textContent = postController.text.trim();
+    if (textContent.isEmpty) return;
+
+    // Tampilkan loading dialog agar user tidak klik berkali-kali
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      // Mengirim data ke API Laravel (Menggunakan IP 10.0.2.2 untuk Emulator Android)
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2:8000/api/forums'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({
+          'username': '@naysila123', 
+          'role': 'Murid',
+          'content': textContent,
+        }),
+      );
+
+      // Tutup loading dialog
+      Navigator.pop(context);
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        // Jika backend sukses menyimpan, masukkan data ke UI secara real-time
+        setState(() {
+          posts.insert(0, {
+            'username': '@kamu',
+            'time': 'Baru saja',
+            'role': 'Murid',
+            'content': textContent,
+            'image': null,
+            'likes': 0,
+            'liked': false,
+            'replies': [],
+          });
+        });
+
+        postController.clear();
+        Navigator.pop(context); // Tutup lembar bottom sheet form input
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Postingan berhasil disimpan ke database!')),
+        );
+      } else {
+        throw Exception('Gagal menyimpan data ke backend Laravel.');
+      }
+    } catch (e) {
+      Navigator.pop(context); // Tutup loading jika terjadi kendala koneksi
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Koneksi Gagal: Terjadi kendala saat menyambung ke database.')),
+      );
+    }
+  }
+
+  // ─── FUNGSI SEED REPLIES LOCAL (Untuk Balasan Diskusi) ──────────────
+  void addReply(int index) {
+    if (replyController.text.trim().isEmpty) return;
+
+    setState(() {
+      posts[index]['replies'].add({
+        'username': '@kamu',
+        'time': 'Baru saja',
+        'role': 'Murid',
+        'content': replyController.text.trim(),
+      });
+    });
+
+    replyController.clear();
+    Navigator.pop(context);
+  }
+
   void showPostSheet() {
     postController.clear();
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -131,17 +194,12 @@ class _ForumPageState extends State<ForumPage> {
                 width: double.infinity,
                 height: 44,
                 child: ElevatedButton(
-                  onPressed: addPost,
+                  onPressed: addPost, // Memanggil fungsi integrasi database kita
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2563EB),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
-                  child: const Text(
-                    'Posting',
-                    style: TextStyle(color: Colors.white),
-                  ),
+                  child: const Text('Posting', style: TextStyle(color: Colors.white)),
                 ),
               ),
             ],
@@ -151,28 +209,8 @@ class _ForumPageState extends State<ForumPage> {
     );
   }
 
-  void addPost() {
-    if (postController.text.trim().isEmpty) return;
-
-    setState(() {
-      posts.insert(0, {
-        'username': '@kamu',
-        'time': 'Baru saja',
-        'role': 'Murid',
-        'content': postController.text.trim(),
-        'image': null,
-        'likes': 0,
-        'liked': false,
-        'replies': [],
-      });
-    });
-
-    Navigator.pop(context);
-  }
-
   void showReplySheet(int index) {
     replyController.clear();
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -217,14 +255,9 @@ class _ForumPageState extends State<ForumPage> {
                   onPressed: () => addReply(index),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2563EB),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
-                  child: const Text(
-                    'Kirim Balasan',
-                    style: TextStyle(color: Colors.white),
-                  ),
+                  child: const Text('Kirim Balasan', style: TextStyle(color: Colors.white)),
                 ),
               ),
             ],
@@ -232,21 +265,6 @@ class _ForumPageState extends State<ForumPage> {
         );
       },
     );
-  }
-
-  void addReply(int index) {
-    if (replyController.text.trim().isEmpty) return;
-
-    setState(() {
-      posts[index]['replies'].add({
-        'username': '@kamu',
-        'time': 'Baru saja',
-        'role': 'Murid',
-        'content': replyController.text.trim(),
-      });
-    });
-
-    Navigator.pop(context);
   }
 
   @override
@@ -257,21 +275,24 @@ class _ForumPageState extends State<ForumPage> {
     super.dispose();
   }
 
-  @override
+ @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
+      
+      // ─── APP BAR ───────────────────────────────────────────────────
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: const Icon(Icons.menu_rounded, color: Color(0xFF111827)),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu_rounded, color: Color(0xFF111827)),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
         title: const Text(
           'Forum',
-          style: TextStyle(
-            color: Color(0xFF111827),
-            fontWeight: FontWeight.w700,
-            fontSize: 16,
-          ),
+          style: TextStyle(color: Color(0xFF111827), fontWeight: FontWeight.w700, fontSize: 16),
         ),
         actions: const [
           Padding(
@@ -280,11 +301,77 @@ class _ForumPageState extends State<ForumPage> {
           ),
         ],
       ),
+
+      // ─── MENU DRAWER SAMPING ───────────────────────────────────────
+      drawer: Drawer(
+        backgroundColor: Colors.white,
+        child: Column(
+          children: [
+            UserAccountsDrawerHeader(
+              decoration: const BoxDecoration(
+                color: Color(0xFF2563EB), 
+              ),
+              currentAccountPicture: const CircleAvatar(
+                backgroundColor: Colors.white,
+                child: Icon(Icons.person_rounded, size: 40, color: Color(0xFF2563EB)),
+              ),
+              accountName: const Text(
+                'Naysila Renatania',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              accountEmail: const Text('Murid | @naysila123'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.forum_rounded, color: Color(0xFF2563EB)),
+              title: const Text('Semua Diskusi', style: TextStyle(fontWeight: FontWeight.w600)),
+              onTap: () => Navigator.pop(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.bookmark_rounded, color: Colors.amber),
+              title: const Text('Diskusi Disimpan', style: TextStyle(fontWeight: FontWeight.w600)),
+              onTap: () => Navigator.pop(context),
+            ),
+            const Divider(), 
+            const Padding(
+              padding: EdgeInsets.only(left: 16, top: 10, bottom: 5),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'KATEGORI TOPIK',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey),
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.abc_rounded),
+              title: const Text('Isyarat Abjad & Angka'),
+              onTap: () => Navigator.pop(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.emoji_emotions_rounded),
+              title: const Text('Isyarat Ekspresi'),
+              onTap: () => Navigator.pop(context),
+            ),
+            const Spacer(), 
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.gavel_rounded, color: Colors.grey),
+              title: const Text('Panduan Komunitas', style: TextStyle(fontSize: 13)),
+              onTap: () => Navigator.pop(context),
+            ),
+            const SizedBox(height: 15),
+          ],
+        ),
+      ),
+
+      // ─── FLOATING ACTION BUTTON ────────────────────────────────────
       floatingActionButton: FloatingActionButton(
         onPressed: showPostSheet,
         backgroundColor: const Color(0xFF2563EB),
         child: const Icon(Icons.add_rounded, color: Colors.white),
       ),
+
+      // ─── BODY UTAMA ────────────────────────────────────────────────
       body: Column(
         children: [
           Padding(
@@ -384,13 +471,9 @@ class _ForumPageState extends State<ForumPage> {
                 child: Row(
                   children: [
                     Icon(
-                      post['liked']
-                          ? Icons.thumb_up
-                          : Icons.thumb_up_alt_outlined,
+                      post['liked'] ? Icons.thumb_up : Icons.thumb_up_alt_outlined,
                       size: 15,
-                      color: post['liked']
-                          ? const Color(0xFF2563EB)
-                          : Colors.black,
+                      color: post['liked'] ? const Color(0xFF2563EB) : Colors.black,
                     ),
                     const SizedBox(width: 4),
                     Text('${post['likes']}', style: const TextStyle(fontSize: 11)),
@@ -431,9 +514,7 @@ class _ForumPageState extends State<ForumPage> {
       margin: const EdgeInsets.only(top: 8),
       padding: const EdgeInsets.only(left: 10),
       decoration: const BoxDecoration(
-        border: Border(
-          left: BorderSide(color: Color(0xFFE5E7EB), width: 2),
-        ),
+        border: Border(left: BorderSide(color: Color(0xFFE5E7EB), width: 2)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -458,32 +539,21 @@ class _ForumPageState extends State<ForumPage> {
                     children: [
                       Text(
                         reply['username'],
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF111827),
-                        ),
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF111827)),
                       ),
                       const SizedBox(width: 5),
                       _buildRoleBadge(reply['role']),
                       const SizedBox(width: 5),
                       Text(
                         reply['time'],
-                        style: const TextStyle(
-                          fontSize: 9,
-                          color: Color(0xFF9CA3AF),
-                        ),
+                        style: const TextStyle(fontSize: 9, color: Color(0xFF9CA3AF)),
                       ),
                     ],
                   ),
                   const SizedBox(height: 5),
                   Text(
                     reply['content'],
-                    style: const TextStyle(
-                      fontSize: 11,
-                      height: 1.35,
-                      color: Color(0xFF374151),
-                    ),
+                    style: const TextStyle(fontSize: 11, height: 1.35, color: Color(0xFF374151)),
                   ),
                 ],
               ),
@@ -512,18 +582,11 @@ class _ForumPageState extends State<ForumPage> {
           children: [
             Text(
               username,
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF374151),
-              ),
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF374151)),
             ),
             Text(
               time,
-              style: const TextStyle(
-                fontSize: 9,
-                color: Color(0xFF9CA3AF),
-              ),
+              style: const TextStyle(fontSize: 9, color: Color(0xFF9CA3AF)),
             ),
           ],
         ),

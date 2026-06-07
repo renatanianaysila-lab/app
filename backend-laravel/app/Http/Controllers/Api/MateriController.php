@@ -1,30 +1,33 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Models\Materi;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class MateriController extends Controller
 {
-    public function index(Request $request)
+    public function show($video_id)
     {
-        // Ambil parameter kategori dari Flutter jika ada (misal: /api/materi?kategori=Dasar)
-        $kategori = $request->query('kategori');
+        
+        $realId = str_replace('vid_', '', $video_id);
 
-        $query = DB::table('materis');
+        
+        $materi = Materi::find($realId);
 
-        if ($kategori) {
-            $query->where('kategori', $kategori);
+        if (!$materi) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Materi tidak ditemukan.'
+            ], 404);
         }
 
-        $materis = $query->get();
-
+        // Kita bungkus data agar sesuai dengan nama variabel di Flutter kamu
         return response()->json([
-            'success' => true,
-            'message' => 'Daftar materi berhasil diambil',
-            'data' => $materis
+            'id' => $materi->id,
+            'title' => $materi->judul,       
+            'description' => $materi->deskripsi, 
+            'youtube_url' => $materi->video_url, 
         ], 200);
     }
 }

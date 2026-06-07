@@ -419,13 +419,14 @@ void _showPremiumOfferDialog() {
                                 } else {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(
-                                    builder: (context) => DetailMateriPage(
-                                      title: materi['title'], 
-                                      iconPath: materi['iconPath'] ?? 'assets/icons/default.png', 
-                                      iconBg: materi['color'] ?? const Color(0xFF2563EB), 
-                                    ),
-                                    ),
+                                    
+MaterialPageRoute(
+  builder: (context) => DetailMateriPage(
+    materiTitle: materi['title'] ?? 'Materi', 
+    themeColor: materi['color'] ?? const Color(0xFF2563EB), 
+    bgColor: const Color(0xFFF3F4F6), 
+  ),
+),
                                   );
                                 }
                               },
