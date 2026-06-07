@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,15 +14,14 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-
         // DAFTAR SEEDER UTAMA ISYARATKITA:
         $this->call([
-            MateriSeeder::class, // Seeder materi video yang kemarin
-            ForumSeeder::class,  // Seeder obrolan forum yang kemarin
-            QuizSeeder::class, // Seeder bank soal kuis baru kita
-            PackageSeeder::class,  
-            TransactionSeeder::class,
-            QuizScoreSeeder::class,
+            MateriSeeder::class,      // Seeder materi video kelola guru
+            ForumSeeder::class,       // Seeder obrolan forum
+            QuizSeeder::class,        // Seeder bank soal kuis baru
+            PackageSeeder::class,     // Seeder paket aplikasi
+            TransactionSeeder::class, // Seeder data transaksi
+            QuizScoreSeeder::class,   // Seeder nilai kuis murid
         ]);
     }
 }
