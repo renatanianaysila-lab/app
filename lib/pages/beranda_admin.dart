@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'pengguna_admin.dart';
 import 'konten_screen.dart'; // ← TAMBAH INI
 import 'detail_aktivitas_page.dart';
+import 'laporan_admin.dart';
 
 class BerandaAdmin extends StatefulWidget {
   const BerandaAdmin({super.key});
@@ -766,6 +767,9 @@ class _BerandaAdminState extends State<BerandaAdmin> {
                   MaterialPageRoute(builder: (_) => const KontenScreen()),
                 );
               }
+              
+              
+
             },
             child: Column(
               mainAxisSize: MainAxisSize.min,

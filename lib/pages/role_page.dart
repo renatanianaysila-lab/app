@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'main_navigation.dart';
 import 'beranda_guru.dart';
 import 'main_navigation_guru.dart';
+import 'beranda_admin.dart'; // ← TAMBAH INI
 
 class RolePage extends StatelessWidget {
   const RolePage({super.key});
@@ -62,7 +63,7 @@ class RolePage extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // ─── ROLE CARD GURU ──────────────────────
+              // ─── ROLE CARD GURU ───────────────────────────────────────────
               roleCard(
                 imagePath: "assets/images/guru.png",
                 colorTop: const Color(0xFFF4C542),
@@ -82,6 +83,33 @@ class RolePage extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (_) => const MainNavigationGuru(initialIndex: 0),
+                    ),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 20),
+
+              // ─── ROLE CARD ADMIN ← TAMBAH INI ────────────────────────────
+              roleCard(
+                imagePath: "assets/images/admin.png",
+                colorTop: const Color(0xFF4CAF7D),
+                title: "Admin",
+                description:
+                    "Kelola seluruh konten, pengguna, dan pantau aktivitas platform IsyaratKita.",
+                points: const [
+                  "Kelola konten & materi",
+                  "Manajemen pengguna",
+                  "Pantau laporan & aktivitas",
+                ],
+                buttonText: "Pilih Admin",
+                buttonColor: const Color(0xFF4CAF7D),
+                icon: Icons.admin_panel_settings,
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const BerandaAdmin(),
                     ),
                   );
                 },
