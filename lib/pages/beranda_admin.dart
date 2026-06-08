@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'pengguna_admin.dart';
-import 'konten_screen.dart'; // ← TAMBAH INI
+import 'konten_screen.dart';
 import 'detail_aktivitas_page.dart';
 import 'laporan_admin.dart';
+import 'aktivitas_admin.dart';
 
 class BerandaAdmin extends StatefulWidget {
   const BerandaAdmin({super.key});
@@ -136,7 +137,6 @@ class _BerandaAdminState extends State<BerandaAdmin> {
     );
   }
 
-  // ─── TOP BAR ───────────────────────────────────────────
   Widget _buildTopBar() {
     return Container(
       color: Colors.white,
@@ -165,7 +165,6 @@ class _BerandaAdminState extends State<BerandaAdmin> {
     );
   }
 
-  // ─── ACTION BUTTONS ────────────────────────────────────
   Widget _buildActionButtons(BuildContext context) {
     return Row(
       children: [
@@ -233,7 +232,6 @@ class _BerandaAdminState extends State<BerandaAdmin> {
     );
   }
 
-  // ─── STATISTIK GRID ────────────────────────────────────
   Widget _buildStatistikGrid() {
     return GridView.count(
       crossAxisCount: 2,
@@ -318,8 +316,7 @@ class _BerandaAdminState extends State<BerandaAdmin> {
               ),
               const Spacer(),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: changePositive
                       ? const Color(0xFFE8F9F0)
@@ -359,7 +356,6 @@ class _BerandaAdminState extends State<BerandaAdmin> {
     );
   }
 
-  // ─── AKTIVITAS ITEM ────────────────────────────────────
   Widget _buildAktivitasItem(Map<String, dynamic> item) {
     return InkWell(
       onTap: () {
@@ -442,13 +438,11 @@ class _BerandaAdminState extends State<BerandaAdmin> {
     );
   }
 
-  // ─── POPUP TAMBAH ──────────────────────────────────────
   void _showTambahDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (_) => Dialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -555,13 +549,11 @@ class _BerandaAdminState extends State<BerandaAdmin> {
     );
   }
 
-  // ─── POPUP TINJAU ──────────────────────────────────────
   void _showTinjauDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (_) => Dialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -643,13 +635,11 @@ class _BerandaAdminState extends State<BerandaAdmin> {
     );
   }
 
-  // ─── POPUP LAPOR ───────────────────────────────────────
   void _showLaporDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (_) => Dialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -754,22 +744,21 @@ class _BerandaAdminState extends State<BerandaAdmin> {
           return GestureDetector(
             onTap: () {
               setState(() => _selectedNav = i);
-              // ─── NAVIGASI PER TAB ───
               if (i == 1) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const PenggunaAdmin()),
-                );
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const PenggunaAdmin()));
               } else if (i == 2) {
-                // ← TAMBAH INI: navigasi ke KontenScreen
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const KontenScreen()),
-                );
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const KontenScreen()));
+              } else if (i == 3) {
+                // ← TAMBAH: navigasi ke AktivitasAdmin
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const AktivitasAdmin()));
+              } else if (i == 4) {
+                // ← TAMBAH: navigasi ke LaporanAdmin
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const LaporanAdmin()));
               }
-              
-              
-
             },
             child: Column(
               mainAxisSize: MainAxisSize.min,

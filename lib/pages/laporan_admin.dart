@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'beranda_admin.dart';
 import 'pengguna_admin.dart';
-import 'konten_screen.dart';
+import 'konten_screen.dart'; 
+import 'aktivitas_admin.dart';
 
 class LaporanAdmin extends StatefulWidget {
   const LaporanAdmin({super.key});
@@ -11,103 +12,100 @@ class LaporanAdmin extends StatefulWidget {
 }
 
 class _LaporanAdminState extends State<LaporanAdmin> {
-  int _selectedNav = 4;
-  int _selectedTab = 0; // 0 = Moderasi, 1 = Keuangan
-  String _searchQuery = '';
+  int _selectedTab = 0;       // 0 = Moderasi, 1 = Keuangan
+  int _selectedFilter = 0;    // 0 = Semua, 1 = Masuk, 2 = Penarikan
+  int _selectedNav = 4;       // bottom nav
 
-  final List<Map<String, dynamic>> _moderasi = [
+  // ─── DATA DUMMY TRANSAKSI ───────────────────────────────
+  final List<Map<String, dynamic>> _transaksi = [
     {
-      'judul': 'Abjad A-Z: Huruf A',
-      'penulis': 'Siti Nurhaliza',
-      'level': 'Dasar',
-      'icon': Icons.abc,
-      'iconColor': Colors.white,
-      'iconBg': Color(0xFF6C63FF),
+      'judul': 'Pembelian Paket Dasar',
+      'sub': 'oleh Naysila • 25 Januari 2026',
+      'nominal': '+Rp 75.000',
+      'status': 'Berhasil',
+      'tipe': 'Masuk',
     },
     {
-      'judul': 'Abjad A-Z: Huruf A',
-      'penulis': 'Rahma',
-      'level': 'Dasar',
-      'icon': Icons.tag,
-      'iconColor': Colors.white,
-      'iconBg': Color(0xFF4CAF50),
+      'judul': 'Pembelian Paket Menengah',
+      'sub': 'oleh Andi Pratama • 24 Januari 2026',
+      'nominal': '+Rp 125.000',
+      'status': 'Berhasil',
+      'tipe': 'Masuk',
     },
     {
-      'judul': 'Ekspresi:',
-      'penulis': 'Dika',
-      'level': 'Dasar',
-      'icon': Icons.emoji_emotions_outlined,
-      'iconColor': Colors.white,
-      'iconBg': Color(0xFF9C27B0),
+      'judul': 'Penarikan Saldo',
+      'sub': 'ke Bank BCA • 23 Januari 2026',
+      'nominal': '-Rp 500.000',
+      'status': 'Diproses',
+      'tipe': 'Penarikan',
     },
     {
-      'judul': 'Percakapan Dasar:\nSalam Dasar',
-      'penulis': 'Laura',
-      'level': 'Dasar',
-      'icon': Icons.chat_bubble_outline,
-      'iconColor': Colors.white,
-      'iconBg': Color(0xFFFF6B35),
+      'judul': 'Pembelian Paket Dasar',
+      'sub': 'oleh Siti Nurhaliza • 22 Januari 2026',
+      'nominal': '+Rp 75.000',
+      'status': 'Berhasil',
+      'tipe': 'Masuk',
+    },
+    {
+      'judul': 'Pembelian Paket Lanjutan',
+      'sub': 'oleh Budi Santoso • 21 Januari 2026',
+      'nominal': '+Rp 175.000',
+      'status': 'Berhasil',
+      'tipe': 'Masuk',
     },
   ];
 
-  final List<Map<String, dynamic>> _keuangan = [
-    {
-      'judul': 'Pembayaran Langganan',
-      'penulis': 'Ahmad Rizki',
-      'level': 'Pro',
-      'icon': Icons.credit_card,
-      'iconColor': Colors.white,
-      'iconBg': Color(0xFF3B72FF),
-    },
-    {
-      'judul': 'Refund Request',
-      'penulis': 'Dewi Lestari',
-      'level': 'Basic',
-      'icon': Icons.receipt_long,
-      'iconColor': Colors.white,
-      'iconBg': Color(0xFFF5A623),
-    },
-    {
-      'judul': 'Transaksi Gagal',
-      'penulis': 'Budi Santoso',
-      'level': 'Pro',
-      'icon': Icons.money_off,
-      'iconColor': Colors.white,
-      'iconBg': Color(0xFFE53E3E),
-    },
-  ];
-
-  List<Map<String, dynamic>> get _filteredList {
-    final source = _selectedTab == 0 ? _moderasi : _keuangan;
-    return source.where((item) {
-      return _searchQuery.isEmpty ||
-          item['judul'].toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          item['penulis'].toLowerCase().contains(_searchQuery.toLowerCase());
-    }).toList();
+  List<Map<String, dynamic>> get _filtered {
+    if (_selectedFilter == 0) return _transaksi;
+    if (_selectedFilter == 1) return _transaksi.where((t) => t['tipe'] == 'Masuk').toList();
+    return _transaksi.where((t) => t['tipe'] == 'Penarikan').toList();
   }
+
+  // ─── CHART DATA (pendapatan mingguan) ──────────────────
+  final List<Map<String, dynamic>> _chartData = [
+    {'hari': 'Sen', 'nilai': 140000.0, 'highlight': false},
+    {'hari': 'Sel', 'nilai': 180000.0, 'highlight': false},
+    {'hari': 'Rab', 'nilai': 190000.0, 'highlight': false},
+    {'hari': 'Kam', 'nilai': 250000.0, 'highlight': false},
+    {'hari': 'Jum', 'nilai': 200000.0, 'highlight': false},
+    {'hari': 'Sab', 'nilai': 300000.0, 'highlight': true},
+    {'hari': 'Min', 'nilai': 220000.0, 'highlight': false},
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FC),
-      body: SafeArea(
+      backgroundColor: const Color(0xFFF5F6FA),
+      appBar: _buildAppBar(),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildTopBar(),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    _buildTabBar(),
-                    const SizedBox(height: 16),
-                    _buildSearchBar(),
-                    const SizedBox(height: 12),
-                    _buildList(),
-                  ],
+            _buildTabSwitch(),
+            const SizedBox(height: 16),
+            if (_selectedTab == 1) ...[
+              _buildSaldoCard(),
+              const SizedBox(height: 16),
+              _buildStatRow(),
+              const SizedBox(height: 20),
+              _buildChartSection(),
+              const SizedBox(height: 20),
+              _buildRiwayatSection(),
+              const SizedBox(height: 20),
+              _buildUnduhButton(),
+              const SizedBox(height: 8),
+              Center(
+                child: Text(
+                  'Laporan diperbarui otomatis setiap transaksi berhasil.',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                  textAlign: TextAlign.center,
                 ),
               ),
-            ),
+            ] else ...[
+              _buildModerasiPlaceholder(),
+            ],
+            const SizedBox(height: 80),
           ],
         ),
       ),
@@ -115,75 +113,69 @@ class _LaporanAdminState extends State<LaporanAdmin> {
     );
   }
 
-  // ─── TOP BAR ───────────────────────────────────────────
-  Widget _buildTopBar() {
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: Row(
-        children: [
-          const Icon(Icons.menu, size: 24, color: Color(0xFF1A1D2E)),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Text('Laporan',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF1A1D2E),
-                    fontFamily: 'Poppins')),
-          ),
-          Image.asset('assets/images/loncengadmin.png',
-              width: 26,
-              height: 26,
-              errorBuilder: (_, __, ___) => const Icon(
-                  Icons.notifications_none,
-                  color: Color(0xFF1A1D2E),
-                  size: 26)),
-        ],
+  // ─── APP BAR ───────────────────────────────────────────
+  AppBar _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.menu, color: Colors.black87),
+        onPressed: () {},
       ),
+      title: const Text(
+        'Laporan',
+        style: TextStyle(
+          color: Colors.black87,
+          fontWeight: FontWeight.bold,
+          fontSize: 18,
+        ),
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.notifications_outlined, color: Colors.black87),
+          onPressed: () {},
+        ),
+      ],
     );
   }
 
-  // ─── TAB BAR ───────────────────────────────────────────
-  Widget _buildTabBar() {
+  // ─── TAB SWITCH (Moderasi / Keuangan) ──────────────────
+  Widget _buildTabSwitch() {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFEEF2FF),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Colors.grey.shade200),
       ),
       padding: const EdgeInsets.all(4),
       child: Row(
         children: [
-          _buildTab(0, 'Moderasi'),
-          _buildTab(1, 'Keuangan'),
+          _tabBtn('Moderasi', 0),
+          _tabBtn('Keuangan', 1),
         ],
       ),
     );
   }
 
-  Widget _buildTab(int index, String label) {
-    final isActive = _selectedTab == index;
+  Widget _tabBtn(String label, int idx) {
+    final active = _selectedTab == idx;
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() {
-          _selectedTab = index;
-          _searchQuery = '';
-        }),
+        onTap: () => setState(() => _selectedTab = idx),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: isActive ? const Color(0xFF6C63FF) : Colors.transparent,
+            color: active ? const Color(0xFF3D5AFE) : Colors.transparent,
             borderRadius: BorderRadius.circular(26),
           ),
-          child: Center(
-            child: Text(
-              label,
-              style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: isActive ? Colors.white : const Color(0xFF9CA3AF),
-                  fontFamily: 'Poppins'),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: active ? Colors.white : Colors.grey[600],
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
             ),
           ),
         ),
@@ -191,146 +183,297 @@ class _LaporanAdminState extends State<LaporanAdmin> {
     );
   }
 
-  // ─── SEARCH BAR ────────────────────────────────────────
-  Widget _buildSearchBar() {
+  // ─── SALDO CARD ────────────────────────────────────────
+  Widget _buildSaldoCard() {
     return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF3D5AFE), Color(0xFF5C6BC0)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
       ),
-      child: TextField(
-        onChanged: (val) => setState(() => _searchQuery = val),
-        style: const TextStyle(
-            fontSize: 13, fontFamily: 'Poppins', color: Color(0xFF1A1D2E)),
-        decoration: const InputDecoration(
-          hintText: 'Cari judul materi',
-          hintStyle: TextStyle(
-              fontSize: 13, fontFamily: 'Poppins', color: Color(0xFF9CA3AF)),
-          prefixIcon:
-              Icon(Icons.search, color: Color(0xFF9CA3AF), size: 20),
-          border: InputBorder.none,
-          contentPadding:
-              EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Saldo Tersedia',
+            style: TextStyle(color: Colors.white70, fontSize: 13),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Rp 2.450.000',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Pendapatan siap ditarik',
+            style: TextStyle(color: Colors.white60, fontSize: 12),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: const Color(0xFF3D5AFE),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              child: const Text(
+                'Tarik Saldo',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── STAT ROW (Bulan Ini, Transaksi, Verifikasi) ───────
+  Widget _buildStatRow() {
+    return Row(
+      children: [
+        _statCard(Icons.trending_up, 'Bulan Ini', 'Rp 1.2jt', const Color(0xFFE3F2FD), Colors.blue),
+        const SizedBox(width: 10),
+        _statCard(Icons.receipt_long, 'Transaksi', '48', const Color(0xFFE8F5E9), Colors.green),
+        const SizedBox(width: 10),
+        _statCard(Icons.access_time, 'Verifikasi', '350rb', const Color(0xFFFFF8E1), Colors.orange),
+      ],
+    );
+  }
+
+  Widget _statCard(IconData icon, String label, String value, Color bgColor, Color iconColor) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6, offset: const Offset(0, 2)),
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(8)),
+              child: Icon(icon, color: iconColor, size: 20),
+            ),
+            const SizedBox(height: 8),
+            Text(label, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+            const SizedBox(height: 2),
+            Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+          ],
         ),
       ),
     );
   }
 
-  // ─── LIST ──────────────────────────────────────────────
-  Widget _buildList() {
-    final list = _filteredList;
-    if (list.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 40),
-        child: Center(
-          child: Text('Tidak ada laporan ditemukan',
-              style: TextStyle(
-                  fontSize: 13,
-                  color: Color(0xFF9CA3AF),
-                  fontFamily: 'Poppins')),
-        ),
-      );
-    }
+  // ─── CHART SECTION ─────────────────────────────────────
+  Widget _buildChartSection() {
+    const double maxVal = 300000;
+    const double chartHeight = 150;
+
     return Container(
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2)),
+          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
         ],
       ),
       child: Column(
-        children: List.generate(list.length, (i) {
-          final isLast = i == list.length - 1;
-          return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Pendapatan Mingguan',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              _buildItem(list[i]),
-              if (!isLast)
-                const Divider(
-                    height: 1, thickness: 1, color: Color(0xFFF3F4F6)),
+              // Y axis labels
+              SizedBox(
+                width: 60,
+                height: chartHeight,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text('Rp 300,000', style: TextStyle(fontSize: 9, color: Colors.grey[400])),
+                    Text('Rp 200,000', style: TextStyle(fontSize: 9, color: Colors.grey[400])),
+                    Text('Rp 100,000', style: TextStyle(fontSize: 9, color: Colors.grey[400])),
+                    Text('Rp 0', style: TextStyle(fontSize: 9, color: Colors.grey[400])),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Bars
+              Expanded(
+                child: SizedBox(
+                  height: chartHeight,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: _chartData.map((d) {
+                      final barH = (d['nilai'] as double) / maxVal * chartHeight;
+                      return Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Container(
+                            width: 22,
+                            height: barH,
+                            decoration: BoxDecoration(
+                              color: d['highlight'] ? const Color(0xFFFFC107) : const Color(0xFF3D5AFE),
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(4),
+                                topRight: Radius.circular(4),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(d['hari'], style: TextStyle(fontSize: 10, color: Colors.grey[500])),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
             ],
-          );
-        }),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildItem(Map<String, dynamic> item) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: item['iconBg'] as Color,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(item['icon'] as IconData,
-                color: item['iconColor'] as Color, size: 22),
+  // ─── RIWAYAT TRANSAKSI ─────────────────────────────────
+  Widget _buildRiwayatSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Riwayat Transaksi',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        const SizedBox(height: 12),
+        // Filter chips
+        Row(
+          children: [
+            _filterChip('Semua', 0),
+            const SizedBox(width: 8),
+            _filterChip('Masuk', 1),
+            const SizedBox(width: 8),
+            _filterChip('Penarikan', 2),
+          ],
+        ),
+        const SizedBox(height: 12),
+        // List
+        ..._filtered.map((t) => _transaksiCard(t)),
+      ],
+    );
+  }
+
+  Widget _filterChip(String label, int idx) {
+    final active = _selectedFilter == idx;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedFilter = idx),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+        decoration: BoxDecoration(
+          color: active ? const Color(0xFF3D5AFE) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: active ? const Color(0xFF3D5AFE) : Colors.grey.shade300,
           ),
-          const SizedBox(width: 12),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: active ? Colors.white : Colors.grey[600],
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _transaksiCard(Map<String, dynamic> t) {
+    final isPlus = (t['nominal'] as String).startsWith('+');
+    final statusColor = t['status'] == 'Berhasil'
+        ? const Color(0xFF43A047)
+        : const Color(0xFFFFA726);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6, offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item['judul'] as String,
-                    style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF1A1D2E),
-                        fontFamily: 'Poppins')),
-                const SizedBox(height: 2),
-                Text('oleh: ${item['penulis']}',
-                    style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF9CA3AF),
-                        fontFamily: 'Poppins')),
+                Text(
+                  t['judul'],
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  t['sub'],
+                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                ),
               ],
             ),
           ),
-          const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              // Badge level
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF4CAF50),
-                  borderRadius: BorderRadius.circular(20),
+              Text(
+                t['nominal'],
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: isPlus ? const Color(0xFF43A047) : const Color(0xFFE53935),
                 ),
-                child: Text(item['level'] as String,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'Poppins')),
               ),
               const SizedBox(height: 6),
-              // Tombol Tinjau
-              GestureDetector(
-                onTap: () => _showTinjauDialog(item),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF5A623),
-                    borderRadius: BorderRadius.circular(20),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                decoration: BoxDecoration(
+                  color: statusColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  t['status'],
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: statusColor,
                   ),
-                  child: const Text('Tinjau',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          fontFamily: 'Poppins')),
                 ),
               ),
             ],
@@ -340,92 +483,49 @@ class _LaporanAdminState extends State<LaporanAdmin> {
     );
   }
 
-  // ─── DIALOG TINJAU ─────────────────────────────────────
-  void _showTinjauDialog(Map<String, dynamic> item) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(20),
+  // ─── UNDUH BUTTON ──────────────────────────────────────
+  Widget _buildUnduhButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () {},
+        icon: const Icon(Icons.download, color: Color(0xFF3D5AFE)),
+        label: const Text(
+          'Unduh Laporan',
+          style: TextStyle(color: Color(0xFF3D5AFE), fontWeight: FontWeight.bold, fontSize: 15),
+        ),
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: Color(0xFF3D5AFE), width: 1.5),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+        ),
+      ),
+    );
+  }
+
+  // ─── MODERASI PLACEHOLDER ──────────────────────────────
+  Widget _buildModerasiPlaceholder() {
+    return Container(
+      padding: const EdgeInsets.all(40),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Center(
         child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                const Text('Tinjau Laporan',
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF1A1D2E),
-                        fontFamily: 'Poppins')),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: const Icon(Icons.close, color: Color(0xFF9CA3AF)),
-                ),
-              ],
+            Icon(Icons.shield_outlined, size: 60, color: Colors.grey[300]),
+            const SizedBox(height: 12),
+            Text(
+              'Laporan Moderasi',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey[600]),
             ),
-            const SizedBox(height: 16),
-            Text(item['judul'] as String,
-                style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF1A1D2E),
-                    fontFamily: 'Poppins')),
-            Text('oleh: ${item['penulis']}',
-                style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF9CA3AF),
-                    fontFamily: 'Poppins')),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFEEEE),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Center(
-                        child: Text('Tolak',
-                            style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFFE53E3E),
-                                fontFamily: 'Poppins')),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF4CAF50),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Center(
-                        child: Text('Setujui',
-                            style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                                fontFamily: 'Poppins')),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+            const SizedBox(height: 6),
+            Text(
+              'Fitur laporan moderasi akan segera hadir.',
+              style: TextStyle(color: Colors.grey[400], fontSize: 13),
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
           ],
         ),
       ),
@@ -434,66 +534,54 @@ class _LaporanAdminState extends State<LaporanAdmin> {
 
   // ─── BOTTOM NAV ────────────────────────────────────────
   Widget _buildBottomNav() {
-    final List<Map<String, String>> items = [
-      {'iconPath': 'assets/images/berandaadmin.png', 'label': 'Beranda'},
-      {'iconPath': 'assets/images/penggunaadmin.png', 'label': 'Pengguna'},
-      {'iconPath': 'assets/images/kontenadmin.png', 'label': 'Konten'},
-      {'iconPath': 'assets/images/aktifitasadmin.png', 'label': 'Aktivitas'},
-      {'iconPath': 'assets/images/laporanadmin.png', 'label': 'Laporan'},
+    final items = [
+      {'icon': Icons.home_outlined, 'label': 'Beranda'},
+      {'icon': Icons.person_outline, 'label': 'Pengguna'},
+      {'icon': Icons.article_outlined, 'label': 'Konten'},
+      {'icon': Icons.show_chart, 'label': 'Aktivitas'},
+      {'icon': Icons.flag_outlined, 'label': 'Laporan'},
     ];
 
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFEBEBEB))),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 10, offset: const Offset(0, -2))],
       ),
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: List.generate(items.length, (i) {
-          final isActive = _selectedNav == i;
+          final active = _selectedNav == i;
           return GestureDetector(
             onTap: () {
               setState(() => _selectedNav = i);
               if (i == 0) {
-                Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (_) => const BerandaAdmin()));
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const BerandaAdmin()));
               } else if (i == 1) {
-                Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (_) => const PenggunaAdmin()));
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const PenggunaAdmin()));
               } else if (i == 2) {
-                Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (_) => const KontenScreen()));
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const KontenScreen()));
               }
+              // i == 3 Aktivitas → tambahkan jika ada
+              // i == 4 tetap di sini
             },
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                ColorFiltered(
-                  colorFilter: ColorFilter.mode(
-                    isActive
-                        ? const Color(0xFFF5A623)
-                        : const Color(0xFF9CA3AF),
-                    BlendMode.srcIn,
-                  ),
-                  child: Image.asset(items[i]['iconPath']!,
-                      width: 22,
-                      height: 22,
-                      errorBuilder: (_, __, ___) => Icon(Icons.circle,
-                          size: 22,
-                          color: isActive
-                              ? const Color(0xFFF5A623)
-                              : const Color(0xFF9CA3AF))),
+                Icon(
+                  items[i]['icon'] as IconData,
+                  color: active ? const Color(0xFFFF8F00) : Colors.grey[400],
+                  size: 24,
                 ),
-                const SizedBox(height: 4),
-                Text(items[i]['label']!,
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: isActive
-                            ? const Color(0xFFF5A623)
-                            : const Color(0xFF9CA3AF),
-                        fontFamily: 'Poppins')),
+                const SizedBox(height: 2),
+                Text(
+                  items[i]['label'] as String,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: active ? const Color(0xFFFF8F00) : Colors.grey[400],
+                    fontWeight: active ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                ),
               ],
             ),
           );

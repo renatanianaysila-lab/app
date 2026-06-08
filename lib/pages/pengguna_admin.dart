@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'beranda_admin.dart';
 import 'konten_screen.dart';
+import 'laporan_admin.dart';
+import 'aktivitas_admin.dart';
 
 class PenggunaAdmin extends StatefulWidget {
   const PenggunaAdmin({super.key});
