@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'pengguna_admin.dart';
-import 'detail_aktivitas_page.dart'; // 1. PASTIKAN SUDAH IMPORT HALAMAN DETAIL DI SINI
+import 'konten_screen.dart'; // ← TAMBAH INI
+import 'detail_aktivitas_page.dart';
 
 class BerandaAdmin extends StatefulWidget {
   const BerandaAdmin({super.key});
@@ -12,10 +13,9 @@ class BerandaAdmin extends StatefulWidget {
 class _BerandaAdminState extends State<BerandaAdmin> {
   int _selectedNav = 0;
 
-  // 2. TAMBAHKAN VALUE ID UNTUK MASING-MASING AKTIVITAS AGAR SINKRON KE BACKEND
   final List<Map<String, dynamic>> _aktivitas = [
     {
-      'id': 'vid_1', // ID asli untuk dicocokkan ke Laravel
+      'id': 'vid_1',
       'iconPath': 'assets/images/materihuruf.png',
       'iconBg': const Color(0xFFFFF8EC),
       'title': 'Materi "Huruf A - BISINDO"',
@@ -358,16 +358,15 @@ class _BerandaAdminState extends State<BerandaAdmin> {
     );
   }
 
-  // ─── AKTIVITAS ITEM (SUDAH TERINTEGRASI INKWELL KLIK DETAIL) ─────────────────
+  // ─── AKTIVITAS ITEM ────────────────────────────────────
   Widget _buildAktivitasItem(Map<String, dynamic> item) {
-    // 3. BUNGKUS DENGAN INKWELL AGAR BISA DIKLIK DAN DIPINDAHKAN KE DETAIL
     return InkWell(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => DetailAktivitasPage(
-              aktivitasId: item['id'], // Mengirim String id ('vid_1' dsb.) ke Detail
+              aktivitasId: item['id'],
             ),
           ),
         );
@@ -518,8 +517,7 @@ class _BerandaAdminState extends State<BerandaAdmin> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(14),
@@ -673,10 +671,8 @@ class _BerandaAdminState extends State<BerandaAdmin> {
                 ],
               ),
               const SizedBox(height: 16),
-              _buildLaporItem(
-                  'Alfabet A-Z', 'Konten tidak sesuai oleh pengguna'),
-              _buildLaporItem(
-                  'Salam Dasar', 'Video tidak jelas dilaporkan murid'),
+              _buildLaporItem('Alfabet A-Z', 'Konten tidak sesuai oleh pengguna'),
+              _buildLaporItem('Salam Dasar', 'Video tidak jelas dilaporkan murid'),
               _buildLaporItem('Angka 1-10', 'Materi duplikat'),
               const SizedBox(height: 8),
               GestureDetector(
@@ -757,11 +753,17 @@ class _BerandaAdminState extends State<BerandaAdmin> {
           return GestureDetector(
             onTap: () {
               setState(() => _selectedNav = i);
+              // ─── NAVIGASI PER TAB ───
               if (i == 1) {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (_) => const PenggunaAdmin()),
+                  MaterialPageRoute(builder: (_) => const PenggunaAdmin()),
+                );
+              } else if (i == 2) {
+                // ← TAMBAH INI: navigasi ke KontenScreen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const KontenScreen()),
                 );
               }
             },
