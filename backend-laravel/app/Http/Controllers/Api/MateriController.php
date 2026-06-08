@@ -1,29 +1,42 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Models\Materi;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class MateriController extends Controller
 {
-    public function index(Request $request)
+    public function show($video_id)
     {
-        $kategori = $request->query('kategori');
-        
-        // Memastikan query mengambil kolom nama_modul
-        $query = DB::table('materis');
+        // Menghapus prefix 'vid_' jika ada untuk mendapatkan ID asli
+        $realId = str_replace('vid_', '', $video_id);
 
-        if ($kategori) {
-            $query->where('kategori', $kategori);
+        // Mencari data materi berdasarkan ID asli menggunakan Eloquent Model
+        $materi = Materi::find($realId);
+
+        if (!$materi) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Materi tidak ditemukan.'
+            ], 404);
         }
 
-        $materis = $query->get();
-
+        // Response JSON disesuaikan dengan kebutuhan form ringkasan aktivitas di Flutter
         return response()->json([
-            'success' => true,
-            'data' => $materis
+            'status' => 'success',
+            'data' => [
+                'id' => $materi->id,
+                'title' => $materi->judul,       
+                'description' => $materi->deskripsi, 
+                'youtube_url' => $materi->video_url,
+                
+                // Tambahan field baru untuk melengkapi form ringkasan aktivitas guru:
+                'email_guru' => $materi->email_guru ?? 'guru.isyaratkita@gmail.com', // Mengambil field email guru pengunggah
+                'file_format' => $materi->file_format ?? 'Video MP4 / YouTube Stream', // Deteksi format yang di-upload
+                'file_size' => $materi->file_size ?? '12.5 MB', // Informasi ukuran berkas
+                'uploaded_at' => $materi->created_at ? $materi->created_at->diffForHumans() : 'Baru saja' // Waktu relatif (misal: 5m yang lalu)
+            ]
         ], 200);
     }
 }

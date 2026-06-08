@@ -1,510 +1,350 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'pilih_level_quiz_page.dart';
+import 'package:http/http.dart' as http;
+import 'video_play_page.dart';
+import 'quiz_play_page.dart'; 
 
-class DetailMateriPage extends StatelessWidget {
-  final String title;
-  final String iconPath;
-  final Color iconBg;
+class DetailMateriPage extends StatefulWidget {
+  final String materiTitle;
+  final Color themeColor;
+  final Color bgColor;
 
   const DetailMateriPage({
     super.key,
-    required this.title,
-    required this.iconPath,
-    required this.iconBg,
+    required this.materiTitle,
+    required this.themeColor,
+    required this.bgColor,
   });
 
   @override
+  State<DetailMateriPage> createState() => _DetailMateriPageState();
+}
+
+class _DetailMateriPageState extends State<DetailMateriPage> {
+  // Database lokal penampung komentar dinamis hasil fetch API
+  final Map<String, List<Map<String, dynamic>>> _globalCommentDatabase = {};
+  bool _isLoadingComments = false;
+
+  final List<Map<String, dynamic>> journeyItems = [
+    {
+      'id': 'vid_1',
+      'type': 'Video',
+      'title': 'Pengenalan',
+      'duration': '3:25 menit',
+      'status': 'done',
+    },
+    {
+      'id': 'quiz_1',
+      'type': 'Quiz',
+      'title': 'Kuis 1: Pemahaman Teori',
+      'duration': '10/10 PASSED',
+      'status': 'done',
+    },
+    {
+      'id': 'vid_2',
+      'type': 'Video',
+      'title': 'Gerakan Isyarat Utama',
+      'duration': '4:25 menit',
+      'status': 'done',
+    },
+    {
+      'id': 'quiz_2',
+      'type': 'Quiz',
+      'title': 'Kuis 2: Evaluasi Kecepatan',
+      'duration': '4/10 FAILED (Coba Lagi)', 
+      'status': 'failed',
+    },
+    {
+      'id': 'vid_3',
+      'type': 'Video',
+      'title': 'Variasi dan Aturan Posisi',
+      'duration': '5:12 menit',
+      'status': 'active',
+    },
+    {
+      'id': 'vid_4',
+      'type': 'Video',
+      'title': 'Praktik Kalimat Sederhana',
+      'duration': '7:25 menit',
+      'status': 'locked',
+    },
+  ];
+
+  // ─── FUNGSI AMBIL DATA DISKUSI DARI DATABASE MYSQL (GET API) ───────
+  Future<void> fetchCommentsFromDatabase(String videoId) async {
+    setState(() => _isLoadingComments = true);
+    
+    try {
+      // Menembak API Laravel untuk mengambil daftar komentar diskusi sesuai ID Video
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8000/api/videos/$videoId/comments'),
+        headers: {'Accept': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> dataFromServer = jsonDecode(response.body);
+        
+        setState(() {
+          _globalCommentDatabase[videoId] = dataFromServer.map((item) {
+            return {
+              'username': item['username'] ?? '@anonim',
+              'content': item['content'] ?? '',
+              'likeCount': item['likes_count'] ?? 0,
+              'isLiked': false,
+              'replies': <Map<String, dynamic>>[],
+            };
+          }).toList();
+        });
+      } else {
+        throw Exception();
+      }
+    } catch (e) {
+      // Jika koneksi Laravel mati/gagal, kita gunakan data fallback cadangan agar aplikasi tidak crash
+      _globalCommentDatabase.putIfAbsent(videoId, () => [
+        {
+          'username': 'Naysila Renatania',
+          'content': 'Penjelasannya gampang dimengerti kak! Gerakan tangannya jelas bgt.',
+          'likeCount': 12,
+          'isLiked': false,
+          'replies': <Map<String, dynamic>>[],
+        },
+        {
+          'username': 'Aurel Zalsabilla',
+          'content': 'Keren bgt transisinya, ngebantu buat dicoba bareng temen kelompok.',
+          'likeCount': 8,
+          'isLiked': false,
+          'replies': <Map<String, dynamic>>[],
+        },
+      ]);
+    } finally {
+      setState(() => _isLoadingComments = false);
+    }
+  }
+
+  void navigateToVideo(Map<String, dynamic> item, String fullTitle) async {
+    final String videoId = item['id'].toString();
+    
+    // Ambil data diskusi asli dari MySQL terlebih dahulu sebelum membuka halaman video
+    await fetchCommentsFromDatabase(videoId);
+
+    if (!mounted) return;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => VideoPlayPage(
+          videoId: videoId,
+          videoTitle: fullTitle,
+          commentsReference: _globalCommentDatabase[videoId]!,
+          onCommentUpdated: () {
+            setState(() {});
+          },
+        ),
+      ),
+    );
+  }
+
+  void navigateToQuiz(String fullTitle) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => QuizPlayPage(
+          quizTitle: fullTitle, 
+        ),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    Color darkerOmbreColor = Color.alphaBlend(
+      Colors.black.withOpacity(0.25),
+      widget.themeColor,
+    );
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FC),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildTopBar(context),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeaderCard(),
-                    const SizedBox(height: 16),
-                    _buildStatsRow(),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Materi Tersedia',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF1A1D2E),
-                        fontFamily: 'Poppins',
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildMateriItem(
-                      icon: 'A',
-                      iconBg: const Color(0xFFEEF2FF),
-                      iconColor: const Color(0xFF3B72FF),
-                      title: 'Pelajari',
-                      subtitle: 'Video Pembelajaran Interaktif',
-                      locked: false,
-                      onTap: () {},
-                    ),
-                    const SizedBox(height: 10),
-                    _buildMateriItem(
-                      icon: '#',
-                      iconBg: const Color(0xFFE8F9F0),
-                      iconColor: const Color(0xFF4CAF7D),
-                      title: 'Latihan',
-                      subtitle: 'Latihan Interaktif Dasar',
-                      locked: false,
-                      onTap: () {},
-                    ),
-                    const SizedBox(height: 10),
-                    _buildQuizButton(context),
-                    const SizedBox(height: 10),
-                    _buildMateriItem(
-                      icon: '🏅',
-                      iconBg: const Color(0xFFF3F4F6),
-                      iconColor: const Color(0xFF9CA3AF),
-                      title: 'Badge Pencapaian',
-                      subtitle: 'Selesaikan semua level untuk klaim',
-                      locked: true,
-                      onTap: null,
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-                ),
+      backgroundColor: Colors.white,
+      body: _isLoadingComments 
+      ? const Center(child: CircularProgressIndicator()) // Efek loading sinkronisasi database
+      : CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 260,
+              pinned: true,
+              elevation: 0,
+              backgroundColor: widget.themeColor,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+                onPressed: () => Navigator.pop(context),
               ),
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: _buildBottomNav(context),
-    );
-  }
-
-  // ─── TOP BAR ───────────────────────────────────────────
-  Widget _buildTopBar(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: const Icon(Icons.arrow_back, size: 22, color: Color(0xFF1A1D2E)),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF1A1D2E),
-                fontFamily: 'Poppins',
-              ),
-            ),
-          ),
-          Image.asset('assets/images/lonceng.png', width: 28, height: 28),
-        ],
-      ),
-    );
-  }
-
-  // ─── HEADER CARD ───────────────────────────────────────
-  Widget _buildHeaderCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Badge level selesai
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFF8EC),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFF5A623).withOpacity(0.4)),
-            ),
-            child: const Text(
-              '1/4 level selesai',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFFF5A623),
-                fontFamily: 'Poppins',
-              ),
-            ),
-          ),
-          const SizedBox(height: 14),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Belajar $title',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF1A1D2E),
-                        fontFamily: 'Poppins',
-                        height: 1.2,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'Pelajari alfabet dasar dalam bahasa isyarat',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF6B7280),
-                        fontFamily: 'Poppins',
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Image.asset(
-                'assets/images/tangan isyarat.png',
-                width: 70,
-                height: 70,
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => Container(
-                  width: 70,
-                  height: 70,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
+                  padding: const EdgeInsets.only(left: 20, right: 20, top: 100, bottom: 28),
                   decoration: BoxDecoration(
-                    color: iconBg,
-                    borderRadius: BorderRadius.circular(16),
+                    gradient: LinearGradient(
+                      colors: [widget.themeColor, darkerOmbreColor],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
                   ),
-                  child: Image.asset(iconPath, fit: BoxFit.contain),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          // Progress bar
-          Row(
-            children: [
-              const Text(
-                'Progres Belajar',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF3B72FF),
-                  fontFamily: 'Poppins',
-                ),
-              ),
-              const Spacer(),
-              const Text(
-                '40%',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF3B72FF),
-                  fontFamily: 'Poppins',
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: const LinearProgressIndicator(
-              value: 0.4,
-              minHeight: 8,
-              backgroundColor: Color(0xFFE5E7EB),
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3B72FF)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ─── STATS ROW ─────────────────────────────────────────
-  Widget _buildStatsRow() {
-    return Row(
-      children: [
-        _buildStatCard('80', 'BANK SOAL', const Color(0xFF3B72FF)),
-        const SizedBox(width: 10),
-        _buildStatCard('4', 'LEVEL QUIZ', const Color(0xFF3B72FF)),
-        const SizedBox(width: 10),
-        _buildStatCard('20m', 'ESTIMASI', const Color(0xFF3B72FF)),
-      ],
-    );
-  }
-
-  Widget _buildStatCard(String value, String label, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-                color: color,
-                fontFamily: 'Poppins',
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF9CA3AF),
-                fontFamily: 'Poppins',
-                letterSpacing: 0.5,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ─── MATERI ITEM ───────────────────────────────────────
-  Widget _buildMateriItem({
-    required String icon,
-    required Color iconBg,
-    required Color iconColor,
-    required String title,
-    required String subtitle,
-    required bool locked,
-    VoidCallback? onTap,
-  }) {
-    return GestureDetector(
-      onTap: locked ? null : onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE5E7EB)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 6,
-              offset: const Offset(0, 1),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: locked ? const Color(0xFFF3F4F6) : iconBg,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              alignment: Alignment.center,
-              child: icon.length == 1 && icon.codeUnitAt(0) > 127
-                  ? Text(icon, style: const TextStyle(fontSize: 22))
-                  : Text(
-                      icon,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                        color: locked ? const Color(0xFF9CA3AF) : iconColor,
-                        fontFamily: 'Poppins',
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(6)),
+                        child: const Text('IsyaratKita Academy', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                       ),
-                    ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: locked
-                          ? const Color(0xFF9CA3AF)
-                          : const Color(0xFF1A1D2E),
-                      fontFamily: 'Poppins',
-                    ),
+                      const SizedBox(height: 8),
+                      Text(widget.materiTitle, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+                      const Text('Unit Pembelajaran Active', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500)),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Progress Belajar', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                          Text(widget.materiTitle == 'Ekspresi Dasar' ? '100% Selesai' : '50% Selesai', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: LinearProgressIndicator(
+                          value: widget.materiTitle == 'Ekspresi Dasar' ? 1.0 : 0.5,
+                          backgroundColor: Colors.white24,
+                          valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                          minHeight: 5,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF6B7280),
-                      fontFamily: 'Poppins',
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (locked)
-              const Text(
-                'Terkunci',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF9CA3AF),
-                  fontFamily: 'Poppins',
                 ),
-              )
-            else
-              const Icon(Icons.chevron_right, color: Color(0xFF9CA3AF), size: 20),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 24.0, bottom: 40.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+                      child: Text('Milestone Pembelajaran', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF1F2937))),
+                    ),
+                    const SizedBox(height: 8),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: EdgeInsets.zero,
+                      itemCount: journeyItems.length,
+                      itemBuilder: (context, index) {
+                        final item = journeyItems[index];
+                        int nomorUrut = index + 1;
+                        String fullTitle = "${item['title']} ${widget.materiTitle}";
+
+                        Color durationColor = Colors.black45;
+                        if (item['status'] == 'failed') {
+                          durationColor = const Color(0xFFE53935);
+                        } else if (item['status'] == 'done' && item['type'] == 'Quiz') {
+                          durationColor = const Color(0xFF4CAF50);
+                        }
+
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 14.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                width: 30,
+                                child: Text('$nomorUrut', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: item['status'] == 'locked' ? Colors.black12 : Colors.black26)),
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      fullTitle,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: item['status'] == 'locked' ? Colors.black38 : Colors.black87),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text('${item['type']}  •  ${item['duration']}', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: durationColor)),
+                                    const SizedBox(height: 12),
+                                    Container(height: 1, color: Colors.grey.shade100),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              _buildActionIcon(context, item, fullTitle, widget.themeColor, widget.bgColor),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
-      ),
     );
   }
 
-  // ─── QUIZ BUTTON ───────────────────────────────────────
-  Widget _buildQuizButton(BuildContext context) {
+  Widget _buildActionIcon(BuildContext context, Map<String, dynamic> item, String fullTitle, Color activeColor, Color softBgColor) {
+    void handleTapAction() {
+      if (item['type'] == 'Quiz') {
+        navigateToQuiz(fullTitle);
+      } else {
+        navigateToVideo(item, fullTitle);
+      }
+    }
+
+    if (item['status'] == 'done') {
+      return GestureDetector(
+        onTap: handleTapAction,
+        child: Container(
+          width: 34,
+          height: 34,
+          decoration: const BoxDecoration(color: Color(0xFFE8F5E9), shape: BoxShape.circle),
+          child: const Center(child: Icon(Icons.check_rounded, color: Color(0xFF4CAF50), size: 18)),
+        ),
+      );
+    }
+
+    if (item['status'] == 'failed') {
+      return GestureDetector(
+        onTap: handleTapAction,
+        child: Container(
+          width: 34,
+          height: 34,
+          decoration: const BoxDecoration(color: Color(0xFFFFEBEE), shape: BoxShape.circle),
+          child: const Center(child: Icon(Icons.close_rounded, color: Color(0xFFE53935), size: 18)),
+        ),
+      );
+    }
+
+    if (item['status'] == 'locked') {
+      return Container(
+        width: 34,
+        height: 34,
+        decoration: BoxDecoration(color: Colors.grey.shade50, shape: BoxShape.circle),
+        child: Center(child: Icon(Icons.lock_outline_rounded, color: Colors.grey.shade300, size: 16)),
+      );
+    }
+
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => PilihLevelQuizPage(materiTitle: title),
-          ),
-        );
-      },
+      onTap: handleTapAction,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF3B72FF),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.play_arrow, color: Colors.white, size: 20),
-            ),
-            const SizedBox(width: 14),
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Mulai Quiz',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      fontFamily: 'Poppins',
-                    ),
-                  ),
-                  Text(
-                    'Uji kemampuan level ini',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white70,
-                      fontFamily: 'Poppins',
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_right, color: Colors.white, size: 22),
-          ],
+        width: 34,
+        height: 34,
+        decoration: BoxDecoration(color: softBgColor, shape: BoxShape.circle),
+        child: Center(
+          child: Icon(item['type'] == 'Quiz' ? Icons.star_rounded : Icons.play_arrow_rounded, color: activeColor, size: 18),
         ),
       ),
-    );
-  }
-
-  // ─── BOTTOM NAV ────────────────────────────────────────
-  Widget _buildBottomNav(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFEBEBEB))),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem('assets/images/home.png', 'Beranda', false),
-          _buildNavItem('assets/images/materinavbar.png', 'Materi', true),
-          _buildNavItem('assets/images/forum.png', 'Forum', false),
-          _buildNavItem('assets/images/history.png', 'Riwayat', false),
-          _buildNavItem('assets/images/profile.png', 'Profil', false),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem(String iconPath, String label, bool isActive) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: isActive
-              ? const EdgeInsets.symmetric(horizontal: 12, vertical: 4)
-              : EdgeInsets.zero,
-          decoration: isActive
-              ? BoxDecoration(
-                  color: const Color(0xFFEEF2FF),
-                  borderRadius: BorderRadius.circular(10),
-                )
-              : null,
-          child: Image.asset(
-            iconPath,
-            width: 22,
-            height: 22,
-            color: isActive ? const Color(0xFF3B72FF) : const Color(0xFF6B7280),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: isActive ? const Color(0xFF3B72FF) : const Color(0xFF6B7280),
-            fontFamily: 'Poppins',
-          ),
-        ),
-      ],
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'pengguna_admin.dart';
+import 'detail_aktivitas_page.dart'; // 1. PASTIKAN SUDAH IMPORT HALAMAN DETAIL DI SINI
 
 class BerandaAdmin extends StatefulWidget {
   const BerandaAdmin({super.key});
@@ -11,60 +12,67 @@ class BerandaAdmin extends StatefulWidget {
 class _BerandaAdminState extends State<BerandaAdmin> {
   int _selectedNav = 0;
 
+  // 2. TAMBAHKAN VALUE ID UNTUK MASING-MASING AKTIVITAS AGAR SINKRON KE BACKEND
   final List<Map<String, dynamic>> _aktivitas = [
     {
+      'id': 'vid_1', // ID asli untuk dicocokkan ke Laravel
       'iconPath': 'assets/images/materihuruf.png',
-      'iconBg': Color(0xFFFFF8EC),
+      'iconBg': const Color(0xFFFFF8EC),
       'title': 'Materi "Huruf A - BISINDO"',
       'subtitle': 'siti@email.com',
       'time': '5m',
-      'timeBg': Color(0xFFFFF8EC),
-      'timeColor': Color(0xFFF5A623),
+      'timeBg': const Color(0xFFFFF8EC),
+      'timeColor': const Color(0xFFF5A623),
     },
     {
+      'id': 'vid_2',
       'iconPath': 'assets/images/12latihan.png',
-      'iconBg': Color(0xFFEEF2FF),
+      'iconBg': const Color(0xFFEEF2FF),
       'title': '12 Latihan "Huruf A - BISINDO"',
       'subtitle': 'ahmad@email.com',
       'time': '10m',
-      'timeBg': Color(0xFFEEF2FF),
-      'timeColor': Color(0xFF3B72FF),
+      'timeBg': const Color(0xFFEEF2FF),
+      'timeColor': const Color(0xFF3B72FF),
     },
     {
+      'id': 'vid_3',
       'iconPath': 'assets/images/8konten.png',
-      'iconBg': Color(0xFFFFEEEE),
+      'iconBg': const Color(0xFFFFEEEE),
       'title': '8 Konten sedang Direview',
       'subtitle': 'budi@email.com',
       'time': '15m',
-      'timeBg': Color(0xFFFFEEEE),
-      'timeColor': Color(0xFFE53E3E),
+      'timeBg': const Color(0xFFFFEEEE),
+      'timeColor': const Color(0xFFE53E3E),
     },
     {
+      'id': 'vid_4',
       'iconPath': 'assets/images/5materi.png',
-      'iconBg': Color(0xFFE8F9F0),
+      'iconBg': const Color(0xFFE8F9F0),
       'title': '5 Materi Disetujui',
       'subtitle': 'budi@email.com',
       'time': '30m',
-      'timeBg': Color(0xFFE8F9F0),
-      'timeColor': Color(0xFF4CAF7D),
+      'timeBg': const Color(0xFFE8F9F0),
+      'timeColor': const Color(0xFF4CAF7D),
     },
     {
+      'id': 'vid_5',
       'iconPath': 'assets/images/ditolak.png',
-      'iconBg': Color(0xFFFFEEEE),
+      'iconBg': const Color(0xFFFFEEEE),
       'title': '2 Konten Ditolak',
       'subtitle': 'budi@email.com',
       'time': '45m',
-      'timeBg': Color(0xFFFFEEEE),
-      'timeColor': Color(0xFFE53E3E),
+      'timeBg': const Color(0xFFFFEEEE),
+      'timeColor': const Color(0xFFE53E3E),
     },
     {
+      'id': 'vid_6',
       'iconPath': 'assets/images/tindakan.png',
-      'iconBg': Color(0xFFFFEEEE),
+      'iconBg': const Color(0xFFFFEEEE),
       'title': '3 Laporan Perlu tindakan',
       'subtitle': 'budi@email.com',
       'time': '1hr',
-      'timeBg': Color(0xFFFFEEEE),
-      'timeColor': Color(0xFFE53E3E),
+      'timeBg': const Color(0xFFFFEEEE),
+      'timeColor': const Color(0xFFE53E3E),
     },
   ];
 
@@ -230,7 +238,7 @@ class _BerandaAdminState extends State<BerandaAdmin> {
       crossAxisCount: 2,
       crossAxisSpacing: 12,
       mainAxisSpacing: 12,
-      childAspectRatio: 1.6, // lebih compact, tidak terlalu besar
+      childAspectRatio: 1.6,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       children: [
@@ -350,72 +358,86 @@ class _BerandaAdminState extends State<BerandaAdmin> {
     );
   }
 
-  // ─── AKTIVITAS ITEM ────────────────────────────────────
+  // ─── AKTIVITAS ITEM (SUDAH TERINTEGRASI INKWELL KLIK DETAIL) ─────────────────
   Widget _buildAktivitasItem(Map<String, dynamic> item) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 6,
-              offset: const Offset(0, 2)),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: item['iconBg'] as Color,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            padding: const EdgeInsets.all(8),
-            child: Image.asset(item['iconPath'] as String,
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const Icon(Icons.info,
-                    color: Color(0xFF9CA3AF), size: 20)),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(item['title'] as String,
-                    style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF1A1D2E),
-                        fontFamily: 'Poppins')),
-                const SizedBox(height: 2),
-                Text(item['subtitle'] as String,
-                    style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF9CA3AF),
-                        fontFamily: 'Poppins')),
-              ],
+    // 3. BUNGKUS DENGAN INKWELL AGAR BISA DIKLIK DAN DIPINDAHKAN KE DETAIL
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DetailAktivitasPage(
+              aktivitasId: item['id'], // Mengirim String id ('vid_1' dsb.) ke Detail
             ),
           ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: item['timeBg'] as Color,
-              borderRadius: BorderRadius.circular(8),
+        );
+      },
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 6,
+                offset: const Offset(0, 2)),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: item['iconBg'] as Color,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.all(8),
+              child: Image.asset(item['iconPath'] as String,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const Icon(Icons.info,
+                      color: Color(0xFF9CA3AF), size: 20)),
             ),
-            child: Text(item['time'] as String,
-                style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: item['timeColor'] as Color,
-                    fontFamily: 'Poppins')),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(item['title'] as String,
+                      style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF1A1D2E),
+                          fontFamily: 'Poppins')),
+                  const SizedBox(height: 2),
+                  Text(item['subtitle'] as String,
+                      style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF9CA3AF),
+                          fontFamily: 'Poppins')),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: item['timeBg'] as Color,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(item['time'] as String,
+                  style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: item['timeColor'] as Color,
+                      fontFamily: 'Poppins')),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -713,7 +735,6 @@ class _BerandaAdminState extends State<BerandaAdmin> {
   }
 
   // ─── BOTTOM NAV ────────────────────────────────────────
-  // FIX: ikon tetap gambar yang sama, hanya warna berubah kuning saat aktif
   Widget _buildBottomNav() {
     final List<Map<String, String>> items = [
       {'iconPath': 'assets/images/berandaadmin.png', 'label': 'Beranda'},
@@ -735,19 +756,18 @@ class _BerandaAdminState extends State<BerandaAdmin> {
           final isActive = _selectedNav == i;
           return GestureDetector(
             onTap: () {
-                setState(() => _selectedNav = i);
-                if (i == 1) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const PenggunaAdmin()),
-                  );
-                }
-              },
+              setState(() => _selectedNav = i);
+              if (i == 1) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const PenggunaAdmin()),
+                );
+              }
+            },
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Ikon tetap gambar yang sama, hanya warna berubah
                 ColorFiltered(
                   colorFilter: ColorFilter.mode(
                     isActive
