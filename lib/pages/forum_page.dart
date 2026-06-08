@@ -3,7 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class ForumPage extends StatefulWidget {
-  const ForumPage({super.key});
+  // Tambahkan parameter di bawah ini agar halaman bisa menerima data siapa yang sedang login
+  final String currentUsername; 
+  final String currentRole;     // 'Guru' atau 'Murid'
+
+  const ForumPage({
+    super.key, 
+    this.currentUsername = '@naysila123', // Default jika tidak diisi
+    this.currentRole = 'Murid',          // Default jika tidak diisi
+  });
 
   @override
   State<ForumPage> createState() => _ForumPageState();
@@ -17,7 +25,7 @@ class _ForumPageState extends State<ForumPage> {
   String searchQuery = '';
   bool isLoading = false;
 
-  // Data awal/statis jika database kosong (Bisa ditarik via API GET nanti)
+  // Data statis awal (Mock Data)
   final List<Map<String, dynamic>> posts = [
     {
       'username': '@naysila123',
@@ -77,7 +85,6 @@ class _ForumPageState extends State<ForumPage> {
     final String textContent = postController.text.trim();
     if (textContent.isEmpty) return;
 
-    // Tampilkan loading dialog agar user tidak klik berkali-kali
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -85,7 +92,6 @@ class _ForumPageState extends State<ForumPage> {
     );
 
     try {
-      // Mengirim data ke API Laravel (Menggunakan IP 10.0.2.2 untuk Emulator Android)
       final response = await http.post(
         Uri.parse('http://10.0.2.2:8000/api/forums'),
         headers: {
@@ -93,22 +99,20 @@ class _ForumPageState extends State<ForumPage> {
           'Accept': 'application/json',
         },
         body: jsonEncode({
-          'username': '@naysila123', 
-          'role': 'Murid',
+          'username': widget.currentUsername, // Mengikuti user yang sedang login
+          'role': widget.currentRole,         // Mengikuti role yang sedang login
           'content': textContent,
         }),
       );
 
-      // Tutup loading dialog
-      Navigator.pop(context);
+      Navigator.pop(context); // Tutup loading dialog
 
       if (response.statusCode == 201 || response.statusCode == 200) {
-        // Jika backend sukses menyimpan, masukkan data ke UI secara real-time
         setState(() {
           posts.insert(0, {
-            'username': '@kamu',
+            'username': widget.currentUsername, // Langsung pakai username asli
             'time': 'Baru saja',
-            'role': 'Murid',
+            'role': widget.currentRole,         // Langsung pakai role asli
             'content': textContent,
             'image': null,
             'likes': 0,
@@ -118,7 +122,7 @@ class _ForumPageState extends State<ForumPage> {
         });
 
         postController.clear();
-        Navigator.pop(context); // Tutup lembar bottom sheet form input
+        Navigator.pop(context); // Tutup bottom sheet
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Postingan berhasil disimpan ke database!')),
@@ -127,22 +131,22 @@ class _ForumPageState extends State<ForumPage> {
         throw Exception('Gagal menyimpan data ke backend Laravel.');
       }
     } catch (e) {
-      Navigator.pop(context); // Tutup loading jika terjadi kendala koneksi
+      Navigator.pop(context); 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Koneksi Gagal: Terjadi kendala saat menyambung ke database.')),
+        const SnackBar(content: Text('Koneksi Gagal: Terjadi kendala saat menyambung ke database.')),
       );
     }
   }
 
-  // ─── FUNGSI SEED REPLIES LOCAL (Untuk Balasan Diskusi) ──────────────
+  // ─── FUNGSI REPLIES (MENDUKUNG ROLE DINAMIS) ──────────────────────
   void addReply(int index) {
     if (replyController.text.trim().isEmpty) return;
 
     setState(() {
       posts[index]['replies'].add({
-        'username': '@kamu',
+        'username': widget.currentUsername, // Mengikuti user login saat membalas
         'time': 'Baru saja',
-        'role': 'Murid',
+        'role': widget.currentRole,         // Mengikuti role login saat membalas
         'content': replyController.text.trim(),
       });
     });
@@ -171,16 +175,16 @@ class _ForumPageState extends State<ForumPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Buat Postingan',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+              Text(
+                'Buat Postingan (${widget.currentRole})',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 14),
               TextField(
                 controller: postController,
                 maxLines: 4,
                 decoration: InputDecoration(
-                  hintText: 'Tulis pertanyaanmu...',
+                  hintText: 'Tulis pertanyaan atau informasi...',
                   filled: true,
                   fillColor: const Color(0xFFF3F4F6),
                   border: OutlineInputBorder(
@@ -194,7 +198,7 @@ class _ForumPageState extends State<ForumPage> {
                 width: double.infinity,
                 height: 44,
                 child: ElevatedButton(
-                  onPressed: addPost, // Memanggil fungsi integrasi database kita
+                  onPressed: addPost,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2563EB),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -275,12 +279,11 @@ class _ForumPageState extends State<ForumPage> {
     super.dispose();
   }
 
- @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
       
-      // ─── APP BAR ───────────────────────────────────────────────────
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -302,24 +305,21 @@ class _ForumPageState extends State<ForumPage> {
         ],
       ),
 
-      // ─── MENU DRAWER SAMPING ───────────────────────────────────────
       drawer: Drawer(
         backgroundColor: Colors.white,
         child: Column(
           children: [
             UserAccountsDrawerHeader(
-              decoration: const BoxDecoration(
-                color: Color(0xFF2563EB), 
-              ),
+              decoration: const BoxDecoration(color: Color(0xFF2563EB)),
               currentAccountPicture: const CircleAvatar(
                 backgroundColor: Colors.white,
                 child: Icon(Icons.person_rounded, size: 40, color: Color(0xFF2563EB)),
               ),
-              accountName: const Text(
-                'Naysila Renatania',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              accountName: Text(
+                widget.currentUsername == '@naysila123' ? 'Naysila Renatania' : 'Akun Guru',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
-              accountEmail: const Text('Murid | @naysila123'),
+              accountEmail: Text('${widget.currentRole} | ${widget.currentUsername}'),
             ),
             ListTile(
               leading: const Icon(Icons.forum_rounded, color: Color(0xFF2563EB)),
@@ -364,14 +364,12 @@ class _ForumPageState extends State<ForumPage> {
         ),
       ),
 
-      // ─── FLOATING ACTION BUTTON ────────────────────────────────────
       floatingActionButton: FloatingActionButton(
         onPressed: showPostSheet,
         backgroundColor: const Color(0xFF2563EB),
         child: const Icon(Icons.add_rounded, color: Colors.white),
       ),
 
-      // ─── BODY UTAMA ────────────────────────────────────────────────
       body: Column(
         children: [
           Padding(

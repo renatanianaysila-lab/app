@@ -66,9 +66,9 @@ class _VideoPlayPageState extends State<VideoPlayPage> with SingleTickerProvider
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final String youtubeUrl = data['youtube_url']; // Mengambil link YouTube dari database
+        final String youtubeUrl = data['youtube_url']; 
 
-        // Ubah link YouTube menjadi Video ID (ex: "https://youtu.be/xyz" -> "xyz")
+        
         String? extractedId = YoutubePlayer.convertUrlToId(youtubeUrl);
 
         if (extractedId != null) {
@@ -86,7 +86,7 @@ class _VideoPlayPageState extends State<VideoPlayPage> with SingleTickerProvider
           });
         }
       } else {
-        // Jika data di database kamu belum diinput, gunakan fallback video contoh ini agar tidak error
+        
         _setupFallbackVideo();
       }
     } catch (e) {
