@@ -20,22 +20,18 @@ class _BerandaAdminState extends State<BerandaAdmin> {
   bool _isLoading = true;
   String _errorMessage = '';
 
-  // Variabel penampung data statistik dari API
   String totalPengguna = '0';
   String kontenAktif = '0';
   String materiBelajar = '0';
   String pembelajaran = '0';
-
-  // Variabel penampung data ringkasan aktivitas dari API
   List<dynamic> _aktivitas = [];
 
   @override
   void initState() {
     super.initState();
-    _fetchDashboardData(); // Otomatis tarik data database pas halaman dibuka
+    _fetchDashboardData();
   }
 
-  // ─── FUNGSI AMBIL DATA DARI BACKEND LARAVEL ──────────────────────
   Future<void> _fetchDashboardData() async {
     setState(() {
       _isLoading = true;
@@ -43,18 +39,14 @@ class _BerandaAdminState extends State<BerandaAdmin> {
     });
 
     try {
-      // Menggunakan IP emulator 10.0.2.2 menuju rute dashboard admin
       final response = await http.get(
         Uri.parse('http://10.0.2.2:8000/api/admin/dashboard'),
-        headers: {
-          'Accept': 'application/json',
-        },
+        headers: {'Accept': 'application/json'},
       );
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
         setState(() {
-          // Petakan data dari database ke variabel UI
           totalPengguna = responseData['total_pengguna']?.toString() ?? '0';
           kontenAktif = responseData['konten_aktif']?.toString() ?? '0';
           materiBelajar = responseData['materi_belajar']?.toString() ?? '0';
@@ -88,56 +80,81 @@ class _BerandaAdminState extends State<BerandaAdmin> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator(color: Color(0xFFF5A623)))
                   : _errorMessage.isNotEmpty
-                      ? Center(child: Text(_errorMessage, style: const TextStyle(color: Colors.red, fontFamily: 'Poppins')))
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(_errorMessage, style: const TextStyle(color: Colors.red, fontFamily: 'Poppins')),
+                              const SizedBox(height: 12),
+                              ElevatedButton(
+                                onPressed: _fetchDashboardData,
+                                child: const Text('Coba Lagi'),
+                              ),
+                            ],
+                          ),
+                        )
                       : RefreshIndicator(
-                          onRefresh: _fetchDashboardData, // Geser layar ke bawah untuk refresh data database
+                          onRefresh: _fetchDashboardData,
                           child: SingleChildScrollView(
                             physics: const AlwaysScrollableScrollPhysics(),
                             padding: const EdgeInsets.all(16),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Statistik Utama',
-                                    style: TextStyle(
+                                _buildActionButtons(context),
+                                const SizedBox(height: 20),
+                                const Text(
+                                  'Statistik Utama',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w800,
+                                    color: Color(0xFF1A1D2E),
+                                    fontFamily: 'Poppins',
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                _buildStatistikGrid(),
+                                const SizedBox(height: 20),
+                                Row(
+                                  children: [
+                                    const Text(
+                                      'Ringkasan Aktivitas',
+                                      style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w800,
                                         color: Color(0xFF1A1D2E),
-                                        fontFamily: 'Poppins')),
-                                const SizedBox(height: 12),
-                                _buildStatistikGrid(),
-                                const SizedBox(height: 24),
-                                Row(
-                                  children: [
-                                    const Text('Ringkasan Aktivitas',
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w800,
-                                            color: Color(0xFF1A1D2E),
-                                            fontFamily: 'Poppins')),
+                                        fontFamily: 'Poppins',
+                                      ),
+                                    ),
                                     const Spacer(),
                                     GestureDetector(
-                                      onTap: () {
-                                        // Pindah ke halaman aktivitas admin utama
-                                        Navigator.push(context, MaterialPageRoute(builder: (_) => const AktivitasAdmin()));
-                                      },
-                                      child: const Text('Lihat Semua',
-                                          style: TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w600,
-                                              color: Color(0xFFF5A623),
-                                              fontFamily: 'Poppins')),
+                                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AktivitasAdmin())),
+                                      child: const Text(
+                                        'Lihat Semua',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: Color(0xFFF5A623),
+                                          fontFamily: 'Poppins',
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ),
                                 const SizedBox(height: 12),
                                 if (_aktivitas.isEmpty)
-                                  const Center(child: Padding(
-                                    padding: EdgeInsets.all(20),
-                                    child: Text('Belum ada aktivitas hari ini.', style: TextStyle(color: Colors.grey, fontFamily: 'Poppins')),
-                                  ))
+                                  const Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(20),
+                                      child: Text(
+                                        'Belum ada aktivitas hari ini.',
+                                        style: TextStyle(color: Colors.grey, fontFamily: 'Poppins'),
+                                      ),
+                                    ),
+                                  )
                                 else
                                   ..._aktivitas.map((item) => _buildAktivitasItem(item)),
-                                const SizedBox(height: 70), // Spasi aman agar tidak mentok tombol melayang
+                                const SizedBox(height: 20),
                               ],
                             ),
                           ),
@@ -146,15 +163,6 @@ class _BerandaAdminState extends State<BerandaAdmin> {
           ],
         ),
       ),
-      
-      // ─── TOMBOL MELAYANG SEBAGAI SAKLAR TAMBAH DATA (DESIGN RE-VAMP) ───
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showTambahDialog(context),
-        backgroundColor: const Color(0xFF3B72FF),
-        icon: const Icon(Icons.add_circle_outline, color: Colors.white),
-        label: const Text('Tambah Data', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
-      ),
-
       bottomNavigationBar: _buildBottomNav(),
     );
   }
@@ -168,18 +176,91 @@ class _BerandaAdminState extends State<BerandaAdmin> {
           const Icon(Icons.menu, size: 24, color: Color(0xFF1A1D2E)),
           const SizedBox(width: 12),
           const Expanded(
-            child: Text('Beranda Admin',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF1A1D2E),
-                    fontFamily: 'Poppins')),
+            child: Text(
+              'Beranda',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF1A1D2E),
+                fontFamily: 'Poppins',
+              ),
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.notifications_none_rounded, color: Color(0xFF1A1D2E), size: 26),
-            onPressed: () {},
+          Image.asset(
+            'assets/images/loncengadmin.png',
+            width: 26,
+            height: 26,
+            errorBuilder: (_, __, ___) => const Icon(Icons.notifications_none, color: Color(0xFF1A1D2E), size: 26),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(BuildContext context) {
+    return Row(
+      children: [
+        _buildActionBtn(
+          iconPath: 'assets/images/tambahadmin.png',
+          label: 'Tambah',
+          onTap: () => _showTambahDialog(context),
+        ),
+        const SizedBox(width: 10),
+        _buildActionBtn(
+          iconPath: 'assets/images/tinjauadmin.png',
+          label: 'Tinjau',
+          onTap: () => _showTinjauDialog(context),
+        ),
+        const SizedBox(width: 10),
+        _buildActionBtn(
+          iconPath: 'assets/images/laporadmin.png',
+          label: 'Laporan',
+          onTap: () => _showLaporDialog(context),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionBtn({
+    required String iconPath,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE5E7EB)),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6, offset: const Offset(0, 2)),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                iconPath,
+                width: 16,
+                height: 16,
+                errorBuilder: (_, __, ___) => const Icon(Icons.add, size: 16, color: Color(0xFF1A1D2E)),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1A1D2E),
+                  fontFamily: 'Poppins',
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -196,7 +277,7 @@ class _BerandaAdminState extends State<BerandaAdmin> {
         _buildStatCard(
           iconPath: 'assets/images/totalpengguna.png',
           iconBg: const Color(0xFFF5A623),
-          value: totalPengguna, // Menggunakan variabel API
+          value: totalPengguna,
           label: 'Total Pengguna',
           change: '+12%',
           changePositive: true,
@@ -204,7 +285,7 @@ class _BerandaAdminState extends State<BerandaAdmin> {
         _buildStatCard(
           iconPath: 'assets/images/kontenaktif.png',
           iconBg: const Color(0xFF4CAF7D),
-          value: kontenAktif, // Menggunakan variabel API
+          value: kontenAktif,
           label: 'Konten Aktif',
           change: '+8%',
           changePositive: true,
@@ -212,7 +293,7 @@ class _BerandaAdminState extends State<BerandaAdmin> {
         _buildStatCard(
           iconPath: 'assets/images/materibelajar.png',
           iconBg: const Color(0xFFF5A623),
-          value: materiBelajar, // Menggunakan variabel API
+          value: materiBelajar,
           label: 'Materi Belajar',
           change: '+15%',
           changePositive: true,
@@ -220,7 +301,7 @@ class _BerandaAdminState extends State<BerandaAdmin> {
         _buildStatCard(
           iconPath: 'assets/images/pembelajaran.png',
           iconBg: const Color(0xFF4CAF7D),
-          value: pembelajaran, // Menggunakan variabel API
+          value: pembelajaran,
           label: 'Pembelajaran',
           change: '+24%',
           changePositive: true,
@@ -257,7 +338,11 @@ class _BerandaAdminState extends State<BerandaAdmin> {
                 height: 32,
                 decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(8)),
                 padding: const EdgeInsets.all(6),
-                child: Image.asset(iconPath, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.bar_chart, color: Colors.white, size: 16)),
+                child: Image.asset(
+                  iconPath,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const Icon(Icons.bar_chart, color: Colors.white, size: 16),
+                ),
               ),
               const Spacer(),
               Container(
@@ -266,7 +351,15 @@ class _BerandaAdminState extends State<BerandaAdmin> {
                   color: changePositive ? const Color(0xFFE8F9F0) : const Color(0xFFFFEEEE),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: Text(change, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: changePositive ? const Color(0xFF4CAF7D) : const Color(0xFFE53E3E), fontFamily: 'Poppins')),
+                child: Text(
+                  change,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: changePositive ? const Color(0xFF4CAF7D) : const Color(0xFFE53E3E),
+                    fontFamily: 'Poppins',
+                  ),
+                ),
               ),
             ],
           ),
@@ -283,7 +376,6 @@ class _BerandaAdminState extends State<BerandaAdmin> {
   }
 
   Widget _buildAktivitasItem(Map<String, dynamic> item) {
-    // Pengaturan warna otomatis berdasarkan status dari database
     Color bgIconColor = const Color(0xFFEEF2FF);
     Color txtColor = const Color(0xFF3B72FF);
     IconData defaultIcon = Icons.info;
@@ -301,13 +393,13 @@ class _BerandaAdminState extends State<BerandaAdmin> {
     return InkWell(
       onTap: () {
         Navigator.push(
-  context, 
-  MaterialPageRoute(
-    builder: (context) => DetailAktivitasPage(
-      aktivitasId: item['id'] is int ? item['id'] : int.tryParse(item['id']?.toString() ?? '') ?? 0,
-    ),
-  ),
-);
+          context,
+          MaterialPageRoute(
+            builder: (context) => DetailAktivitasPage(
+              aktivitasId: item['id'] is int ? item['id'] : int.tryParse(item['id']?.toString() ?? '') ?? 0,
+            ),
+          ),
+        );
       },
       borderRadius: BorderRadius.circular(14),
       child: Container(
@@ -377,10 +469,136 @@ class _BerandaAdminState extends State<BerandaAdmin> {
               const SizedBox(height: 10),
               _buildDialogOption(iconPath: 'assets/images/kategori.png', label: 'Kategori', sublabel: 'Tambah kategori baru', color: const Color(0xFF4CAF7D), onTap: () => Navigator.pop(context)),
               const SizedBox(height: 10),
-              _buildDialogOption(iconPath: 'assets/images/guru(2).png', label: 'Guru', sublabel: 'Tambahkan guru baru', color: const Color(0xFFF5A623), onTap: () => Navigator.pop(context)),
+              _buildDialogOption(iconPath: 'assets/images/guru(2).png', label: 'Guru', sublabel: 'Tambahkan akun guru', color: const Color(0xFFF5A623), onTap: () => Navigator.pop(context)),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showTinjauDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Text('Tinjau', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF1A1D2E), fontFamily: 'Poppins')),
+                  const Spacer(),
+                  GestureDetector(onTap: () => Navigator.pop(context), child: const Icon(Icons.close, color: Color(0xFF9CA3AF))),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _buildTinjauItem('Huruf A - BISINDO', 'siti@email.com'),
+              _buildTinjauItem('Angka 1-10', 'budi@email.com'),
+              _buildTinjauItem('Salam Dasar', 'ahmad@email.com'),
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: const Align(
+                  alignment: Alignment.centerRight,
+                  child: Text('Lihat Semua', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF3B72FF), fontFamily: 'Poppins')),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTinjauItem(String title, String email) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7F8FC),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1A1D2E), fontFamily: 'Poppins')),
+                Text(email, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Color(0xFF9CA3AF), fontFamily: 'Poppins')),
+              ],
+            ),
+          ),
+          const Icon(Icons.chevron_right, color: Color(0xFF9CA3AF), size: 20),
+        ],
+      ),
+    );
+  }
+
+  void _showLaporDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Text('Laporan', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF1A1D2E), fontFamily: 'Poppins')),
+                  const Spacer(),
+                  GestureDetector(onTap: () => Navigator.pop(context), child: const Icon(Icons.close, color: Color(0xFF9CA3AF))),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _buildLaporItem('Alfabet A-Z', 'Konten tidak sesuai oleh pengguna'),
+              _buildLaporItem('Salam Dasar', 'Video tidak jelas dilaporkan murid'),
+              _buildLaporItem('Angka 1-10', 'Materi duplikat'),
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: const Align(
+                  alignment: Alignment.centerRight,
+                  child: Text('Lihat Semua', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF3B72FF), fontFamily: 'Poppins')),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLaporItem(String title, String desc) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFEEEE),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFFCCCC)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1A1D2E), fontFamily: 'Poppins')),
+                Text(desc, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Color(0xFF9CA3AF), fontFamily: 'Poppins')),
+              ],
+            ),
+          ),
+          const Icon(Icons.chevron_right, color: Color(0xFF9CA3AF), size: 20),
+        ],
       ),
     );
   }
@@ -393,7 +611,7 @@ class _BerandaAdminState extends State<BerandaAdmin> {
         decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(14)),
         child: Row(
           children: [
-            const Icon(Icons.add_circle_outline_rounded, color: Colors.white, size: 24),
+            Image.asset(iconPath, width: 24, height: 24, color: Colors.white, errorBuilder: (_, __, ___) => const Icon(Icons.add, color: Colors.white, size: 24)),
             const SizedBox(width: 14),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,

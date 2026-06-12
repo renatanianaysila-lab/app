@@ -200,52 +200,37 @@ Route::post('/admin/guru', function (Request $request) {
 
 Route::get('/admin/dashboard', function () {
     try {
+        $totalPengguna = DB::table('users')->count();
+        $materiBelajar = DB::table('materis')->count();
+        $kontenAktif = $materiBelajar; // pakai jumlah materi sebagai konten aktif
+        $pembelajaran = DB::table('quiz_scores')->count(); // pakai jumlah skor kuis
 
-        $totalPengguna = DB::table('users')->count(); 
-        $materiBelajar = DB::table('materis')->count(); 
-        
-        
-        $kontenAktif = DB::getSchemaBuilder()->hasTable('contents') ? DB::table('contents')->count() : 456;
-        $pembelajaran = DB::getSchemaBuilder()->hasTable('payments') ? DB::table('payments')->count() : 3200;
+        $ringkasanAktivitas = DB::table('materis')
+            ->latest()
+            ->take(6)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'title' => $item->judul,
+                    'subtitle' => 'bisindo@email.com',
+                    'time' => \Carbon\Carbon::parse($item->created_at)->diffForHumans(),
+                    'status' => 'materi',
+                ];
+            })->toArray();
 
-        
-        $ringkasanAktivitas = [
-            [
-                "id" => "act_1",
-                "title" => "Materi \"Huruf A - BISINDO\"",
-                "subtitle" => "siti@email.com",
-                "time" => "5m",
-                "status" => "materi"
-            ],
-            [
-                "id" => "act_2",
-                "title" => "8 Konten sedang Direview",
-                "subtitle" => "budi@email.com",
-                "time" => "15m",
-                "status" => "review"
-            ],
-            [
-                "id" => "act_3",
-                "title" => "3 Laporan Perlu tindakan",
-                "subtitle" => "budi@email.com",
-                "time" => "1hr",
-                "status" => "laporan"
-            ]
-        ];
-
-        
         return response()->json([
             'total_pengguna' => $totalPengguna,
             'konten_aktif' => $kontenAktif,
             'materi_belajar' => $materiBelajar,
             'pembelajaran' => $pembelajaran,
-            'ringkasan_aktivitas' => $ringkasanAktivitas
+            'ringkasan_aktivitas' => $ringkasanAktivitas,
         ], 200);
 
     } catch (\Exception $e) {
         return response()->json([
             'success' => false,
-            'message' => 'Gagal memuat dashboard: ' . $e->getMessage()
+            'message' => 'Gagal: ' . $e->getMessage()
         ], 500);
     }
 });
