@@ -7,51 +7,130 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\MateriController;
 use App\Http\Controllers\QuizController;
+use App\Http\Controllers\Api\MateriGuruController;
+use App\Http\Controllers\ForumController;
+use App\Http\Controllers\ProgressController;
 
-// Rute Materi (Siswa)
-Route::get('/materi', [MateriController::class, 'index']);
-
-// Rute Pembayaran & Transaksi
-Route::post('/payment', [PaymentController::class, 'createPayment']);
-Route::post('/payment/{id}/confirm', [PaymentController::class, 'confirmPayment']);
-Route::get('/transactions', [PaymentController::class, 'getTransactions']);
-
-// Rute Autentikasi User
+// ==========================================
+// ─── 1. RUTE AUTENTIKASI USER ───
+// ==========================================
 Route::post('/register/murid', [UserController::class, 'registerMurid']);
 Route::post('/login', [UserController::class, 'login']);
 
-// --- RUTE FORUM ---
-Route::get('/forum', function () {
+
+// ==========================================
+// ─── 2. RUTE BERANDA & PROFIL GURU (VERSI TERBARU) ───
+// ==========================================
+Route::get('/guru/profil', function (Request $request) {
+    $guruId = $request->query('guru_id', 'G0001');
+    $guru = DB::table('guru')->where('guru_id', $guruId)->first();
+    
+    // Ambil daftar nama_modul unik yang diajar oleh guru ini
+    $daftarModul = DB::table('materis')
+        ->where('guru_id', $guruId)
+        ->whereNotNull('nama_modul')
+        ->distinct()
+        ->get(['nama_modul', 'kategori']); // Ambil nama_modul dan kategorinya sekaligus
+
+    // Susun data kelas/modul secara dinamis untuk Flutter
+    $kelasData = [];
+    $idCounter = 1;
+    
+    foreach ($daftarModul as $modul) {
+        $kelasData[] = [
+            'id' => $idCounter++,
+            'nama_kelas' => $modul->nama_modul, // <-- Sekarang lgsg nampilin Nama Modul asli dari DB!
+            'kategori' => $modul->kategori,    // Kita selipkan kategori asli (Dasar/Menengah/Susah) buat oper data nanti
+            'jumlah_materi' => DB::table('materis')
+                ->where('nama_modul', $modul->nama_modul)
+                ->where('guru_id', $guruId)
+                ->count()
+        ];
+    }
+
     return response()->json([
         'success' => true,
-        'message' => 'Daftar diskusi forum berhasil diambil',
-        'data' => DB::table('forums')->get()
+        'data' => [
+            'nama_guru' => $guru ? $guru->nama_guru : 'Pak Budi, S.Pd.',
+            'jumlah_siswa' => DB::table('murid')->count(),
+            'jumlah_kelas' => count($kelasData), // Dinamis sesuai jumlah modulnya
+            'rating' => 4.8,
+            'kelas' => $kelasData
+        ]
     ], 200);
 });
 
-Route::post('/forum', function (Request $request) {
-    $validated = $request->validate([
-        'judul' => 'required|string|max:255',
-        'konten' => 'required|string',
-        'pembuat' => 'required|string|max:255',
-    ]);
+// ==========================================
+// ─── 3. RUTE MATERI (SISWA & GURU) ───
+// ==========================================
+// Rute list materi untuk Siswa
+Route::get('/materis', [MateriController::class, 'index']);
+Route::post('/materi', [MateriController::class, 'store']);
 
-    $id = DB::table('forums')->insertGetId([
-        'judul' => $validated['judul'],
-        'konten' => $validated['konten'],
-        'pembuat' => $validated['pembuat'],
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
+// Rute list materi untuk Guru (Sudah dilengkapi pengaman konversi kata agar tidak eror 500)
+Route::get('/materis', function (Request $request) {
+    // 1. Tangkap parameter kategori dari Flutter (Dasar/Intermediate/Lanjutan)
+    $kategoriInput = $request->query('kategori', 'Dasar');
+    
+    // 2. Tangkap param guru_id yang dikirim Flutter (Default ke G0001 milik Pak Budi)
+    $guruIdInput = $request->query('guru_id', 'G0001');
+
+    // Mengamankan variasi istilah kategori antara Flutter & isi MySQL kamu
+    $kategoriDb = 'Dasar';
+    if ($kategoriInput == 'Intermediate' || $kategoriInput == 'Menengah') {
+        $kategoriDb = 'Menengah';
+    } elseif ($kategoriInput == 'Lanjutan' || $kategoriInput == 'Susah') {
+        $kategoriDb = 'Susah';
+    }
+
+    // 3. FILTER DOUBLE: COCOKKAN KATEGORI DAN GURU_ID NYA! 🎯
+    $materis = DB::table('materis')
+        ->where('kategori', $kategoriDb)
+        ->where('guru_id', $guruIdInput) // <-- Mengunci agar hanya materi miliknya yang keluar!
+        ->get();
 
     return response()->json([
         'success' => true,
-        'message' => 'Pertanyaan forum berhasil ditambahkan!',
-        'data' => DB::table('forums')->where('id', $id)->first()
-    ], 201);
+        'data' => $materis
+    ], 200);
 });
 
-// --- RUTE KUIS ---
+// ==========================================
+// ─── 4. RUTE PROGRESS BELAJAR SISWA ───
+// ==========================================
+// Menghubungkan pelacakan progress materi murid ke halaman progres_guru_page.dart
+Route::get('/guru/progres', [ProgressController::class, 'getProgresSiswa']);
+
+// Melacak progress belajar milik siswa spesifik
+Route::get('/user/progress/{user_id}', function ($user_id) {
+    $progress = DB::table('user_progress')
+        ->where('user_id', $user_id)
+        ->get();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Progress belajar berhasil diambil',
+        'data' => $progress
+    ], 200);
+});
+
+
+// ==========================================
+// ─── 5. RUTE FORUM DISKUSI ───
+// ==========================================
+Route::get('/forums', [ForumController::class, 'index']);
+Route::post('/forums', [ForumController::class, 'store']);
+
+
+// ==========================================
+// ─── 6. RUTE KUIS & RIWAYAT NILAI ───
+// ==========================================
+// Route untuk mengambil kuis acak (Akan dipanggil Flutter: /api/quizzes?materi_id=X)
+Route::get('/quizzes', [QuizController.php, 'index']);
+
+// Route untuk menyimpan skor kuis setelah selesai dikerjakan
+Route::post('/quiz-scores', [QuizController.php, 'saveScore']);
+
 Route::get('/quiz', function () {
     return response()->json([
         'success' => true,
@@ -92,7 +171,14 @@ Route::get('/quiz/history', function () {
     ], 200);
 });
 
-// --- RUTE PAKET PREMIUM ---
+
+// ==========================================
+// ─── 7. RUTE PEMBAYARAN & SUBSCRIPTION ───
+// ==========================================
+Route::post('/payment', [PaymentController::class, 'createPayment']);
+Route::post('/payment/{id}/confirm', [PaymentController::class, 'confirmPayment']);
+Route::get('/transactions', [PaymentController::class, 'getTransactions']);
+
 Route::get('/packages', function () {
     return response()->json([
         'success' => true,
@@ -115,21 +201,10 @@ Route::get('/user/subscription/{user_id}', function ($user_id) {
     ], 200);
 });
 
-Route::get('/user/progress/{user_id}', function ($user_id) {
-    $progress = DB::table('user_progress')
-        ->where('user_id', $user_id)
-        ->get();
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Progress belajar berhasil diambil',
-        'data' => $progress
-    ], 200);
-});
-
-// ─── FITUR INPUT SISI ADMIN (Untuk Tombol Tambah Modul, Kategori, Guru) ───
-
-// 1. Tambah Materi Baru ke tabel materis
+// ==========================================
+// ─── 8. RUTE PANEL INPUT ADMIN & DASHBOARD ───
+// ==========================================
 Route::post('/admin/materi', function (Request $request) {
     $validated = $request->validate([
         'judul' => 'required|string|max:255',
@@ -154,7 +229,6 @@ Route::post('/admin/materi', function (Request $request) {
     ], 201);
 });
 
-// 2. Tambah Kategori Baru ke tabel categories
 Route::post('/admin/kategori', function (Request $request) {
     $validated = $request->validate([
         'nama_kategori' => 'required|string|max:100',
@@ -174,7 +248,6 @@ Route::post('/admin/kategori', function (Request $request) {
     ], 201);
 });
 
-// 3. Tambah Guru Baru ke tabel teachers
 Route::post('/admin/guru', function (Request $request) {
     $validated = $request->validate([
         'nama_guru' => 'required|string|max:150',
@@ -197,13 +270,12 @@ Route::post('/admin/guru', function (Request $request) {
     ], 201);
 });
 
-
 Route::get('/admin/dashboard', function () {
     try {
         $totalPengguna = DB::table('users')->count();
         $materiBelajar = DB::table('materis')->count();
-        $kontenAktif = $materiBelajar; // pakai jumlah materi sebagai konten aktif
-        $pembelajaran = DB::table('quiz_scores')->count(); // pakai jumlah skor kuis
+        $kontenAktif = $materiBelajar;
+        $pembelajaran = DB::table('quiz_scores')->count();
 
         $ringkasanAktivitas = DB::table('materis')
             ->latest()

@@ -11,7 +11,7 @@ class BerandaGuruMain extends StatefulWidget {
 }
 
 class _BerandaGuruMainState extends State<BerandaGuruMain> {
-  // ── STATE DATA API ───────────────────────────────────────────────
+  // ── STATE DATA API BERANDA ───────────────────────────────────────
   bool _isLoading = true;
   String _namaGuru = '';
   int _jumlahSiswa = 0;
@@ -20,92 +20,93 @@ class _BerandaGuruMainState extends State<BerandaGuruMain> {
   int _jumlahUlasan = 0;
   List<dynamic> _kelasList = [];
 
+  // 🎯 KUNCI UTAMA: Variabel untuk menyimpan halaman aktif di dalam tab Beranda
+  Widget? _subPage;
+
   @override
   void initState() {
     super.initState();
     _fetchBerandaData();
   }
 
-  // ── FETCH SEMUA DATA BERANDA DARI API ────────────────────────────
+  // ── FETCH DATA BERANDA (Menggunakan IP Wi-Fi Baru) ──
   Future<void> _fetchBerandaData() async {
     setState(() => _isLoading = true);
     try {
       final resProfil = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/guru/profil'),
+        Uri.parse('http://10.0.2.2:8000/api/guru/profil?guru_id=G0001'),
       );
-      final resKelas = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/guru/kelas'),
-      );
-
-      if (resProfil.statusCode == 200 && resKelas.statusCode == 200) {
-        final profil = json.decode(resProfil.body)['data'];
-        final kelas = json.decode(resKelas.body)['data'];
-
+      
+      if (resProfil.statusCode == 200) {
+        final data = jsonDecode(resProfil.body)['data'];
         setState(() {
-          _namaGuru = profil['nama'] ?? '';
-          _jumlahSiswa = profil['jumlah_siswa'] ?? 0;
-          _jumlahKelas = profil['jumlah_kelas'] ?? 0;
-          _ratingGuru = (profil['rating'] ?? 0.0).toDouble();
-          _jumlahUlasan = profil['jumlah_ulasan'] ?? 0;
-          _kelasList = kelas;
+          _namaGuru = data['nama_guru'] ?? 'Nama Guru';
+          _jumlahSiswa = data['jumlah_siswa'] ?? 0;
+          _jumlahKelas = data['jumlah_kelas'] ?? 0;
+          _ratingGuru = (data['rating'] ?? 0.0).toDouble();
+          _kelasList = data['kelas'] ?? [];
           _isLoading = false;
         });
-      } else {
-        setState(() => _isLoading = false);
       }
     } catch (e) {
+      print("Eror Beranda: $e");
       setState(() => _isLoading = false);
     }
   }
-
+  
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FC),
-      body: SafeArea(child: _buildBerandaScreen()),
-    );
-  }
+    // 🎯 JIKA _subPage TIDAK NULL, TAMPILKAN HALAMAN MATERI LANGSUNG DI SINI
+    if (_subPage != null) {
+      return _subPage!;
+    }
 
-  // ── BERANDA SCREEN ───────────────────────────────────────────────
-  Widget _buildBerandaScreen() {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(
-          color: Color(0xFF3B72FF),
-          strokeWidth: 2.5,
+      return const Scaffold(
+        backgroundColor: Color(0xFFF7F8FC),
+        body: Center(
+          child: CircularProgressIndicator(
+            color: Color(0xFFFFB800), 
+            strokeWidth: 2.5,
+          ),
         ),
       );
     }
 
-    return RefreshIndicator(
-      color: const Color(0xFF3B72FF),
-      onRefresh: _fetchBerandaData,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.only(bottom: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildTopBar(),
-            const SizedBox(height: 20),
-            _buildSummaryCards(),
-            const SizedBox(height: 20),
-            _buildRatingBox(),
-            const SizedBox(height: 24),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                'Kelas Saya!',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF1A1D2E),
-                    fontFamily: 'Poppins'),
-              ),
+    return Scaffold(
+      backgroundColor: const Color(0xFFF7F8FC),
+      body: SafeArea(
+        child: RefreshIndicator(
+          color: const Color(0xFFFFB800),
+          onRefresh: _fetchBerandaData,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.only(bottom: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildTopBar(),
+                const SizedBox(height: 20),
+                _buildSummaryCards(),
+                const SizedBox(height: 20),
+                _buildRatingBox(),
+                const SizedBox(height: 24),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    'Kelas Saya!',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF1A1D2E),
+                        fontFamily: 'Poppins'),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _buildKelasListHorizontal(),
+              ],
             ),
-            const SizedBox(height: 12),
-            _buildKelasListHorizontal(),
-          ],
+          ),
         ),
       ),
     );
@@ -126,9 +127,8 @@ class _BerandaGuruMainState extends State<BerandaGuruMain> {
         children: [
           const CircleAvatar(
             radius: 24,
-            backgroundColor: Color(0xFFEEF2FF),
-            child: Icon(Icons.person_outline,
-                color: Color(0xFF3B72FF), size: 28),
+            backgroundColor: Color(0xFFFEF3C7), 
+            child: Icon(Icons.person_outline, color: Color(0xFFFFB800), size: 28),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -156,11 +156,10 @@ class _BerandaGuruMainState extends State<BerandaGuruMain> {
           ),
           Container(
             decoration: BoxDecoration(
-                color: const Color(0xFFEEF2FF),
+                color: const Color(0xFFFEF3C7),
                 borderRadius: BorderRadius.circular(12)),
             child: IconButton(
-              icon: const Icon(Icons.notifications,
-                  color: Color(0xFF3B72FF)),
+              icon: const Icon(Icons.notifications, color: Color(0xFFFFB800)),
               onPressed: () {},
             ),
           ),
@@ -204,7 +203,7 @@ class _BerandaGuruMainState extends State<BerandaGuruMain> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: const Color(0xFF1A1D2E), size: 22),
+          Icon(icon, color: const Color(0xFFFFB800), size: 22),
           const SizedBox(width: 8),
           Text(title,
               style: const TextStyle(
@@ -246,14 +245,11 @@ class _BerandaGuruMainState extends State<BerandaGuruMain> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(5, (i) {
               if (i < bintangPenuh) {
-                return const Icon(Icons.star_rounded,
-                    color: Color(0xFFFFC107), size: 36);
+                return const Icon(Icons.star_rounded, color: Color(0xFFFFC107), size: 36);
               } else if (i == bintangPenuh && adaSetengah) {
-                return const Icon(Icons.star_half_rounded,
-                    color: Color(0xFFFFC107), size: 36);
+                return const Icon(Icons.star_half_rounded, color: Color(0xFFFFC107), size: 36);
               } else {
-                return const Icon(Icons.star_outline_rounded,
-                    color: Color(0xFFD1D5DB), size: 36);
+                return const Icon(Icons.star_outline_rounded, color: Color(0xFFD1D5DB), size: 36);
               }
             }),
           ),
@@ -261,8 +257,7 @@ class _BerandaGuruMainState extends State<BerandaGuruMain> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.star_rounded,
-                  color: Color(0xFFFFA100), size: 14),
+              const Icon(Icons.star_rounded, color: Color(0xFFFFA100), size: 14),
               const SizedBox(width: 4),
               Text(
                 '${_ratingGuru.toStringAsFixed(1)}  ($_jumlahUlasan ulasan)',
@@ -276,15 +271,12 @@ class _BerandaGuruMainState extends State<BerandaGuruMain> {
           ),
           const SizedBox(height: 12),
           ElevatedButton(
-            onPressed: () {
-              // TODO: tampilkan popup detail ulasan
-            },
+            onPressed: () {},
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEEF2FF),
-              foregroundColor: const Color(0xFF3B72FF),
+              backgroundColor: const Color(0xFFFEF3C7),
+              foregroundColor: const Color(0xFFFFB800),
               elevation: 0,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
             child: const Row(
               mainAxisSize: MainAxisSize.min,
@@ -294,7 +286,7 @@ class _BerandaGuruMainState extends State<BerandaGuruMain> {
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                         fontFamily: 'Poppins')),
-                SizedBox(width: 4),
+                const SizedBox(width: 4),
                 Icon(Icons.arrow_forward_ios_rounded, size: 10),
               ],
             ),
@@ -311,26 +303,13 @@ class _BerandaGuruMainState extends State<BerandaGuruMain> {
         padding: EdgeInsets.symmetric(horizontal: 16),
         child: Text(
           'Belum ada kelas yang diajar.',
-          style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 13,
-              color: Color(0xFF9CA3AF)),
+          style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Color(0xFF9CA3AF)),
         ),
       );
     }
 
-    final List<Color> cardColors = [
-      const Color(0xFFFFB703),
-      const Color(0xFF00C48C),
-      const Color(0xFF3B72FF),
-      const Color(0xFFFF6B6B),
-    ];
-    final List<Color> cardBgColors = [
-      const Color(0xFFFFFBEB),
-      const Color(0xFFE8F9F3),
-      const Color(0xFFEEF2FF),
-      const Color(0xFFFFEEEE),
-    ];
+    const Color warnaKuning = Color(0xFFFFB800);
+    const Color warnaBgKuningSoft = Color(0xFFFEF3C7);
 
     return SizedBox(
       height: 260,
@@ -340,14 +319,10 @@ class _BerandaGuruMainState extends State<BerandaGuruMain> {
         itemCount: _kelasList.length,
         itemBuilder: (context, index) {
           final kelas = _kelasList[index];
-          final String title =
-              kelas['nama_kelas'] ?? kelas['title'] ?? '';
-          final String level =
-              kelas['level'] ?? kelas['kategori'] ?? 'Dasar';
+          final String title = kelas['nama_kelas'] ?? kelas['title'] ?? '';
+          final String level = kelas['kategori'] ?? kelas['level'] ?? 'Dasar';
           final int siswa = kelas['jumlah_siswa'] ?? 0;
           final int kapasitas = kelas['kapasitas'] ?? 45;
-          final Color warna = cardColors[index % cardColors.length];
-          final Color warnaBg = cardBgColors[index % cardBgColors.length];
 
           return Container(
             width: 180,
@@ -371,13 +346,13 @@ class _BerandaGuruMainState extends State<BerandaGuruMain> {
                   width: double.infinity,
                   height: 95,
                   decoration: BoxDecoration(
-                    color: warnaBg,
+                    color: warnaBgKuningSoft,
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Center(
+                  child: const Center(
                     child: Icon(
                       Icons.class_outlined,
-                      color: warna.withOpacity(0.6),
+                      color: warnaKuning,
                       size: 40,
                     ),
                   ),
@@ -395,7 +370,7 @@ class _BerandaGuruMainState extends State<BerandaGuruMain> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '$level | $siswa/$kapasitas',
+                  '${level == 'Menengah' ? 'Intermediate' : level} | $siswa/$kapasitas',
                   style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -407,22 +382,20 @@ class _BerandaGuruMainState extends State<BerandaGuruMain> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => MateriGuruPage(
-                            initialLevel: level,
-                            initialClassName: title,
-                          ),
-                        ),
-                      );
+                      // 🎯 LANGSUNG NYAMBUNG DI TEMPAT: Mengisi _subPage dengan widget MateriGuruPage
+                      setState(() {
+                        _subPage = MateriGuruPage(
+                          initialLevel: level,
+                          initialClassName: title,
+                          guruId: 'G0001',
+                        );
+                      });
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: warna,
+                      backgroundColor: warnaKuning,
                       foregroundColor: Colors.white,
                       elevation: 0,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     child: const Text('Lihat Detail',
                         style: TextStyle(

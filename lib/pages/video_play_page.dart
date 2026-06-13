@@ -61,7 +61,7 @@ class _VideoPlayPageState extends State<VideoPlayPage> with SingleTickerProvider
     try {
       // Menembak endpoint Laravel buatanmu (10.0.2.2 untuk emulator)
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/materis/${widget.videoId}'),
+        Uri.parse('http://192.168.215.100:8000/api/materis/${widget.videoId}'),
       );
 
       if (response.statusCode == 200) {
@@ -134,7 +134,7 @@ class _VideoPlayPageState extends State<VideoPlayPage> with SingleTickerProvider
 
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/api/comments'),
+        Uri.parse('http://192.168.215.100:8000/api/comments'),
         headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
         body: jsonEncode({
           'video_id': widget.videoId,

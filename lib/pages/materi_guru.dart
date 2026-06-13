@@ -5,11 +5,13 @@ import 'dart:convert';
 class MateriGuruPage extends StatefulWidget {
   final String initialLevel;
   final String initialClassName;
+  final String guruId; // Menyimpan ID guru yang dikirim dari beranda
 
   const MateriGuruPage({
     super.key,
     this.initialLevel = 'Dasar',
     this.initialClassName = '',
+    required this.guruId, 
   });
 
   @override
@@ -25,11 +27,27 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
   List<dynamic> _apiMateris = [];
   Map<String, List<dynamic>> _groupedModuls = {};
 
+  // 🎯 TEXT EDITING CONTROLLER UNTUK FORM TAMBAH MATERI
+  final TextEditingController _modulController = TextEditingController();
+  final TextEditingController _judulController = TextEditingController();
+  final TextEditingController _deskripsiController = TextEditingController();
+  final TextEditingController _youtubeUrlController = TextEditingController(); // Controller Link YouTube
+
   @override
   void initState() {
     super.initState();
     _selectedLevel = widget.initialLevel;
     _fetchMateri();
+  }
+
+  @override
+  void dispose() {
+    // Clean up controllers to avoid memory leaks
+    _modulController.dispose();
+    _judulController.dispose();
+    _deskripsiController.dispose();
+    _youtubeUrlController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchMateri() async {
@@ -41,7 +59,7 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/materi?kategori=$_selectedLevel'),
+        Uri.parse('http://10.0.2.2:8000/api/materis?kategori=$_selectedLevel&guru_id=${widget.guruId}'),
       );
 
       if (response.statusCode == 200) {
@@ -72,12 +90,57 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
     }
   }
 
+  // 🎯 LOGIKA KIRIM DATA KE API STORE LARAVEL
+  Future<void> _simpanMateriBaru() async {
+    if (_modulController.text.trim().isEmpty || 
+        _judulController.text.trim().isEmpty || 
+        _youtubeUrlController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Form bertanda (*) wajib diisi!')),
+      );
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2:8000/api/materi'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'guru_id': widget.guruId,
+          'nama_modul': _modulController.text, // Modul target
+          'judul': _judulController.text,
+          'deskripsi': _deskripsiController.text,
+          'video_url': _youtubeUrlController.text, // Mengirim URL YouTube ke Backend
+          'kategori': _selectedLevel, // Otomatis masuk ke level tab yang aktif saat ini
+        }),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        // Bersihkan form textfield setelah berhasil simpan
+        _modulController.clear();
+        _judulController.clear();
+        _deskripsiController.clear();
+        _youtubeUrlController.clear();
+
+        Navigator.pop(context); // Tutup dialog
+        _fetchMateri(); // Refresh data biar list materi langsung terupdate
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Materi baru berhasil ditambahkan!')),
+        );
+      } else {
+        print("Gagal menyimpan: ${response.body}");
+      }
+    } catch (e) {
+      print("Eror POST Materi: $e");
+    }
+  }
+
   void _switchLevel(String level) {
     setState(() { _selectedLevel = level; });
     _fetchMateri();
   }
 
-  // Fungsi popup/dialog untuk tambah materi baru
   void _showTambahMateriDialog() {
     showDialog(
       context: context,
@@ -90,8 +153,9 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
+                  controller: _modulController,
                   decoration: InputDecoration(
-                    labelText: 'Nama Modul',
+                    labelText: 'Nama Modul *',
                     hintText: 'Contoh: Modul 1: Abjad A-Z',
                     labelStyle: const TextStyle(fontFamily: 'Poppins'),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -99,15 +163,34 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
                 ),
                 const SizedBox(height: 12),
                 TextField(
+                  controller: _judulController,
                   decoration: InputDecoration(
-                    labelText: 'Judul Video/Materi',
+                    labelText: 'Judul Video/Materi *',
                     hintText: 'Contoh: Isyarat Huruf A',
                     labelStyle: const TextStyle(fontFamily: 'Poppins'),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
                 const SizedBox(height: 12),
+                // 🎯 SEKARANG SUDAH ADA KOLOM INPUT LINK YOUTUBE
                 TextField(
+                  controller: _youtubeUrlController,
+                  keyboardType: TextInputType.url,
+                  decoration: InputDecoration(
+                    labelText: 'Link Video YouTube *',
+                    hintText: 'https://www.youtube.com/watch?v=...',
+                    prefixIcon: const Icon(Icons.video_library, color: Colors.red),
+                    labelStyle: const TextStyle(fontFamily: 'Poppins'),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFFFB800), width: 2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _deskripsiController,
                   maxLines: 3,
                   decoration: InputDecoration(
                     labelText: 'Deskripsi',
@@ -125,13 +208,10 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF3B72FF),
+                backgroundColor: const Color(0xFFFFB800),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
-              onPressed: () {
-                // TODO: Hubungkan ke API POST Laravel untuk simpan materi
-                Navigator.pop(context);
-              },
+              onPressed: _simpanMateriBaru, // Menjalankan fungsi simpan terintegrasi API
               child: const Text('Simpan', style: TextStyle(fontFamily: 'Poppins', color: Colors.white)),
             ),
           ],
@@ -147,6 +227,7 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        // ❌ ICON PLUS YANG DOUBLE DI SINI SUDAH DIHAPUS BERSIH
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1D2E)),
           onPressed: () => Navigator.pop(context),
@@ -160,19 +241,10 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
             fontSize: 20,
           ),
         ),
-        actions: [
-          // Tambah tombol aksi juga di top bar biar opsional
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline, color: Color(0xFF3B72FF), size: 28),
-            onPressed: _showTambahMateriDialog,
-          ),
-          const SizedBox(width: 8),
-        ],
       ),
       
-      // ── TOMBOL TAMBAH MATERI DI POJOK BAWAH ──
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF3B72FF),
+        backgroundColor: const Color(0xFFFFB800),
         onPressed: _showTambahMateriDialog,
         child: const Icon(Icons.add, color: Colors.white, size: 28),
       ),
@@ -181,7 +253,6 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Search Bar bawaan designmu
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Container(
@@ -218,7 +289,7 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
 
             Expanded(
               child: _isLoading 
-                ? const Center(child: CircularProgressIndicator(color: Colors.blue))
+                ? const Center(child: CircularProgressIndicator(color: Color(0xFFFFB800)))
                 : _errorMessage.isNotEmpty
                   ? Center(child: Text(_errorMessage, style: const TextStyle(color: Colors.red, fontFamily: 'Poppins')))
                   : ListView(
@@ -244,8 +315,8 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
             padding: const EdgeInsets.only(right: 8.0),
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: isSelected ? const Color(0xFFE2F0D9) : const Color(0xFFE5E7EB),
-                foregroundColor: isSelected ? const Color(0xFF2E7D32) : Colors.grey[700],
+                backgroundColor: isSelected ? const Color(0xFFFEF3C7) : const Color(0xFFE5E7EB),
+                foregroundColor: isSelected ? const Color(0xFF000000) : Colors.grey[700],
                 elevation: 0,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -266,25 +337,17 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
     final isExpanded = _modulExpanded[namaModul] ?? false;
     
     IconData iconData = Icons.class_outlined;
-    Color iconColor = Colors.blue;
-    Color iconBgColor = const Color(0xFFEEF2FF);
+    Color iconColor = const Color(0xFFFFB800);
+    Color iconBgColor = const Color(0xFFFEF3C7);
 
     if (namaModul.contains('Abjad')) {
       iconData = Icons.font_download_outlined;
-      iconColor = Colors.blue;
-      iconBgColor = const Color(0xFFE0E7FF);
     } else if (namaModul.contains('Angka')) {
       iconData = Icons.tag_rounded;
-      iconColor = Colors.green;
-      iconBgColor = const Color(0xFFDCFCE7);
     } else if (namaModul.contains('Ekspresi')) {
       iconData = Icons.sentiment_satisfied_alt_outlined;
-      iconColor = Colors.purple;
-      iconBgColor = const Color(0xFFF3E8FF);
     } else if (namaModul.contains('Percakapan')) {
       iconData = Icons.chat_bubble_outline_rounded;
-      iconColor = Colors.orange;
-      iconBgColor = const Color(0xFFFFEDD5);
     }
 
     return Container(
@@ -324,7 +387,7 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                _selectedLevel,
+                _selectedLevel == 'Menengah' ? 'Intermediate' : _selectedLevel,
                 style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold, fontFamily: 'Poppins'),
               ),
             ),
@@ -338,7 +401,7 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
               child: Column(
                 children: materiList.map((m) => ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-                  leading: const Icon(Icons.play_circle_fill, color: Colors.blue, size: 22),
+                  leading: const Icon(Icons.play_circle_fill, color: Color(0xFFFFB800), size: 22),
                   title: Text(
                     m['judul'] ?? 'Tanpa Judul',
                     style: const TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w500),

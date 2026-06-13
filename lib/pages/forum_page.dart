@@ -82,59 +82,30 @@ class _ForumPageState extends State<ForumPage> {
 
   // ─── FUNGSI INTEGRASI DATABASE (POSTING BARU) ──────────────────────
   Future<void> addPost() async {
-    final String textContent = postController.text.trim();
+    final textContent = postController.text.trim();
     if (textContent.isEmpty) return;
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator()),
-    );
-
     try {
+      // Sesuaikan IP ini dengan IP server Laravel-mu ya!
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/api/forums'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
+        Uri.parse('http://10.0.2.2:8000/api/forums'), 
+        headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'username': widget.currentUsername, // Mengikuti user yang sedang login
-          'role': widget.currentRole,         // Mengikuti role yang sedang login
+          'username': widget.currentUsername, 
+          'role': widget.currentRole, // 🎯 Otomatis terkirim dinamis sesuai halaman loginnya
           'content': textContent,
         }),
       );
 
-      Navigator.pop(context); // Tutup loading dialog
-
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        setState(() {
-          posts.insert(0, {
-            'username': widget.currentUsername, // Langsung pakai username asli
-            'time': 'Baru saja',
-            'role': widget.currentRole,         // Langsung pakai role asli
-            'content': textContent,
-            'image': null,
-            'likes': 0,
-            'liked': false,
-            'replies': [],
-          });
-        });
-
+      if (response.statusCode == 201) {
         postController.clear();
-        Navigator.pop(context); // Tutup bottom sheet
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Postingan berhasil disimpan ke database!')),
-        );
+        // Panggil fungsi fetch data dari API lagi biar daftarnya ke-update otomatis
+        // fetchForums(); 
       } else {
-        throw Exception('Gagal menyimpan data ke backend Laravel.');
+        print("Gagal menyimpan postingan");
       }
     } catch (e) {
-      Navigator.pop(context); 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Koneksi Gagal: Terjadi kendala saat menyambung ke database.')),
-      );
+      print("Eror saat mengirim post: $e");
     }
   }
 

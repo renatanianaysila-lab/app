@@ -2,16 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Materi extends Model
-{
-    protected $table = 'materis';
-    
+class Materi extends Model {
+    use HasFactory;
     protected $fillable = [
+        'guru_id',
         'judul',
-        'kategori', 
         'deskripsi',
-        'video_url',
+        'video_url'
     ];
 }
