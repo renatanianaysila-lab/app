@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 import 'beranda_admin.dart';
 import 'konten_screen.dart';
 import 'laporan_admin.dart';
@@ -17,30 +20,79 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
   String _searchQuery = '';
   String? _filterStatus;
 
-  final List<Map<String, dynamic>> _guru = [
-    {'nama': 'Siti Nurhaliza', 'email': 'siti@email.com', 'status': 'Aktif', 'avatar': 'assets/images/img.png'},
-    {'nama': 'Ahmad Rizki', 'email': 'ahmad@email.com', 'status': 'Aktif', 'avatar': 'assets/images/img.png'},
-    {'nama': 'Dewi Lestari', 'email': 'dewi@email.com', 'status': 'Tidak Aktif', 'avatar': 'assets/images/img.png'},
-    {'nama': 'Budi Santoso', 'email': 'budi@email.com', 'status': 'Aktif', 'avatar': 'assets/images/img.png'},
-  ];
+  // Data dari API
+  List<Map<String, dynamic>> _guru = [];
+  List<Map<String, dynamic>> _murid = [];
+  bool _isLoadingGuru = true;
+  bool _isLoadingMurid = true;
+  String _errorGuru = '';
+  String _errorMurid = '';
 
-  final List<Map<String, dynamic>> _siswa = [
-    {'nama': 'Siti Nurhaliza', 'email': 'siti@email.com', 'status': 'Aktif', 'avatar': 'assets/images/img.png'},
-    {'nama': 'Ahmad Rizki', 'email': 'ahmad@email.com', 'status': 'Aktif', 'avatar': 'assets/images/img.png'},
-    {'nama': 'Dewi Lestari', 'email': 'dewi@email.com', 'status': 'Tidak Aktif', 'avatar': 'assets/images/img.png'},
-    {'nama': 'Budi Santoso', 'email': 'budi@email.com', 'status': 'Aktif', 'avatar': 'assets/images/img.png'},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _fetchGuru();
+    _fetchMurid();
+  }
+
+  Future<void> _fetchGuru() async {
+    setState(() { _isLoadingGuru = true; _errorGuru = ''; });
+    try {
+      final res = await http.get(
+        Uri.parse('http://10.0.2.2:8000/api/admin/guru'),
+        headers: {'Accept': 'application/json'},
+      );
+      if (res.statusCode == 200) {
+        final body = json.decode(res.body);
+        setState(() {
+          _guru = List<Map<String, dynamic>>.from(body['data']);
+          _isLoadingGuru = false;
+        });
+      } else {
+        setState(() { _errorGuru = 'Gagal memuat data guru.'; _isLoadingGuru = false; });
+      }
+    } catch (e) {
+      setState(() { _errorGuru = 'Koneksi gagal. Pastikan server Laravel menyala!'; _isLoadingGuru = false; });
+    }
+  }
+
+  Future<void> _fetchMurid() async {
+    setState(() { _isLoadingMurid = true; _errorMurid = ''; });
+    try {
+      final res = await http.get(
+        Uri.parse('http://10.0.2.2:8000/api/admin/murid'),
+        headers: {'Accept': 'application/json'},
+      );
+      if (res.statusCode == 200) {
+        final body = json.decode(res.body);
+        setState(() {
+          _murid = List<Map<String, dynamic>>.from(body['data']);
+          _isLoadingMurid = false;
+        });
+      } else {
+        setState(() { _errorMurid = 'Gagal memuat data siswa.'; _isLoadingMurid = false; });
+      }
+    } catch (e) {
+      setState(() { _errorMurid = 'Koneksi gagal. Pastikan server Laravel menyala!'; _isLoadingMurid = false; });
+    }
+  }
 
   List<Map<String, dynamic>> get _filteredList {
-    final source = _selectedTab == 0 ? _guru : _siswa;
+    final source = _selectedTab == 0 ? _guru : _murid;
     return source.where((user) {
+      final nama = (user['nama'] ?? '').toString().toLowerCase();
+      final email = (user['email'] ?? '').toString().toLowerCase();
+      final status = (user['status'] ?? '').toString();
       final matchSearch = _searchQuery.isEmpty ||
-          user['nama'].toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          user['email'].toLowerCase().contains(_searchQuery.toLowerCase());
-      final matchFilter = _filterStatus == null || user['status'] == _filterStatus;
+          nama.contains(_searchQuery.toLowerCase()) ||
+          email.contains(_searchQuery.toLowerCase());
+      final matchFilter = _filterStatus == null || status == _filterStatus;
       return matchSearch && matchFilter;
     }).toList();
   }
+
+  bool get _isLoading => _selectedTab == 0 ? _isLoadingGuru : _isLoadingMurid;
+  String get _error => _selectedTab == 0 ? _errorGuru : _errorMurid;
 
   @override
   Widget build(BuildContext context) {
@@ -51,18 +103,25 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
           children: [
             _buildTopBar(),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    _buildTabBar(),
-                    const SizedBox(height: 16),
-                    _buildSearchBar(),
-                    const SizedBox(height: 10),
-                    _buildFilterRow(),
-                    const SizedBox(height: 12),
-                    _buildUserList(),
-                  ],
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  await _fetchGuru();
+                  await _fetchMurid();
+                },
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      _buildTabBar(),
+                      const SizedBox(height: 16),
+                      _buildSearchBar(),
+                      const SizedBox(height: 10),
+                      _buildFilterRow(),
+                      const SizedBox(height: 12),
+                      _buildBody(),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -71,6 +130,34 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
       ),
       bottomNavigationBar: _buildBottomNav(),
     );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 60),
+        child: Center(child: CircularProgressIndicator(color: Color(0xFFF5A623))),
+      );
+    }
+    if (_error.isNotEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 40),
+        child: Center(
+          child: Column(
+            children: [
+              Text(_error, style: const TextStyle(color: Colors.red, fontFamily: 'Poppins', fontSize: 13), textAlign: TextAlign.center),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: () { _fetchGuru(); _fetchMurid(); },
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFF5A623)),
+                child: const Text('Coba Lagi', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    return _buildUserList();
   }
 
   Widget _buildTopBar() {
@@ -105,7 +192,11 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
     final isActive = _selectedTab == index;
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() { _selectedTab = index; _filterStatus = null; _searchQuery = ''; }),
+        onTap: () => setState(() {
+          _selectedTab = index;
+          _filterStatus = null;
+          _searchQuery = '';
+        }),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 10),
@@ -154,7 +245,7 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
         _buildFilterChip('Status'),
         const SizedBox(width: 8),
         GestureDetector(
-          onTap: () => _showFilterDialog(),
+          onTap: _showFilterDialog,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
             decoration: BoxDecoration(
@@ -174,7 +265,7 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
 
   Widget _buildFilterChip(String label) {
     return GestureDetector(
-      onTap: () => _showFilterDialog(),
+      onTap: _showFilterDialog,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
@@ -267,26 +358,31 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
   }
 
   Widget _buildUserItem(Map<String, dynamic> user) {
-    final isAktif = user['status'] == 'Aktif';
+    final isAktif = (user['status'] ?? 'Aktif') == 'Aktif';
+    final nama = user['nama'] ?? '-';
+    final email = user['email'] ?? '-';
+    // Ambil inisial untuk avatar placeholder
+    final inisial = nama.isNotEmpty ? nama[0].toUpperCase() : '?';
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
         children: [
           CircleAvatar(
             radius: 26,
-            backgroundColor: const Color(0xFFE5E7EB),
-            backgroundImage: AssetImage(user['avatar'] as String),
-            onBackgroundImageError: (_, __) {},
+            backgroundColor: const Color(0xFFF5A623).withOpacity(0.15),
+            child: Text(inisial,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFFF5A623), fontFamily: 'Poppins')),
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(user['nama'] as String,
+                Text(nama,
                     style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF1A1D2E), fontFamily: 'Poppins')),
                 const SizedBox(height: 2),
-                Text(user['email'] as String,
+                Text(email,
                     style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF9CA3AF), fontFamily: 'Poppins')),
               ],
             ),
@@ -297,26 +393,29 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
               color: isAktif ? const Color(0xFFE8F9F0) : const Color(0xFFFFEEEE),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Text(user['status'] as String,
-                style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: isAktif ? const Color(0xFF4CAF7D) : const Color(0xFFE53E3E),
-                    fontFamily: 'Poppins')),
+            child: Text(
+              isAktif ? 'Aktif' : 'Tidak Aktif',
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: isAktif ? const Color(0xFF4CAF7D) : const Color(0xFFE53E3E),
+                  fontFamily: 'Poppins'),
+            ),
           ),
         ],
       ),
     );
   }
 
-  // ─── BOTTOM NAV ────────────────────────────────────────
+  // ─── BOTTOM NAV ────────────────────────────────────────────────────────────
+
   Widget _buildBottomNav() {
-    final List<Map<String, String>> items = [
-      {'iconPath': 'assets/images/berandaadmin.png', 'label': 'Beranda'},
-      {'iconPath': 'assets/images/penggunaadmin.png', 'label': 'Pengguna'},
-      {'iconPath': 'assets/images/kontenadmin.png', 'label': 'Konten'},
-      {'iconPath': 'assets/images/aktifitasadmin.png', 'label': 'Aktivitas'},
-      {'iconPath': 'assets/images/laporanadmin.png', 'label': 'Laporan'},
+    final List<Map<String, dynamic>> items = [
+      {'icon': Icons.home_rounded, 'label': 'Beranda'},
+      {'icon': Icons.people_alt_rounded, 'label': 'Pengguna'},
+      {'icon': Icons.video_collection_rounded, 'label': 'Konten'},
+      {'icon': Icons.assessment_rounded, 'label': 'Aktivitas'},
+      {'icon': Icons.report_problem_rounded, 'label': 'Laporan'},
     ];
 
     return Container(
@@ -329,42 +428,22 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: List.generate(items.length, (i) {
           final isActive = _selectedNav == i;
+          final color = isActive ? const Color(0xFFF5A623) : const Color(0xFF9CA3AF);
           return GestureDetector(
             onTap: () {
-              setState(() => _selectedNav = i);
-              if (i == 0) {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => const BerandaAdmin()),
-                );
-              } else if (i == 2) {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => const KontenScreen()),
-                );
-              }
+              if (i == _selectedNav) return;
+              if (i == 0) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const BerandaAdmin()));
+              if (i == 2) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const KontenScreen()));
+              if (i == 3) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AktivitasAdmin()));
+              if (i == 4) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LaporanAdmin()));
             },
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                ColorFiltered(
-                  colorFilter: ColorFilter.mode(
-                    isActive ? const Color(0xFFF5A623) : const Color(0xFF9CA3AF),
-                    BlendMode.srcIn,
-                  ),
-                  child: Image.asset(items[i]['iconPath']!,
-                      width: 22, height: 22,
-                      errorBuilder: (_, __, ___) => Icon(Icons.circle,
-                          size: 22,
-                          color: isActive ? const Color(0xFFF5A623) : const Color(0xFF9CA3AF))),
-                ),
+                Icon(items[i]['icon'] as IconData, color: color, size: 24),
                 const SizedBox(height: 4),
-                Text(items[i]['label']!,
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: isActive ? const Color(0xFFF5A623) : const Color(0xFF9CA3AF),
-                        fontFamily: 'Poppins')),
+                Text(items[i]['label'] as String,
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color, fontFamily: 'Poppins')),
               ],
             ),
           );

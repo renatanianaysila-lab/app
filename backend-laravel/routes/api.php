@@ -234,3 +234,213 @@ Route::get('/admin/dashboard', function () {
         ], 500);
     }
 });
+
+// ─── TAMBAHKAN INI DI BAWAH ROUTE /admin/dashboard ───────────────────────────
+
+// Daftar Guru (dari tabel 'guru')
+Route::get('/admin/guru', function () {
+    try {
+        $guru = DB::table('guru')->get()->map(function ($item) {
+            return [
+                'id'     => $item->guru_id,
+                'nama'   => $item->nama_guru,
+                'email'  => $item->email_guru,
+                'status' => 'Aktif', // tabel guru belum punya kolom status, default Aktif
+            ];
+        });
+
+        return response()->json(['success' => true, 'data' => $guru], 200);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+});
+
+// Daftar Murid/Siswa (dari tabel 'murid')
+Route::get('/admin/murid', function () {
+    try {
+        $murid = DB::table('murid')->get()->map(function ($item) {
+            return [
+                'id'     => $item->murid_id,
+                'nama'   => $item->nama_murid,
+                'email'  => $item->email_murid,
+                'status' => 'Aktif', // tabel murid belum punya kolom status, default Aktif
+            ];
+        });
+
+        return response()->json(['success' => true, 'data' => $murid], 200);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+});
+
+// Daftar Materi/Konten untuk admin (dari tabel 'materis')
+// Karena tabel materis belum punya kolom 'status_konten', kita pakai kategori
+// sebagai sumber data, dan status default 'disetujui' (karena sudah ada di DB)
+Route::get('/admin/konten', function () {
+    try {
+        $materi = DB::table('materis')->get()->map(function ($item) {
+            // Tentukan warna icon berdasarkan kategori
+            $kategoriColor = match(strtolower($item->kategori ?? '')) {
+                'abjad'       => '#6C63FF',
+                'angka'       => '#4CAF50',
+                'ekspresi'    => '#9C27B0',
+                'percakapan'  => '#FF6B35',
+                default       => '#F5A623',
+            };
+
+            return [
+                'id'       => $item->id,
+                'judul'    => $item->judul,
+                'penulis'  => 'Admin', // belum ada kolom penulis di materis
+                'kategori' => $item->kategori ?? 'Dasar',
+                'level'    => $item->kategori ?? 'Dasar',
+                'status'   => 'disetujui', // semua materi di DB dianggap sudah disetujui
+                'warna'    => $kategoriColor,
+            ];
+        });
+
+        return response()->json(['success' => true, 'data' => $materi], 200);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+});
+
+// ─── AKTIVITAS ADMIN ─────────────────────────────────────────────────────────
+// Fetch aktivitas dari tabel materis, users, quiz_scores
+Route::get('/admin/aktivitas', function () {
+    try {
+        $aktivitas = [];
+
+        // Unggah: materi terbaru
+        $materis = DB::table('materis')->latest()->take(5)->get();
+        foreach ($materis as $m) {
+            $aktivitas[] = [
+                'tipe'       => 'Unggah',
+                'pesan'      => 'Materi "' . $m->judul . '" berhasil diunggah',
+                'waktu'      => \Carbon\Carbon::parse($m->created_at)->diffForHumans(),
+                'badgeLabel' => 'Unggah',
+                'sort_time'  => $m->created_at,
+            ];
+        }
+
+        // Lainnya: pengguna baru (dari tabel users)
+        $users = DB::table('users')->latest()->take(3)->get();
+        foreach ($users as $u) {
+            $aktivitas[] = [
+                'tipe'       => 'Lainnya',
+                'pesan'      => ($u->name ?? 'Pengguna baru') . ' mendaftar sebagai anggota baru',
+                'waktu'      => \Carbon\Carbon::parse($u->created_at)->diffForHumans(),
+                'badgeLabel' => 'Daftar',
+                'sort_time'  => $u->created_at,
+            ];
+        }
+
+        // Lainnya: kuis diselesaikan
+        $scores = DB::table('quiz_scores')->latest()->take(3)->get();
+        foreach ($scores as $s) {
+            $aktivitas[] = [
+                'tipe'       => 'Lainnya',
+                'pesan'      => 'Kuis level ' . ($s->level ?? '-') . ' diselesaikan dengan skor ' . $s->skor,
+                'waktu'      => \Carbon\Carbon::parse($s->created_at)->diffForHumans(),
+                'badgeLabel' => 'Kuis',
+                'sort_time'  => $s->created_at,
+            ];
+        }
+
+        // Urutkan berdasarkan waktu terbaru
+        usort($aktivitas, fn($a, $b) => strcmp($b['sort_time'], $a['sort_time']));
+
+        // Hapus sort_time sebelum kirim
+        $result = array_map(function ($item) {
+            unset($item['sort_time']);
+            return $item;
+        }, $aktivitas);
+
+        return response()->json(['success' => true, 'data' => $result], 200);
+
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+});
+
+// ─── LAPORAN KEUANGAN ADMIN (UPDATED) ────────────────────────────────────────
+Route::get('/admin/laporan', function () {
+    try {
+        // Ambil transaksi + join ke users dan packages
+        $transaksiRaw = DB::table('transactions')
+            ->leftJoin('users', 'transactions.user_id', '=', 'users.id')
+            ->leftJoin('packages', 'transactions.package_id', '=', 'packages.id')
+            ->select(
+                'transactions.id',
+                'transactions.total_harga',
+                'transactions.metode_pembayaran',
+                'transactions.status',
+                'transactions.created_at',
+                'users.name as user_name',
+                'packages.nama_paket'
+            )
+            ->latest('transactions.created_at')
+            ->get();
+
+        $transaksi = $transaksiRaw->map(function ($t) {
+            $nominal = '+Rp ' . number_format($t->total_harga ?? 0, 0, ',', '.');
+
+            return [
+                'judul'   => $t->nama_paket ?? 'Paket Tidak Diketahui',
+                'sub'     => 'oleh ' . ($t->user_name ?? 'Pengguna') . ' • ' .
+                             \Carbon\Carbon::parse($t->created_at)->translatedFormat('d F Y'),
+                'nominal' => $nominal,
+                'status'  => $t->status === 'success' ? 'Berhasil' : 'Diproses',
+                'tipe'    => 'Masuk', // semua transaksi di tabel ini adalah pembayaran masuk
+            ];
+        })->toArray();
+
+        // Summary
+        $totalMasuk = DB::table('transactions')
+            ->where('status', 'success')
+            ->sum('total_harga');
+
+        $totalMasukBulanIni = DB::table('transactions')
+            ->where('status', 'success')
+            ->whereMonth('created_at', now()->month)
+            ->sum('total_harga');
+
+        $jumlahTransaksi = DB::table('transactions')->count();
+
+        $menunggu = DB::table('transactions')
+            ->where('status', 'pending')
+            ->sum('total_harga');
+
+        // Data mingguan (7 hari terakhir)
+        $hariIndo = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+        $mingguan = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $tanggal = now()->subDays($i);
+            $nilai = DB::table('transactions')
+                ->where('status', 'success')
+                ->whereDate('created_at', $tanggal->toDateString())
+                ->sum('total_harga');
+
+            $mingguan[] = [
+                'hari'      => $hariIndo[$tanggal->dayOfWeek],
+                'nilai'     => (float) $nilai,
+                'highlight' => $i === 0,
+            ];
+        }
+
+        return response()->json([
+            'success'   => true,
+            'transaksi' => $transaksi,
+            'summary'   => [
+                'saldo'            => 'Rp ' . number_format($totalMasuk, 0, ',', '.'),
+                'bulan_ini'        => 'Rp ' . number_format($totalMasukBulanIni, 0, ',', '.'),
+                'jumlah_transaksi' => $jumlahTransaksi,
+                'menunggu'         => 'Rp ' . number_format($menunggu, 0, ',', '.'),
+                'mingguan'         => $mingguan,
+            ],
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+});

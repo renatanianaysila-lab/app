@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'beranda_admin.dart';
 import 'pengguna_admin.dart';
 import 'konten_screen.dart';
@@ -15,94 +17,91 @@ class _AktivitasAdminState extends State<AktivitasAdmin> {
   int _selectedNav = 3;
   int _selectedTab = 0;
   String _search = '';
+  bool _isLoading = true;
+  String? _errorMsg;
 
   final List<String> _tabs = ['Semua', 'Unggah', 'Tinjau', 'Lapor', 'Lainnya'];
 
-  final List<Map<String, dynamic>> _aktivitas = [
-    {
-      'tipe': 'Unggah',
-      'waktu': '5 menit lalu',
-      'pesan': 'Naysila mengunggah materi "Huruf A - BISINDO"',
-      'icon': Icons.upload_outlined,
-      'bgColor': const Color(0xFFE8F5E9),
-      'iconColor': const Color(0xFF43A047),
-      'badgeColor': const Color(0xFFE8F5E9),
-      'badgeText': const Color(0xFF43A047),
-    },
-    {
-      'tipe': 'Kumpul',
-      'waktu': '10 menit lalu',
-      'pesan': '12 latihan dikumpulkan dan menunggu peninjauan',
-      'icon': Icons.list_alt_outlined,
-      'bgColor': const Color(0xFFE3F2FD),
-      'iconColor': const Color(0xFF1E88E5),
-      'badgeColor': const Color(0xFFE3F2FD),
-      'badgeText': const Color(0xFF1E88E5),
-    },
-    {
-      'tipe': 'Lapor',
-      'waktu': '20 menit lalu',
-      'pesan': '2 konten dilaporkan oleh pengguna',
-      'icon': Icons.flag_outlined,
-      'bgColor': const Color(0xFFFFEBEE),
-      'iconColor': const Color(0xFFE53935),
-      'badgeColor': const Color(0xFFFFEBEE),
-      'badgeText': const Color(0xFFE53935),
-    },
-    {
-      'tipe': 'Tinjau',
-      'waktu': '30 menit lalu',
-      'pesan': '8 konten sedang dalam proses peninjauan',
-      'icon': Icons.remove_red_eye_outlined,
-      'bgColor': const Color(0xFFFFF8E1),
-      'iconColor': const Color(0xFFFFA000),
-      'badgeColor': const Color(0xFFFFF8E1),
-      'badgeText': const Color(0xFFFFA000),
-    },
-    {
-      'tipe': 'Lainnya',
-      'waktu': '1 jam lalu',
-      'pesan': '5 materi telah disetujui oleh admin',
-      'icon': Icons.check_outlined,
-      'bgColor': const Color(0xFFE8F5E9),
-      'iconColor': const Color(0xFF43A047),
-      'badgeColor': const Color(0xFFE8F5E9),
-      'badgeText': const Color(0xFF43A047),
-      'badgeLabel': 'Setuju',
-    },
-    {
-      'tipe': 'Lainnya',
-      'waktu': '2 jam lalu',
-      'pesan': '2 konten ditolak karena tidak sesuai standar',
-      'icon': Icons.close_outlined,
-      'bgColor': const Color(0xFFFFEBEE),
-      'iconColor': const Color(0xFFE53935),
-      'badgeColor': const Color(0xFFFFEBEE),
-      'badgeText': const Color(0xFFE53935),
-      'badgeLabel': 'Tolak',
-    },
-    {
-      'tipe': 'Unggah',
-      'waktu': '3 jam lalu',
-      'pesan': 'Andi mengunggah video "Kata Sapaan - BISINDO"',
-      'icon': Icons.upload_outlined,
-      'bgColor': const Color(0xFFE8F5E9),
-      'iconColor': const Color(0xFF43A047),
-      'badgeColor': const Color(0xFFE8F5E9),
-      'badgeText': const Color(0xFF43A047),
-    },
-    {
-      'tipe': 'Lainnya',
-      'waktu': '4 jam lalu',
-      'pesan': '15 pengguna baru mendaftar hari ini',
-      'icon': Icons.person_add_outlined,
-      'bgColor': const Color(0xFFE3F2FD),
-      'iconColor': const Color(0xFF1E88E5),
-      'badgeColor': const Color(0xFFE3F2FD),
-      'badgeText': const Color(0xFF1E88E5),
-      'badgeLabel': 'Daftar',
-    },
-  ];
+  List<Map<String, dynamic>> _aktivitas = [];
+
+  static const String _baseUrl = 'http://10.0.2.2:8000/api';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAktivitas();
+  }
+
+  Future<void> _fetchAktivitas() async {
+    setState(() {
+      _isLoading = true;
+      _errorMsg = null;
+    });
+    try {
+      final res = await http.get(Uri.parse('$_baseUrl/admin/aktivitas'));
+      if (res.statusCode == 200) {
+        final json = jsonDecode(res.body);
+        final List<dynamic> raw = json['data'] ?? [];
+        setState(() {
+          _aktivitas = raw.map<Map<String, dynamic>>((item) {
+            final tipe = item['tipe'] ?? 'Lainnya';
+            return {
+              'tipe': tipe,
+              'waktu': item['waktu'] ?? '',
+              'pesan': item['pesan'] ?? '',
+              'icon': _iconForTipe(tipe),
+              'bgColor': _bgColorForTipe(tipe),
+              'iconColor': _iconColorForTipe(tipe),
+              'badgeColor': _bgColorForTipe(tipe),
+              'badgeText': _iconColorForTipe(tipe),
+              'badgeLabel': item['badgeLabel'] ?? tipe,
+            };
+          }).toList();
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _errorMsg = 'Gagal memuat aktivitas (${res.statusCode})';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMsg = 'Tidak dapat terhubung ke server';
+        _isLoading = false;
+      });
+    }
+  }
+
+  IconData _iconForTipe(String tipe) {
+    switch (tipe) {
+      case 'Unggah': return Icons.upload_outlined;
+      case 'Tinjau': return Icons.remove_red_eye_outlined;
+      case 'Lapor':  return Icons.flag_outlined;
+      case 'Kumpul': return Icons.list_alt_outlined;
+      default:       return Icons.info_outline;
+    }
+  }
+
+  Color _bgColorForTipe(String tipe) {
+    switch (tipe) {
+      case 'Unggah': return const Color(0xFFE8F5E9);
+      case 'Tinjau': return const Color(0xFFFFF8E1);
+      case 'Lapor':  return const Color(0xFFFFEBEE);
+      case 'Kumpul': return const Color(0xFFE3F2FD);
+      default:       return const Color(0xFFE8F5E9);
+    }
+  }
+
+  Color _iconColorForTipe(String tipe) {
+    switch (tipe) {
+      case 'Unggah': return const Color(0xFF43A047);
+      case 'Tinjau': return const Color(0xFFFFA000);
+      case 'Lapor':  return const Color(0xFFE53935);
+      case 'Kumpul': return const Color(0xFF1E88E5);
+      default:       return const Color(0xFF43A047);
+    }
+  }
 
   List<Map<String, dynamic>> get _filtered {
     final tab = _tabs[_selectedTab];
@@ -138,94 +137,121 @@ class _AktivitasAdminState extends State<AktivitasAdmin> {
       ),
       body: Column(
         children: [
-          // ── TAB FILTER ──────────────────────────────────
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: List.generate(_tabs.length, (i) {
-                  final active = _selectedTab == i;
-                  return GestureDetector(
-                    onTap: () => setState(() => _selectedTab = i),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 180),
-                      margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
-                      decoration: BoxDecoration(
-                        color: active ? const Color(0xFF3D5AFE).withOpacity(0.08) : Colors.transparent,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: active ? const Color(0xFF3D5AFE) : Colors.grey.shade300,
-                        ),
-                      ),
-                      child: Text(
-                        _tabs[i],
-                        style: TextStyle(
-                          color: active ? const Color(0xFF3D5AFE) : Colors.grey[600],
-                          fontWeight: active ? FontWeight.bold : FontWeight.normal,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-              ),
-            ),
-          ),
-
-          // ── SEARCH BAR ──────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            child: TextField(
-              onChanged: (v) => setState(() => _search = v),
-              decoration: InputDecoration(
-                hintText: 'Cari judul materi',
-                hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade200),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade200),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF3D5AFE)),
-                ),
-              ),
-            ),
-          ),
-
-          // ── LIST AKTIVITAS ──────────────────────────────
-          Expanded(
-            child: _filtered.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.inbox_outlined, size: 50, color: Colors.grey[300]),
-                        const SizedBox(height: 8),
-                        Text('Tidak ada aktivitas', style: TextStyle(color: Colors.grey[400])),
-                      ],
-                    ),
-                  )
-                : ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-                    itemCount: _filtered.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1),
-                    itemBuilder: (_, i) => _aktivitasItem(_filtered[i]),
-                  ),
-          ),
+          _buildTabFilter(),
+          _buildSearchBar(),
+          Expanded(child: _buildBody()),
         ],
       ),
       bottomNavigationBar: _buildBottomNav(),
+    );
+  }
+
+  Widget _buildTabFilter() {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: List.generate(_tabs.length, (i) {
+            final active = _selectedTab == i;
+            return GestureDetector(
+              onTap: () => setState(() => _selectedTab = i),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                margin: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+                decoration: BoxDecoration(
+                  color: active ? const Color(0xFF3D5AFE).withOpacity(0.08) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: active ? const Color(0xFF3D5AFE) : Colors.grey.shade300,
+                  ),
+                ),
+                child: Text(
+                  _tabs[i],
+                  style: TextStyle(
+                    color: active ? const Color(0xFF3D5AFE) : Colors.grey[600],
+                    fontWeight: active ? FontWeight.bold : FontWeight.normal,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: TextField(
+        onChanged: (v) => setState(() => _search = v),
+        decoration: InputDecoration(
+          hintText: 'Cari aktivitas...',
+          hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
+          prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(vertical: 12),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey.shade200),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey.shade200),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFF3D5AFE)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator(color: Color(0xFF3D5AFE)));
+    }
+    if (_errorMsg != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.wifi_off, size: 50, color: Colors.grey[300]),
+            const SizedBox(height: 8),
+            Text(_errorMsg!, style: TextStyle(color: Colors.grey[500])),
+            const SizedBox(height: 12),
+            TextButton(onPressed: _fetchAktivitas, child: const Text('Coba Lagi')),
+          ],
+        ),
+      );
+    }
+    if (_filtered.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.inbox_outlined, size: 50, color: Colors.grey[300]),
+            const SizedBox(height: 8),
+            Text('Tidak ada aktivitas', style: TextStyle(color: Colors.grey[400])),
+          ],
+        ),
+      );
+    }
+    return RefreshIndicator(
+      onRefresh: _fetchAktivitas,
+      color: const Color(0xFF3D5AFE),
+      child: ListView.separated(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+        itemCount: _filtered.length,
+        separatorBuilder: (_, __) => const Divider(height: 1),
+        itemBuilder: (_, i) => _aktivitasItem(_filtered[i]),
+      ),
     );
   }
 
@@ -236,7 +262,6 @@ class _AktivitasAdminState extends State<AktivitasAdmin> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Icon circle
           Container(
             width: 44,
             height: 44,
@@ -253,7 +278,6 @@ class _AktivitasAdminState extends State<AktivitasAdmin> {
               children: [
                 Row(
                   children: [
-                    // Badge
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                       decoration: BoxDecoration(
@@ -270,10 +294,7 @@ class _AktivitasAdminState extends State<AktivitasAdmin> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      a['waktu'],
-                      style: TextStyle(fontSize: 12, color: Colors.grey[400]),
-                    ),
+                    Text(a['waktu'], style: TextStyle(fontSize: 12, color: Colors.grey[400])),
                   ],
                 ),
                 const SizedBox(height: 6),
@@ -311,15 +332,10 @@ class _AktivitasAdminState extends State<AktivitasAdmin> {
           return GestureDetector(
             onTap: () {
               setState(() => _selectedNav = i);
-              if (i == 0) {
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const BerandaAdmin()));
-              } else if (i == 1) {
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const PenggunaAdmin()));
-              } else if (i == 2) {
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const KontenScreen()));
-              } else if (i == 4) {
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LaporanAdmin()));
-              }
+              if (i == 0) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const BerandaAdmin()));
+              else if (i == 1) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const PenggunaAdmin()));
+              else if (i == 2) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const KontenScreen()));
+              else if (i == 4) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LaporanAdmin()));
             },
             child: Column(
               mainAxisSize: MainAxisSize.min,

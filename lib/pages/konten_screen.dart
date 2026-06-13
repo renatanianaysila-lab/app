@@ -1,29 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+import 'beranda_admin.dart';
+import 'pengguna_admin.dart';
 import 'laporan_admin.dart';
 import 'aktivitas_admin.dart';
-
-
-enum KontenStatus { pending, disetujui, ditolak }
-
-class KontenItem {
-  final String judul;
-  final String penulis;
-  final String level;
-  final IconData icon;
-  final Color iconColor;
-  final Color iconBg;
-  final KontenStatus status;
-
-  KontenItem({
-    required this.judul,
-    required this.penulis,
-    required this.level,
-    required this.icon,
-    required this.iconColor,
-    required this.iconBg,
-    required this.status,
-  });
-}
 
 class KontenScreen extends StatefulWidget {
   const KontenScreen({super.key});
@@ -38,121 +20,15 @@ class _KontenScreenState extends State<KontenScreen>
   final TextEditingController _searchCtrl = TextEditingController();
   String _searchQuery = '';
 
-  final List<KontenItem> _allKonten = [
-    KontenItem(
-      judul: 'Abjad A-Z: Huruf A',
-      penulis: 'Siti Nurhaliza',
-      level: 'Dasar',
-      icon: Icons.abc,
-      iconColor: Colors.white,
-      iconBg: const Color(0xFF6C63FF),
-      status: KontenStatus.pending,
-    ),
-    KontenItem(
-      judul: 'Abjad A-Z: Huruf A',
-      penulis: 'Rahma',
-      level: 'Dasar',
-      icon: Icons.tag,
-      iconColor: Colors.white,
-      iconBg: const Color(0xFF4CAF50),
-      status: KontenStatus.pending,
-    ),
-    KontenItem(
-      judul: 'Ekspresi:',
-      penulis: 'Dika',
-      level: 'Dasar',
-      icon: Icons.emoji_emotions_outlined,
-      iconColor: Colors.white,
-      iconBg: const Color(0xFF9C27B0),
-      status: KontenStatus.pending,
-    ),
-    KontenItem(
-      judul: 'Percakapan Dasar: Salam Dasar',
-      penulis: 'Laura',
-      level: 'Dasar',
-      icon: Icons.chat_bubble_outline,
-      iconColor: Colors.white,
-      iconBg: const Color(0xFFFF6B35),
-      status: KontenStatus.pending,
-    ),
-    KontenItem(
-      judul: 'Abjad A-Z: Huruf A',
-      penulis: 'Siti Nurhaliza',
-      level: 'Dasar',
-      icon: Icons.abc,
-      iconColor: Colors.white,
-      iconBg: const Color(0xFF6C63FF),
-      status: KontenStatus.disetujui,
-    ),
-    KontenItem(
-      judul: 'Abjad A-Z: Huruf A',
-      penulis: 'Rahma',
-      level: 'Dasar',
-      icon: Icons.tag,
-      iconColor: Colors.white,
-      iconBg: const Color(0xFF4CAF50),
-      status: KontenStatus.disetujui,
-    ),
-    KontenItem(
-      judul: 'Ekspresi:',
-      penulis: 'Dika',
-      level: 'Dasar',
-      icon: Icons.emoji_emotions_outlined,
-      iconColor: Colors.white,
-      iconBg: const Color(0xFF9C27B0),
-      status: KontenStatus.disetujui,
-    ),
-    KontenItem(
-      judul: 'Percakapan Dasar: Salam Dasar',
-      penulis: 'Laura',
-      level: 'Dasar',
-      icon: Icons.chat_bubble_outline,
-      iconColor: Colors.white,
-      iconBg: const Color(0xFFFF6B35),
-      status: KontenStatus.disetujui,
-    ),
-    KontenItem(
-      judul: 'Abjad A-Z: Huruf A',
-      penulis: 'Siti Nurhaliza',
-      level: 'Dasar',
-      icon: Icons.abc,
-      iconColor: Colors.white,
-      iconBg: const Color(0xFF6C63FF),
-      status: KontenStatus.ditolak,
-    ),
-    KontenItem(
-      judul: 'Abjad A-Z: Huruf A',
-      penulis: 'Rahma',
-      level: 'Dasar',
-      icon: Icons.tag,
-      iconColor: Colors.white,
-      iconBg: const Color(0xFF4CAF50),
-      status: KontenStatus.ditolak,
-    ),
-    KontenItem(
-      judul: 'Ekspresi:',
-      penulis: 'Dika',
-      level: 'Dasar',
-      icon: Icons.emoji_emotions_outlined,
-      iconColor: Colors.white,
-      iconBg: const Color(0xFF9C27B0),
-      status: KontenStatus.ditolak,
-    ),
-    KontenItem(
-      judul: 'Percakapan Dasar: Salam Dasar',
-      penulis: 'Laura',
-      level: 'Dasar',
-      icon: Icons.chat_bubble_outline,
-      iconColor: Colors.white,
-      iconBg: const Color(0xFFFF6B35),
-      status: KontenStatus.ditolak,
-    ),
-  ];
+  List<Map<String, dynamic>> _allKonten = [];
+  bool _isLoading = true;
+  String _error = '';
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _fetchKonten();
   }
 
   @override
@@ -162,14 +38,53 @@ class _KontenScreenState extends State<KontenScreen>
     super.dispose();
   }
 
-  List<KontenItem> _filtered(KontenStatus status) {
+  Future<void> _fetchKonten() async {
+    setState(() { _isLoading = true; _error = ''; });
+    try {
+      final res = await http.get(
+        Uri.parse('http://10.0.2.2:8000/api/admin/konten'),
+        headers: {'Accept': 'application/json'},
+      );
+      if (res.statusCode == 200) {
+        final body = json.decode(res.body);
+        setState(() {
+          _allKonten = List<Map<String, dynamic>>.from(body['data']);
+          _isLoading = false;
+        });
+      } else {
+        setState(() { _error = 'Gagal memuat konten. Status: ${res.statusCode}'; _isLoading = false; });
+      }
+    } catch (e) {
+      setState(() { _error = 'Koneksi gagal. Pastikan server Laravel menyala!'; _isLoading = false; });
+    }
+  }
+
+  List<Map<String, dynamic>> _filtered(String status) {
     return _allKonten.where((k) {
-      final matchStatus = k.status == status;
+      final matchStatus = (k['status'] ?? '') == status;
       final matchSearch = _searchQuery.isEmpty ||
-          k.judul.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          k.penulis.toLowerCase().contains(_searchQuery.toLowerCase());
+          (k['judul'] ?? '').toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          (k['penulis'] ?? '').toLowerCase().contains(_searchQuery.toLowerCase());
       return matchStatus && matchSearch;
     }).toList();
+  }
+
+  // Warna icon berdasarkan field 'warna' dari API
+  Color _parseColor(String? hex) {
+    if (hex == null || hex.isEmpty) return const Color(0xFFF5A623);
+    final cleaned = hex.replaceAll('#', '');
+    return Color(int.parse('FF$cleaned', radix: 16));
+  }
+
+  // Icon berdasarkan kategori
+  IconData _iconFromKategori(String? kategori) {
+    switch ((kategori ?? '').toLowerCase()) {
+      case 'abjad':   return Icons.abc;
+      case 'angka':   return Icons.tag;
+      case 'ekspresi': return Icons.emoji_emotions_outlined;
+      case 'percakapan': return Icons.chat_bubble_outline;
+      default: return Icons.menu_book_rounded;
+    }
   }
 
   @override
@@ -186,6 +101,7 @@ class _KontenScreenState extends State<KontenScreen>
             color: Colors.black87,
             fontWeight: FontWeight.w600,
             fontSize: 18,
+            fontFamily: 'Poppins',
           ),
         ),
         actions: const [
@@ -204,9 +120,9 @@ class _KontenScreenState extends State<KontenScreen>
               indicatorColor: Colors.transparent,
               dividerColor: Colors.transparent,
               tabs: [
-                _buildTab('Pending', 0, const Color(0xFFFF9800)),
-                _buildTab('Disetujui', 1, const Color(0xFF4CAF50)),
-                _buildTab('Ditolak', 2, const Color(0xFF6C63FF)),
+                _buildTabLabel('Pending', 0, const Color(0xFFFF9800)),
+                _buildTabLabel('Disetujui', 1, const Color(0xFF4CAF50)),
+                _buildTabLabel('Ditolak', 2, const Color(0xFF6C63FF)),
               ],
             ),
           ),
@@ -222,7 +138,7 @@ class _KontenScreenState extends State<KontenScreen>
                       onChanged: (v) => setState(() => _searchQuery = v),
                       decoration: InputDecoration(
                         hintText: 'Cari judul materi',
-                        hintStyle: const TextStyle(fontSize: 13, color: Colors.grey),
+                        hintStyle: const TextStyle(fontSize: 13, color: Colors.grey, fontFamily: 'Poppins'),
                         prefixIcon: const Icon(Icons.search, size: 18, color: Colors.grey),
                         contentPadding: EdgeInsets.zero,
                         filled: true,
@@ -248,36 +164,41 @@ class _KontenScreenState extends State<KontenScreen>
           ),
           const SizedBox(height: 12),
           Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildList(KontenStatus.pending),
-                _buildList(KontenStatus.disetujui),
-                _buildList(KontenStatus.ditolak),
-              ],
-            ),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator(color: Color(0xFFF5A623)))
+                : _error.isNotEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(_error,
+                                style: const TextStyle(color: Colors.red, fontFamily: 'Poppins', fontSize: 13),
+                                textAlign: TextAlign.center),
+                            const SizedBox(height: 12),
+                            ElevatedButton(
+                              onPressed: _fetchKonten,
+                              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFF5A623)),
+                              child: const Text('Coba Lagi', style: TextStyle(color: Colors.white)),
+                            ),
+                          ],
+                        ),
+                      )
+                    : TabBarView(
+                        controller: _tabController,
+                        children: [
+                          _buildList('pending'),
+                          _buildList('disetujui'),
+                          _buildList('ditolak'),
+                        ],
+                      ),
           ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xFF4CAF50),
-        unselectedItemColor: Colors.grey,
-        currentIndex: 2,
-        selectedFontSize: 11,
-        unselectedFontSize: 11,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Beranda'),
-          BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Pengguna'),
-          BottomNavigationBarItem(icon: Icon(Icons.description_outlined), label: 'Konten'),
-          BottomNavigationBarItem(icon: Icon(Icons.show_chart), label: 'Aktivitas'),
-          BottomNavigationBarItem(icon: Icon(Icons.flag_outlined), label: 'Laporan'),
-        ],
-      ),
+      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
-  Widget _buildTab(String label, int index, Color activeColor) {
+  Widget _buildTabLabel(String label, int index, Color activeColor) {
     return AnimatedBuilder(
       animation: _tabController,
       builder: (context, _) {
@@ -299,6 +220,7 @@ class _KontenScreenState extends State<KontenScreen>
                 color: isSelected ? activeColor : Colors.grey,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                 fontSize: 13,
+                fontFamily: 'Poppins',
               ),
             ),
           ),
@@ -317,7 +239,7 @@ class _KontenScreenState extends State<KontenScreen>
       ),
       child: Row(
         children: [
-          Text(label, style: const TextStyle(fontSize: 12, color: Colors.black87)),
+          Text(label, style: const TextStyle(fontSize: 12, color: Colors.black87, fontFamily: 'Poppins')),
           if (icon != null) ...[
             const SizedBox(width: 4),
             Icon(icon, size: 14, color: Colors.grey),
@@ -327,25 +249,44 @@ class _KontenScreenState extends State<KontenScreen>
     );
   }
 
-  Widget _buildList(KontenStatus status) {
+  Widget _buildList(String status) {
     final items = _filtered(status);
     if (items.isEmpty) {
-      return const Center(child: Text('Tidak ada konten', style: TextStyle(color: Colors.grey)));
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.inbox_outlined, size: 48, color: Colors.grey.shade300),
+            const SizedBox(height: 12),
+            Text(
+              status == 'pending'
+                  ? 'Belum ada konten pending'
+                  : status == 'disetujui'
+                      ? 'Belum ada konten disetujui'
+                      : 'Belum ada konten ditolak',
+              style: const TextStyle(color: Colors.grey, fontFamily: 'Poppins', fontSize: 13),
+            ),
+          ],
+        ),
+      );
     }
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: items.length,
-      itemBuilder: (ctx, i) => _KontenCard(item: items[i]),
+    return RefreshIndicator(
+      onRefresh: _fetchKonten,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: items.length,
+        itemBuilder: (ctx, i) => _buildKontenCard(items[i]),
+      ),
     );
   }
-}
 
-class _KontenCard extends StatelessWidget {
-  final KontenItem item;
-  const _KontenCard({required this.item});
+  Widget _buildKontenCard(Map<String, dynamic> item) {
+    final warna = _parseColor(item['warna']?.toString());
+    final icon = _iconFromKategori(item['kategori']?.toString());
+    final level = item['level'] ?? item['kategori'] ?? 'Dasar';
+    final penulis = item['penulis'] ?? 'Admin';
+    final judul = item['judul'] ?? '-';
 
-  @override
-  Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
@@ -360,19 +301,16 @@ class _KontenCard extends StatelessWidget {
         leading: Container(
           width: 42,
           height: 42,
-          decoration: BoxDecoration(
-            color: item.iconBg,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(item.icon, color: item.iconColor, size: 22),
+          decoration: BoxDecoration(color: warna, borderRadius: BorderRadius.circular(10)),
+          child: Icon(icon, color: Colors.white, size: 22),
         ),
         title: Text(
-          item.judul,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+          judul,
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, fontFamily: 'Poppins'),
         ),
         subtitle: Text(
-          'oleh: ${item.penulis}',
-          style: const TextStyle(fontSize: 12, color: Colors.grey),
+          'oleh: $penulis',
+          style: const TextStyle(fontSize: 12, color: Colors.grey, fontFamily: 'Poppins'),
         ),
         trailing: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -381,10 +319,57 @@ class _KontenCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
-            item.level,
-            style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w500),
+            level,
+            style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w500, fontFamily: 'Poppins'),
           ),
         ),
+      ),
+    );
+  }
+
+  // ─── BOTTOM NAV ────────────────────────────────────────────────────────────
+
+  Widget _buildBottomNav() {
+    final List<Map<String, dynamic>> items = [
+      {'icon': Icons.home_rounded, 'label': 'Beranda'},
+      {'icon': Icons.people_alt_rounded, 'label': 'Pengguna'},
+      {'icon': Icons.video_collection_rounded, 'label': 'Konten'},
+      {'icon': Icons.assessment_rounded, 'label': 'Aktivitas'},
+      {'icon': Icons.report_problem_rounded, 'label': 'Laporan'},
+    ];
+
+    const int selectedNav = 2; // Konten = index 2
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Color(0xFFEBEBEB))),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: List.generate(items.length, (i) {
+          final isActive = selectedNav == i;
+          final color = isActive ? const Color(0xFFF5A623) : const Color(0xFF9CA3AF);
+          return GestureDetector(
+            onTap: () {
+              if (i == selectedNav) return;
+              if (i == 0) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const BerandaAdmin()));
+              if (i == 1) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const PenggunaAdmin()));
+              if (i == 3) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AktivitasAdmin()));
+              if (i == 4) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LaporanAdmin()));
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(items[i]['icon'] as IconData, color: color, size: 24),
+                const SizedBox(height: 4),
+                Text(items[i]['label'] as String,
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color, fontFamily: 'Poppins')),
+              ],
+            ),
+          );
+        }),
       ),
     );
   }
