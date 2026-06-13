@@ -7,7 +7,7 @@ import 'konten_screen.dart';
 import 'detail_aktivitas_page.dart';
 import 'laporan_admin.dart';
 import 'aktivitas_admin.dart';
-import 'login_screen.dart'; // sesuaikan nama file login kamu
+import 'login_screen.dart';
 
 class BerandaAdmin extends StatefulWidget {
   const BerandaAdmin({super.key});
@@ -17,7 +17,6 @@ class BerandaAdmin extends StatefulWidget {
 }
 
 class _BerandaAdminState extends State<BerandaAdmin> {
-  // GlobalKey untuk bisa buka drawer dari mana saja
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   int _selectedNav = 0;
@@ -82,7 +81,7 @@ class _BerandaAdminState extends State<BerandaAdmin> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey, // pasang GlobalKey di sini
+      key: _scaffoldKey,
       backgroundColor: const Color(0xFFF7F8FC),
       drawer: _buildAdminDrawer(),
       body: SafeArea(
@@ -189,16 +188,12 @@ class _BerandaAdminState extends State<BerandaAdmin> {
     );
   }
 
-  // ─── TOP BAR ─────────────────────────────────────────────────────────────
-
   Widget _buildTopBar() {
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
         children: [
-          // Pakai _scaffoldKey.currentState supaya tidak perlu context yang
-          // harus melewati Scaffold — ini cara paling aman & selalu bekerja
           GestureDetector(
             onTap: () => _scaffoldKey.currentState?.openDrawer(),
             child: const Icon(Icons.menu, size: 24, color: Color(0xFF1A1D2E)),
@@ -229,29 +224,21 @@ class _BerandaAdminState extends State<BerandaAdmin> {
     );
   }
 
-  // ─── DRAWER ──────────────────────────────────────────────────────────────
-
   Widget _buildAdminDrawer() {
     return Drawer(
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header drawer (orange)
+            // Header drawer (orange) — tanpa profil, cukup nama & email admin
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               color: const Color(0xFFF5A623),
-              child: Column(
+              child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const CircleAvatar(
-                    radius: 28,
-                    backgroundColor: Colors.white,
-                    child: Icon(Icons.person, size: 32, color: Color(0xFFF5A623)),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
+                  Text(
                     'Admin BISINDO',
                     style: TextStyle(
                       fontSize: 16,
@@ -260,7 +247,8 @@ class _BerandaAdminState extends State<BerandaAdmin> {
                       fontFamily: 'Poppins',
                     ),
                   ),
-                  const Text(
+                  SizedBox(height: 4),
+                  Text(
                     'admin@gmail.com',
                     style: TextStyle(
                       fontSize: 12,
@@ -273,34 +261,16 @@ class _BerandaAdminState extends State<BerandaAdmin> {
             ),
             const SizedBox(height: 8),
 
-            // Menu items
+            // Menu items (profil dihapus)
             ListTile(
-              leading:
-                  const Icon(Icons.person_outline, color: Color(0xFF1A1D2E)),
-              title: const Text('Profil Admin',
-                  style: TextStyle(fontFamily: 'Poppins')),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: navigasi ke halaman profil admin kalau sudah ada
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings_outlined,
-                  color: Color(0xFF1A1D2E)),
-              title: const Text('Pengaturan',
-                  style: TextStyle(fontFamily: 'Poppins')),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: navigasi ke halaman pengaturan kalau sudah ada
-              },
+              leading: const Icon(Icons.settings_outlined, color: Color(0xFF1A1D2E)),
+              title: const Text('Pengaturan', style: TextStyle(fontFamily: 'Poppins')),
+              onTap: () => Navigator.pop(context),
             ),
             ListTile(
               leading: const Icon(Icons.help_outline, color: Color(0xFF1A1D2E)),
-              title: const Text('Bantuan',
-                  style: TextStyle(fontFamily: 'Poppins')),
-              onTap: () {
-                Navigator.pop(context);
-              },
+              title: const Text('Bantuan', style: TextStyle(fontFamily: 'Poppins')),
+              onTap: () => Navigator.pop(context),
             ),
 
             const Spacer(),
@@ -331,8 +301,6 @@ class _BerandaAdminState extends State<BerandaAdmin> {
       ),
     );
   }
-
-  // ─── ACTION BUTTONS (Tambah / Tinjau / Laporan) ──────────────────────────
 
   Widget _buildActionButtons(BuildContext context) {
     return Row(
@@ -406,8 +374,6 @@ class _BerandaAdminState extends State<BerandaAdmin> {
     );
   }
 
-  // ─── STATISTIK GRID (sekarang bisa diklik) ────────────────────────────────
-
   Widget _buildStatistikGrid() {
     return GridView.count(
       crossAxisCount: 2,
@@ -464,7 +430,7 @@ class _BerandaAdminState extends State<BerandaAdmin> {
     required String label,
     required String change,
     required bool changePositive,
-    required VoidCallback onTap, // tambahan: sekarang bisa diklik
+    required VoidCallback onTap,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -501,8 +467,7 @@ class _BerandaAdminState extends State<BerandaAdmin> {
                 ),
                 const Spacer(),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
                     color: changePositive
                         ? const Color(0xFFE8F9F0)
@@ -545,8 +510,6 @@ class _BerandaAdminState extends State<BerandaAdmin> {
       ),
     );
   }
-
-  // ─── AKTIVITAS ITEM ───────────────────────────────────────────────────────
 
   Widget _buildAktivitasItem(Map<String, dynamic> item) {
     Color bgIconColor = const Color(0xFFEEF2FF);
@@ -638,8 +601,6 @@ class _BerandaAdminState extends State<BerandaAdmin> {
       ),
     );
   }
-
-  // ─── DIALOGS ──────────────────────────────────────────────────────────────
 
   void _showTambahDialog(BuildContext context) {
     showDialog(
@@ -812,10 +773,8 @@ class _BerandaAdminState extends State<BerandaAdmin> {
                 ],
               ),
               const SizedBox(height: 16),
-              _buildLaporItem(
-                  'Alfabet A-Z', 'Konten tidak sesuai oleh pengguna'),
-              _buildLaporItem(
-                  'Salam Dasar', 'Video tidak jelas dilaporkan murid'),
+              _buildLaporItem('Alfabet A-Z', 'Konten tidak sesuai oleh pengguna'),
+              _buildLaporItem('Salam Dasar', 'Video tidak jelas dilaporkan murid'),
               _buildLaporItem('Angka 1-10', 'Materi duplikat'),
               const SizedBox(height: 8),
               GestureDetector(
@@ -884,8 +843,7 @@ class _BerandaAdminState extends State<BerandaAdmin> {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration:
-            BoxDecoration(color: color, borderRadius: BorderRadius.circular(14)),
+        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(14)),
         child: Row(
           children: [
             Image.asset(iconPath,
@@ -918,8 +876,6 @@ class _BerandaAdminState extends State<BerandaAdmin> {
     );
   }
 
-  // ─── BOTTOM NAV (pushReplacement agar tidak numpuk) ───────────────────────
-
   Widget _buildBottomNav() {
     final List<Map<String, dynamic>> items = [
       {'icon': Icons.home_rounded, 'label': 'Beranda'},
@@ -942,8 +898,7 @@ class _BerandaAdminState extends State<BerandaAdmin> {
               isActive ? const Color(0xFFF5A623) : const Color(0xFF9CA3AF);
           return GestureDetector(
             onTap: () {
-              if (i == _selectedNav) return; // sudah di halaman ini, skip
-              // pushReplacement supaya tidak menumpuk stack
+              if (i == _selectedNav) return;
               if (i == 1) {
                 Navigator.pushReplacement(context,
                     MaterialPageRoute(builder: (_) => const PenggunaAdmin()));
@@ -957,7 +912,6 @@ class _BerandaAdminState extends State<BerandaAdmin> {
                 Navigator.pushReplacement(context,
                     MaterialPageRoute(builder: (_) => const LaporanAdmin()));
               }
-              // i == 0 tidak perlu karena ini sudah halaman Beranda
             },
             child: Column(
               mainAxisSize: MainAxisSize.min,
