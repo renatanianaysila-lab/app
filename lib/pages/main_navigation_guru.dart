@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'beranda_guru.dart'; 
-import 'materi_guru.dart'; // 1. Pastikan file baru materi_guru.dart sudah di-import di sini 🎯
+import 'materi_guru.dart'; 
 import 'progres_guru_page.dart'; 
 import 'profil_guru_page.dart';
+import 'forum_page.dart';
 
 class MainNavigationGuru extends StatefulWidget {
   final int initialIndex;
@@ -18,15 +19,29 @@ class _MainNavigationGuruState extends State<MainNavigationGuru> {
   // 2. Daftarkan Class MateriGuruGayaMurid pada Index 1 (Tab Kedua) 🚀
   late final List<Widget> _pages;
 
-  @override
+@override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
     
+    // 1. Siapkan variabel data identitas guru sementara (sebelum fitur login kelar)
+    String currentGuruId = 'G0001'; 
+    String currentUsernameGuru = '@budi_guru'; // Username untuk forum guru
+
     _pages = [
-      const BerandaGuruMain(),          // Index 0: Halaman Beranda Guru Bersih
-      const MateriGuruPage(),      // Index 1: Mengarah ke file baru materi_guru.dart yang mirip murid! 🎯
-      const Center(child: Text("Halaman Forum Guru", style: TextStyle(fontFamily: 'Poppins'))), // Index 2
+      const BerandaGuruMain(), // Index 0: Halaman Beranda Guru
+      
+      // Index 1: Halaman Materi Guru
+      MateriGuruPage(
+        guruId: currentGuruId, 
+      ),      
+      
+      // Index 2: SEKARANG CONNECT KE FORUM ASLI DENGAN ROLE GURU! 🎯
+      ForumPage(
+        currentUsername: currentUsernameGuru, // Mengoper username guru ke forum
+        currentRole: 'Guru',                  // Mengunci role agar terbaca sebagai Guru
+      ), 
+      
       const ProgresGuruPage(),          // Index 3
       const ProfilGuruPage(),           // Index 4
     ];
