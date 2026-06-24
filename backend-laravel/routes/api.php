@@ -126,10 +126,10 @@ Route::post('/forums', [ForumController::class, 'store']);
 // ─── 6. RUTE KUIS & RIWAYAT NILAI ───
 // ==========================================
 // Route untuk mengambil kuis acak (Akan dipanggil Flutter: /api/quizzes?materi_id=X)
-Route::get('/quizzes', [QuizController.php, 'index']);
+Route::get('/quizzes', [QuizController::class, 'index']);
 
 // Route untuk menyimpan skor kuis setelah selesai dikerjakan
-Route::post('/quiz-scores', [QuizController.php, 'saveScore']);
+Route::post('/quiz-scores', [QuizController::class, 'saveScore']);
 
 Route::get('/quiz', function () {
     return response()->json([
