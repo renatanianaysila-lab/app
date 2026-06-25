@@ -11,23 +11,42 @@ class ProgressController extends Controller
     {
         try {
             $murid = DB::table('murid')->get();
+            $totalMateri = DB::table('materis')->count();
             $result = [];
 
             foreach ($murid as $m) {
-                $totalMateri = DB::table('materis')->count();
-                $sudahSelesai = DB::table('user_progress')
+                $videoSelesai = DB::table('user_progress')
                     ->where('user_id', $m->murid_id)
                     ->where('is_completed', 1)
                     ->count();
 
+                $skorKuis = DB::table('quiz_scores')
+                    ->where('user_id', $m->murid_id)
+                    ->avg('skor');
+
+                $persenVideo = $totalMateri > 0
+                    ? round(($videoSelesai / $totalMateri) * 100)
+                    : 0;
+
+                $persenKuis = $skorKuis ? round($skorKuis) : 0;
+                $overall = round(($persenVideo + $persenKuis) / 2);
+
                 $result[] = [
-                    'murid_id'     => $m->murid_id,
-                    'nama_murid'   => $m->nama_murid,
-                    'total_materi' => $totalMateri,
-                    'selesai'      => $sudahSelesai,
-                    'persen'       => $totalMateri > 0
-                        ? round(($sudahSelesai / $totalMateri) * 100)
-                        : 0,
+                    'nama'             => $m->nama_murid ?? 'Siswa',
+                    'overall_progress' => $overall . '%',
+                    'details'          => [
+                        [
+                            'title'      => 'Nonton Video',
+                            'status'     => $videoSelesai . ' dari ' . $totalMateri . ' video selesai',
+                            'percentage' => $persenVideo . '%',
+                        ],
+                        [
+                            'title'      => 'Kuis',
+                            'status'     => $skorKuis ? 'Sudah mengerjakan kuis' : 'Belum mengerjakan kuis',
+                            'percentage' => $persenKuis . '%',
+                            'score'      => 'Rata-rata: ' . ($skorKuis ? round($skorKuis) : 0),
+                        ],
+                    ],
                 ];
             }
 
