@@ -25,22 +25,20 @@ Route::get('/guru/profil', function (Request $request) {
     $guruId = $request->query('guru_id', 'G0001');
     $guru = DB::table('guru')->where('guru_id', $guruId)->first();
     
-    // Ambil daftar nama_modul unik yang diajar oleh guru ini
     $daftarModul = DB::table('materis')
         ->where('guru_id', $guruId)
         ->whereNotNull('nama_modul')
         ->distinct()
-        ->get(['nama_modul', 'kategori']); // Ambil nama_modul dan kategorinya sekaligus
+        ->get(['nama_modul', 'kategori']);
 
-    // Susun data kelas/modul secara dinamis untuk Flutter
     $kelasData = [];
     $idCounter = 1;
     
     foreach ($daftarModul as $modul) {
         $kelasData[] = [
             'id' => $idCounter++,
-            'nama_kelas' => $modul->nama_modul, // <-- Sekarang lgsg nampilin Nama Modul asli dari DB!
-            'kategori' => $modul->kategori,    // Kita selipkan kategori asli (Dasar/Menengah/Susah) buat oper data nanti
+            'nama_kelas' => $modul->nama_modul,
+            'kategori' => $modul->kategori,
             'jumlah_materi' => DB::table('materis')
                 ->where('nama_modul', $modul->nama_modul)
                 ->where('guru_id', $guruId)
@@ -53,7 +51,7 @@ Route::get('/guru/profil', function (Request $request) {
         'data' => [
             'nama_guru' => $guru ? $guru->nama_guru : 'Pak Budi, S.Pd.',
             'jumlah_siswa' => DB::table('murid')->count(),
-            'jumlah_kelas' => count($kelasData), // Dinamis sesuai jumlah modulnya
+            'jumlah_kelas' => count($kelasData),
             'rating' => 4.8,
             'kelas' => $kelasData
         ]
@@ -63,45 +61,53 @@ Route::get('/guru/profil', function (Request $request) {
 // ==========================================
 // ─── 3. RUTE MATERI (SISWA & GURU) ───
 // ==========================================
-// Rute list materi untuk Siswa
-Route::get('/materis', [MateriController::class, 'index']);
+// ✅ DIPERBAIKI: Hapus duplikat, gabung jadi satu route dengan filter kategori & guru_id
+Route::get('/materis', function (Request $request) {
+    try {
+        $kategoriInput = $request->query('kategori', null);
+        $guruIdInput   = $request->query('guru_id', null);
+
+        $query = DB::table('materis');
+
+        // Filter kategori jika ada
+        if ($kategoriInput) {
+            $kategoriDb = 'Dasar';
+            if ($kategoriInput == 'Intermediate' || $kategoriInput == 'Menengah') {
+                $kategoriDb = 'Menengah';
+            } elseif ($kategoriInput == 'Lanjutan' || $kategoriInput == 'Susah') {
+                $kategoriDb = 'Susah';
+            }
+            $query->where('kategori', $kategoriDb);
+        }
+
+        // Filter guru_id jika ada
+        if ($guruIdInput) {
+            $query->where('guru_id', $guruIdInput);
+        }
+
+        $materis = $query->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $materis
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Gagal memuat materi: ' . $e->getMessage()
+        ], 500);
+    }
+});
+
 Route::post('/materi', [MateriController::class, 'store']);
 
-// Rute list materi untuk Guru (Sudah dilengkapi pengaman konversi kata agar tidak eror 500)
-Route::get('/materis', function (Request $request) {
-    // 1. Tangkap parameter kategori dari Flutter (Dasar/Intermediate/Lanjutan)
-    $kategoriInput = $request->query('kategori', 'Dasar');
-    
-    // 2. Tangkap param guru_id yang dikirim Flutter (Default ke G0001 milik Pak Budi)
-    $guruIdInput = $request->query('guru_id', 'G0001');
-
-    // Mengamankan variasi istilah kategori antara Flutter & isi MySQL kamu
-    $kategoriDb = 'Dasar';
-    if ($kategoriInput == 'Intermediate' || $kategoriInput == 'Menengah') {
-        $kategoriDb = 'Menengah';
-    } elseif ($kategoriInput == 'Lanjutan' || $kategoriInput == 'Susah') {
-        $kategoriDb = 'Susah';
-    }
-
-    // 3. FILTER DOUBLE: COCOKKAN KATEGORI DAN GURU_ID NYA! 🎯
-    $materis = DB::table('materis')
-        ->where('kategori', $kategoriDb)
-        ->where('guru_id', $guruIdInput) // <-- Mengunci agar hanya materi miliknya yang keluar!
-        ->get();
-
-    return response()->json([
-        'success' => true,
-        'data' => $materis
-    ], 200);
-});
 
 // ==========================================
 // ─── 4. RUTE PROGRESS BELAJAR SISWA ───
 // ==========================================
-// Menghubungkan pelacakan progress materi murid ke halaman progres_guru_page.dart
 Route::get('/guru/progres', [ProgressController::class, 'getProgresSiswa']);
 
-// Melacak progress belajar milik siswa spesifik
 Route::get('/user/progress/{user_id}', function ($user_id) {
     $progress = DB::table('user_progress')
         ->where('user_id', $user_id)
@@ -125,10 +131,7 @@ Route::post('/forums', [ForumController::class, 'store']);
 // ==========================================
 // ─── 6. RUTE KUIS & RIWAYAT NILAI ───
 // ==========================================
-// Route untuk mengambil kuis acak (Akan dipanggil Flutter: /api/quizzes?materi_id=X)
 Route::get('/quizzes', [QuizController::class, 'index']);
-
-// Route untuk menyimpan skor kuis setelah selesai dikerjakan
 Route::post('/quiz-scores', [QuizController::class, 'saveScore']);
 
 Route::get('/quiz', function () {
@@ -307,9 +310,6 @@ Route::get('/admin/dashboard', function () {
     }
 });
 
-// ─── TAMBAHKAN INI DI BAWAH ROUTE /admin/dashboard ───────────────────────────
-
-// Daftar Guru (dari tabel 'guru')
 Route::get('/admin/guru', function () {
     try {
         $guru = DB::table('guru')->get()->map(function ($item) {
@@ -317,7 +317,7 @@ Route::get('/admin/guru', function () {
                 'id'     => $item->guru_id,
                 'nama'   => $item->nama_guru,
                 'email'  => $item->email_guru,
-                'status' => 'Aktif', // tabel guru belum punya kolom status, default Aktif
+                'status' => 'Aktif',
             ];
         });
 
@@ -327,7 +327,6 @@ Route::get('/admin/guru', function () {
     }
 });
 
-// Daftar Murid/Siswa (dari tabel 'murid')
 Route::get('/admin/murid', function () {
     try {
         $murid = DB::table('murid')->get()->map(function ($item) {
@@ -335,7 +334,7 @@ Route::get('/admin/murid', function () {
                 'id'     => $item->murid_id,
                 'nama'   => $item->nama_murid,
                 'email'  => $item->email_murid,
-                'status' => 'Aktif', // tabel murid belum punya kolom status, default Aktif
+                'status' => 'Aktif',
             ];
         });
 
@@ -345,13 +344,9 @@ Route::get('/admin/murid', function () {
     }
 });
 
-// Daftar Materi/Konten untuk admin (dari tabel 'materis')
-// Karena tabel materis belum punya kolom 'status_konten', kita pakai kategori
-// sebagai sumber data, dan status default 'disetujui' (karena sudah ada di DB)
 Route::get('/admin/konten', function () {
     try {
         $materi = DB::table('materis')->get()->map(function ($item) {
-            // Tentukan warna icon berdasarkan kategori
             $kategoriColor = match(strtolower($item->kategori ?? '')) {
                 'abjad'       => '#6C63FF',
                 'angka'       => '#4CAF50',
@@ -363,10 +358,10 @@ Route::get('/admin/konten', function () {
             return [
                 'id'       => $item->id,
                 'judul'    => $item->judul,
-                'penulis'  => 'Admin', // belum ada kolom penulis di materis
+                'penulis'  => 'Admin',
                 'kategori' => $item->kategori ?? 'Dasar',
                 'level'    => $item->kategori ?? 'Dasar',
-                'status'   => 'disetujui', // semua materi di DB dianggap sudah disetujui
+                'status'   => 'disetujui',
                 'warna'    => $kategoriColor,
             ];
         });
@@ -377,13 +372,10 @@ Route::get('/admin/konten', function () {
     }
 });
 
-// ─── AKTIVITAS ADMIN ─────────────────────────────────────────────────────────
-// Fetch aktivitas dari tabel materis, users, quiz_scores
 Route::get('/admin/aktivitas', function () {
     try {
         $aktivitas = [];
 
-        // Unggah: materi terbaru
         $materis = DB::table('materis')->latest()->take(5)->get();
         foreach ($materis as $m) {
             $aktivitas[] = [
@@ -395,7 +387,6 @@ Route::get('/admin/aktivitas', function () {
             ];
         }
 
-        // Lainnya: pengguna baru (dari tabel users)
         $users = DB::table('users')->latest()->take(3)->get();
         foreach ($users as $u) {
             $aktivitas[] = [
@@ -407,7 +398,6 @@ Route::get('/admin/aktivitas', function () {
             ];
         }
 
-        // Lainnya: kuis diselesaikan
         $scores = DB::table('quiz_scores')->latest()->take(3)->get();
         foreach ($scores as $s) {
             $aktivitas[] = [
@@ -419,10 +409,8 @@ Route::get('/admin/aktivitas', function () {
             ];
         }
 
-        // Urutkan berdasarkan waktu terbaru
         usort($aktivitas, fn($a, $b) => strcmp($b['sort_time'], $a['sort_time']));
 
-        // Hapus sort_time sebelum kirim
         $result = array_map(function ($item) {
             unset($item['sort_time']);
             return $item;
@@ -435,10 +423,8 @@ Route::get('/admin/aktivitas', function () {
     }
 });
 
-// ─── LAPORAN KEUANGAN ADMIN (UPDATED) ────────────────────────────────────────
 Route::get('/admin/laporan', function () {
     try {
-        // Ambil transaksi + join ke users dan packages
         $transaksiRaw = DB::table('transactions')
             ->leftJoin('users', 'transactions.user_id', '=', 'users.id')
             ->leftJoin('packages', 'transactions.package_id', '=', 'packages.id')
@@ -463,27 +449,15 @@ Route::get('/admin/laporan', function () {
                              \Carbon\Carbon::parse($t->created_at)->translatedFormat('d F Y'),
                 'nominal' => $nominal,
                 'status'  => $t->status === 'success' ? 'Berhasil' : 'Diproses',
-                'tipe'    => 'Masuk', // semua transaksi di tabel ini adalah pembayaran masuk
+                'tipe'    => 'Masuk',
             ];
         })->toArray();
 
-        // Summary
-        $totalMasuk = DB::table('transactions')
-            ->where('status', 'success')
-            ->sum('total_harga');
-
-        $totalMasukBulanIni = DB::table('transactions')
-            ->where('status', 'success')
-            ->whereMonth('created_at', now()->month)
-            ->sum('total_harga');
-
+        $totalMasuk = DB::table('transactions')->where('status', 'success')->sum('total_harga');
+        $totalMasukBulanIni = DB::table('transactions')->where('status', 'success')->whereMonth('created_at', now()->month)->sum('total_harga');
         $jumlahTransaksi = DB::table('transactions')->count();
+        $menunggu = DB::table('transactions')->where('status', 'pending')->sum('total_harga');
 
-        $menunggu = DB::table('transactions')
-            ->where('status', 'pending')
-            ->sum('total_harga');
-
-        // Data mingguan (7 hari terakhir)
         $hariIndo = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
         $mingguan = [];
         for ($i = 6; $i >= 0; $i--) {

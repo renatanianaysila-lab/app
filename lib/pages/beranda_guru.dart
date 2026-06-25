@@ -28,31 +28,36 @@ class _BerandaGuruMainState extends State<BerandaGuruMain> {
     super.initState();
     _fetchBerandaData();
   }
-
-  // ── FETCH DATA BERANDA (Menggunakan IP Wi-Fi Baru) ──
+  
   Future<void> _fetchBerandaData() async {
-    setState(() => _isLoading = true);
-    try {
-      final resProfil = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/guru/profil?guru_id=G0001'),
-      );
-      
-      if (resProfil.statusCode == 200) {
-        final data = jsonDecode(resProfil.body)['data'];
-        setState(() {
-          _namaGuru = data['nama_guru'] ?? 'Nama Guru';
-          _jumlahSiswa = data['jumlah_siswa'] ?? 0;
-          _jumlahKelas = data['jumlah_kelas'] ?? 0;
-          _ratingGuru = (data['rating'] ?? 0.0).toDouble();
-          _kelasList = data['kelas'] ?? [];
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      print("Eror Beranda: $e");
+  setState(() => _isLoading = true);
+  try {
+    final resProfil = await http.get(
+      Uri.parse('http://10.0.2.2:8000/api/guru/profil?guru_id=G0001'),
+    );
+    
+    print("STATUS CODE: ${resProfil.statusCode}"); 
+    print("RESPONSE: ${resProfil.body}");      
+    
+    if (resProfil.statusCode == 200) {
+      final data = jsonDecode(resProfil.body)['data'];
+      setState(() {
+        _namaGuru = data['nama_guru'] ?? 'Nama Guru';
+        _jumlahSiswa = data['jumlah_siswa'] ?? 0;
+        _jumlahKelas = data['jumlah_kelas'] ?? 0;
+        _ratingGuru = (data['rating'] ?? 0.0).toDouble();
+        _kelasList = data['kelas'] ?? [];
+        _isLoading = false;
+      });
+    } else {
+      print("GAGAL: status ${resProfil.statusCode}"); // 🔍 Tambah ini
       setState(() => _isLoading = false);
     }
+  } catch (e) {
+    print("Eror Beranda: $e"); // Ini sudah ada
+    setState(() => _isLoading = false);
   }
+}
   
   @override
   Widget build(BuildContext context) {
