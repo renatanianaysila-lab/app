@@ -29,7 +29,7 @@ class _ProgresGuruPageState extends State<ProgresGuruPage> {
     try {
       // Sesuaikan IP dengan Wi-Fi laptopmu ya!
       final response = await http.get(
-        Uri.parse('http://naysila.kesug.com/api/guru/progres?kelas=$selectedKelas'),
+        Uri.parse('https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/guru/progres?kelas=$selectedKelas'),
       );
 
       if (response.statusCode == 200) {

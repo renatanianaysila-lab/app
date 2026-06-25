@@ -63,7 +63,7 @@ class _BerandaMuridState extends State<BerandaMurid> {
 
   // 2. Fungsi untuk mengambil data materi dari Laravel
   Future<void> _loadMateriCount() async {
-    const String url = 'http://naysila.kesug.com/api/materi';
+    const String url = 'https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/materi';
     try {
       final response = await http.get(Uri.parse(url));
 

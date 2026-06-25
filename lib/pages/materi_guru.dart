@@ -59,7 +59,7 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://naysila.kesug.com/api/materis?kategori=$_selectedLevel&guru_id=${widget.guruId}'),
+        Uri.parse('https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/materis?kategori=$_selectedLevel&guru_id=${widget.guruId}'),
       );
 
       if (response.statusCode == 200) {
@@ -103,7 +103,7 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://naysila.kesug.com/api/materi'),
+        Uri.parse('https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/materi'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'guru_id': widget.guruId,

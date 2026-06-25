@@ -30,7 +30,7 @@ class _PaymentPageState extends State<PaymentPage> {
 
       final response = await http.get(
         Uri.parse(
-          'http://naysila.kesug.com/api/transactions',
+          'https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/transactions',
         ),
       );
 

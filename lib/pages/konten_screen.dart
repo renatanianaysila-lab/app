@@ -42,7 +42,7 @@ class _KontenScreenState extends State<KontenScreen>
     setState(() { _isLoading = true; _error = ''; });
     try {
       final res = await http.get(
-        Uri.parse('http://naysila.kesug.com/api/admin/konten'),
+        Uri.parse('https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/admin/konten'),
         headers: {'Accept': 'application/json'},
       );
       if (res.statusCode == 200) {

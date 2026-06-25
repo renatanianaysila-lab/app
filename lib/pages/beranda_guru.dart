@@ -33,7 +33,7 @@ class _BerandaGuruMainState extends State<BerandaGuruMain> {
   setState(() => _isLoading = true);
   try {
     final resProfil = await http.get(
-      Uri.parse('http://naysila.kesug.com/api/guru/profil?guru_id=G0001'),
+      Uri.parse('https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/guru/profil?guru_id=G0001'),
     );
     
     print("STATUS CODE: ${resProfil.statusCode}"); 

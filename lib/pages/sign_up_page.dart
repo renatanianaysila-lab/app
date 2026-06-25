@@ -40,7 +40,7 @@ class _SignUpPageState extends State<SignUpPage> {
       });
 
       
-      const String url = 'http://naysila.kesug.com/api/register/murid';
+      const String url = 'https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/register/murid';
 
       try {
         final response = await http.post(

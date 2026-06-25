@@ -26,7 +26,7 @@ class _DetailAktivitasPageState extends State<DetailAktivitasPage> {
   // Fungsi HTTP GET untuk mengambil detail data (Materi 13.4 & 13.6)
   Future<void> fetchDetailData() async {
     // Sesuaikan IP ini dengan IP laptopmu/XAMPP saat running lokal
-    final url = Uri.parse('http://naysila.kesug.com/api/materi/${widget.aktivitasId}');
+    final url = Uri.parse('https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/materi/${widget.aktivitasId}');
     
     try {
       final response = await http.get(url);

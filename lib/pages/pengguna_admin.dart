@@ -39,7 +39,7 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
     setState(() { _isLoadingGuru = true; _errorGuru = ''; });
     try {
       final res = await http.get(
-        Uri.parse('http://naysila.kesug.com/api/admin/guru'),
+        Uri.parse('https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/admin/guru'),
         headers: {'Accept': 'application/json'},
       );
       if (res.statusCode == 200) {
@@ -60,7 +60,7 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
     setState(() { _isLoadingMurid = true; _errorMurid = ''; });
     try {
       final res = await http.get(
-        Uri.parse('http://naysila.kesug.com/api/admin/murid'),
+        Uri.parse('https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/admin/murid'),
         headers: {'Accept': 'application/json'},
       );
       if (res.statusCode == 200) {

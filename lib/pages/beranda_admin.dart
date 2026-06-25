@@ -43,7 +43,7 @@ class _BerandaAdminState extends State<BerandaAdmin> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://naysila.kesug.com/api/admin/dashboard'),
+        Uri.parse('https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/admin/dashboard'),
         headers: {'Accept': 'application/json'},
       );
 

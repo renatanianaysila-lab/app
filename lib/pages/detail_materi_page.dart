@@ -77,7 +77,7 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
     try {
       // Menembak API Laravel untuk mengambil daftar komentar diskusi sesuai ID Video
       final response = await http.get(
-        Uri.parse('http://naysila.kesug.com/api/videos/$videoId/comments'),
+        Uri.parse('https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/videos/$videoId/comments'),
         headers: {'Accept': 'application/json'},
       );
 
