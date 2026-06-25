@@ -56,7 +56,7 @@ class _MetodePembayaranKartuPageState
     try {
       final createResponse = await http.post(
         Uri.parse(
-          'http://10.0.2.2:8001/api/payment',
+          'http://naysila.kesug.com/api/payment',
         ),
         headers: {
           'Content-Type': 'application/json',
@@ -76,7 +76,7 @@ class _MetodePembayaranKartuPageState
 
         final confirmResponse = await http.post(
           Uri.parse(
-            'http://10.0.2.2:8001/api/payment/$paymentId/confirm',
+            'http://naysila.kesug.com/api/payment/$paymentId/confirm',
           ),
         );
 

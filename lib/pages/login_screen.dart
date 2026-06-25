@@ -91,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      const String urlLogin = 'http://10.0.2.2:8000/api/login';
+      const String urlLogin = 'http://naysila.kesug.com/api/login';
       
       try {
         final response = await http.post(
@@ -135,7 +135,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     } else {
       // ── 2. LOGIKA REGISTRASI ──
-      const String urlRegister = 'http://10.0.2.2:8000/api/register/murid';
+      const String urlRegister = 'http://naysila.kesug.com/api/register/murid';
       try {
         final response = await http.post(
           Uri.parse(urlRegister),

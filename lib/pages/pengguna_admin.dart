@@ -39,7 +39,7 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
     setState(() { _isLoadingGuru = true; _errorGuru = ''; });
     try {
       final res = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/admin/guru'),
+        Uri.parse('http://naysila.kesug.com/api/admin/guru'),
         headers: {'Accept': 'application/json'},
       );
       if (res.statusCode == 200) {
@@ -60,7 +60,7 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
     setState(() { _isLoadingMurid = true; _errorMurid = ''; });
     try {
       final res = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/admin/murid'),
+        Uri.parse('http://naysila.kesug.com/api/admin/murid'),
         headers: {'Accept': 'application/json'},
       );
       if (res.statusCode == 200) {

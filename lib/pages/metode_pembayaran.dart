@@ -22,7 +22,7 @@ class _MetodePembayaranPageState extends State<MetodePembayaranPage> {
   Future<bool> _createDummyPayment(String method) async {
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8001/api/payment'),
+        Uri.parse('http://naysila.kesug.com/api/payment'),
         headers: {
           'Content-Type': 'application/json',
         },

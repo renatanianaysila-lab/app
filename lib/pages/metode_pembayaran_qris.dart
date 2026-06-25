@@ -60,7 +60,7 @@ class _MetodePembayaranQrisPageState
 
     try {
       final createResponse = await http.post(
-        Uri.parse('http://10.0.2.2:8001/api/payment'),
+        Uri.parse('http://naysila.kesug.com/api/payment'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -76,7 +76,7 @@ class _MetodePembayaranQrisPageState
         final paymentId = data['payment']['id'];
 
         final confirmResponse = await http.post(
-          Uri.parse('http://10.0.2.2:8001/api/payment/$paymentId/confirm'),
+          Uri.parse('http://naysila.kesug.com/api/payment/$paymentId/confirm'),
         );
 
         if (confirmResponse.statusCode == 200 ||

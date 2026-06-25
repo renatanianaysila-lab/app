@@ -30,7 +30,7 @@ class _PaymentPageState extends State<PaymentPage> {
 
       final response = await http.get(
         Uri.parse(
-          'http://10.0.2.2:8001/api/transactions',
+          'http://naysila.kesug.com/api/transactions',
         ),
       );
 

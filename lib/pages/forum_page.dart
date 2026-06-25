@@ -88,7 +88,7 @@ class _ForumPageState extends State<ForumPage> {
     try {
       // Sesuaikan IP ini dengan IP server Laravel-mu ya!
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/api/forums'), 
+        Uri.parse('http://naysila.kesug.com/api/forums'), 
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'username': widget.currentUsername, 

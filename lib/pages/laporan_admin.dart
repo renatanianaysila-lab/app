@@ -24,7 +24,7 @@ class _LaporanAdminState extends State<LaporanAdmin> {
   List<Map<String, dynamic>> _transaksi = [];
   Map<String, dynamic> _summary = {};
 
-  static const String _baseUrl = 'http://10.0.2.2:8000/api';
+  static const String _baseUrl = 'http://naysila.kesug.com/api';
 
   @override
   void initState() {

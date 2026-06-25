@@ -28,12 +28,12 @@ class _BerandaGuruMainState extends State<BerandaGuruMain> {
     super.initState();
     _fetchBerandaData();
   }
-  
+
   Future<void> _fetchBerandaData() async {
   setState(() => _isLoading = true);
   try {
     final resProfil = await http.get(
-      Uri.parse('http://10.0.2.2:8000/api/guru/profil?guru_id=G0001'),
+      Uri.parse('http://naysila.kesug.com/api/guru/profil?guru_id=G0001'),
     );
     
     print("STATUS CODE: ${resProfil.statusCode}"); 

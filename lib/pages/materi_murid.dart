@@ -122,7 +122,7 @@ class _MateriMuridState extends State<MateriMurid> {
 
   
   Future<void> _fetchDataMateriLaravel() async {
-    const String url = 'http://10.0.2.2:8000/api/materi';
+    const String url = 'http://naysila.kesug.com/api/materi';
     try {
       final response = await http.get(Uri.parse(url));
 

@@ -40,7 +40,7 @@ class _SignUpPageState extends State<SignUpPage> {
       });
 
       
-      const String url = 'http://10.0.2.2:8000/api/register/murid';
+      const String url = 'http://naysila.kesug.com/api/register/murid';
 
       try {
         final response = await http.post(
