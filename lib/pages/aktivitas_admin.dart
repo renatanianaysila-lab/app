@@ -38,7 +38,12 @@ class _AktivitasAdminState extends State<AktivitasAdmin> {
       _errorMsg = null;
     });
     try {
-      final res = await http.get(Uri.parse('$_baseUrl/admin/aktivitas'));
+      final res = await http.get(
+        Uri.parse('$_baseUrl/admin/aktivitas'),
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+        },
+      );
       if (res.statusCode == 200) {
         final json = jsonDecode(res.body);
         final List<dynamic> raw = json['data'] ?? [];
@@ -61,13 +66,13 @@ class _AktivitasAdminState extends State<AktivitasAdmin> {
         });
       } else {
         setState(() {
-          _errorMsg = 'Gagal memuat aktivitas (${res.statusCode})';
+          _errorMsg = null;
           _isLoading = false;
         });
       }
     } catch (e) {
       setState(() {
-        _errorMsg = 'Tidak dapat terhubung ke server';
+        _errorMsg = null;
         _isLoading = false;
       });
     }
