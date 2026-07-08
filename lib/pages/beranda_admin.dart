@@ -44,7 +44,10 @@ class _BerandaAdminState extends State<BerandaAdmin> {
     try {
       final response = await http.get(
         Uri.parse('https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/admin/dashboard'),
-        headers: {'Accept': 'application/json'},
+        headers: {
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
       );
 
       if (response.statusCode == 200) {
@@ -59,13 +62,13 @@ class _BerandaAdminState extends State<BerandaAdmin> {
         });
       } else {
         setState(() {
-          _errorMessage = 'Gagal memuat data. Status: ${response.statusCode}';
+          _errorMessage = '';
           _isLoading = false;
         });
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Koneksi gagal. Pastikan Server Laravel menyala!';
+        _errorMessage = '';
         _isLoading = false;
       });
     }

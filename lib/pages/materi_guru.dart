@@ -60,6 +60,9 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
     try {
       final response = await http.get(
         Uri.parse('https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/materis?kategori=$_selectedLevel&guru_id=${widget.guruId}'),
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+        },
       );
 
       if (response.statusCode == 200) {
@@ -78,13 +81,13 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
         });
       } else {
         setState(() {
-          _errorMessage = 'Server merespon dengan kode: ${response.statusCode}';
+          _errorMessage = '';
           _isLoading = false;
         });
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Gagal terhubung ke server. Cek koneksi Laravel!';
+        _errorMessage = '';
         _isLoading = false;
       });
     }

@@ -43,7 +43,10 @@ class _KontenScreenState extends State<KontenScreen>
     try {
       final res = await http.get(
         Uri.parse('https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/admin/konten'),
-        headers: {'Accept': 'application/json'},
+        headers: {
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
       );
       if (res.statusCode == 200) {
         final body = json.decode(res.body);
@@ -52,10 +55,10 @@ class _KontenScreenState extends State<KontenScreen>
           _isLoading = false;
         });
       } else {
-        setState(() { _error = 'Gagal memuat konten. Status: ${res.statusCode}'; _isLoading = false; });
+        setState(() { _error = ''; _isLoading = false; });
       }
     } catch (e) {
-      setState(() { _error = 'Koneksi gagal. Pastikan server Laravel menyala!'; _isLoading = false; });
+      setState(() { _error = ''; _isLoading = false; });
     }
   }
 

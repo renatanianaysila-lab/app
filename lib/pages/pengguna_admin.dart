@@ -40,7 +40,10 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
     try {
       final res = await http.get(
         Uri.parse('https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/admin/guru'),
-        headers: {'Accept': 'application/json'},
+        headers: {
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
       );
       if (res.statusCode == 200) {
         final body = json.decode(res.body);
@@ -49,10 +52,10 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
           _isLoadingGuru = false;
         });
       } else {
-        setState(() { _errorGuru = 'Gagal memuat data guru.'; _isLoadingGuru = false; });
+        setState(() { _errorGuru = ''; _isLoadingGuru = false; });
       }
     } catch (e) {
-      setState(() { _errorGuru = 'Koneksi gagal. Pastikan server Laravel menyala!'; _isLoadingGuru = false; });
+      setState(() { _errorGuru = ''; _isLoadingGuru = false; });
     }
   }
 
@@ -61,7 +64,10 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
     try {
       final res = await http.get(
         Uri.parse('https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/admin/murid'),
-        headers: {'Accept': 'application/json'},
+        headers: {
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
       );
       if (res.statusCode == 200) {
         final body = json.decode(res.body);
@@ -70,10 +76,10 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
           _isLoadingMurid = false;
         });
       } else {
-        setState(() { _errorMurid = 'Gagal memuat data siswa.'; _isLoadingMurid = false; });
+        setState(() { _errorMurid = ''; _isLoadingMurid = false; });
       }
     } catch (e) {
-      setState(() { _errorMurid = 'Koneksi gagal. Pastikan server Laravel menyala!'; _isLoadingMurid = false; });
+      setState(() { _errorMurid = ''; _isLoadingMurid = false; });
     }
   }
 

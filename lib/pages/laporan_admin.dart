@@ -35,7 +35,12 @@ class _LaporanAdminState extends State<LaporanAdmin> {
   Future<void> _fetchLaporan() async {
     setState(() { _isLoading = true; _errorMsg = null; });
     try {
-      final res = await http.get(Uri.parse('$_baseUrl/admin/laporan'));
+      final res = await http.get(
+        Uri.parse('$_baseUrl/admin/laporan'),
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+        },
+      );
       if (res.statusCode == 200) {
         final json = jsonDecode(res.body);
         setState(() {
@@ -44,10 +49,10 @@ class _LaporanAdminState extends State<LaporanAdmin> {
           _isLoading = false;
         });
       } else {
-        setState(() { _errorMsg = 'Gagal memuat laporan (${res.statusCode})'; _isLoading = false; });
+        setState(() { _errorMsg = null; _isLoading = false; });
       }
     } catch (e) {
-      setState(() { _errorMsg = 'Tidak dapat terhubung ke server'; _isLoading = false; });
+      setState(() { _errorMsg = null; _isLoading = false; });
     }
   }
 

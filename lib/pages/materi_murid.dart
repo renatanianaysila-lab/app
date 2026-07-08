@@ -124,7 +124,12 @@ class _MateriMuridState extends State<MateriMurid> {
   Future<void> _fetchDataMateriLaravel() async {
     const String url = 'https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/materi';
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+        },
+      );
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
