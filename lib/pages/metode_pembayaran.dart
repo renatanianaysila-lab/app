@@ -22,7 +22,7 @@ class _MetodePembayaranPageState extends State<MetodePembayaranPage> {
   Future<bool> _createDummyPayment(String method) async {
     try {
       final response = await http.post(
-        Uri.parse('https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/payment'),
+        Uri.parse('https://isyaratkita.alwaysdata.net/api/payment'),
         headers: {
           'Content-Type': 'application/json',
         },

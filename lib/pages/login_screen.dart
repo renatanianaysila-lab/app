@@ -91,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      const String urlLogin = 'https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/login';
+      const String urlLogin = 'https://isyaratkita.alwaysdata.net/api/login';
       
       try {
         final response = await http.post(
@@ -135,7 +135,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     } else {
       // ── 2. LOGIKA REGISTRASI ──
-      const String urlRegister = 'https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/register/murid';
+      const String urlRegister = 'https://isyaratkita.alwaysdata.net/api/register/murid';
       try {
         final response = await http.post(
           Uri.parse(urlRegister),

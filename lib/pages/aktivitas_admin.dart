@@ -24,7 +24,7 @@ class _AktivitasAdminState extends State<AktivitasAdmin> {
 
   List<Map<String, dynamic>> _aktivitas = [];
 
-  static const String _baseUrl = 'https://luther-nonrepayable-unguiltily.ngrok-free.dev/api';
+  static const String _baseUrl = 'https://isyaratkita.alwaysdata.net/api';
 
   @override
   void initState() {

@@ -43,7 +43,7 @@ class _BerandaAdminState extends State<BerandaAdmin> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/admin/dashboard'),
+        Uri.parse('https://isyaratkita.alwaysdata.net/api/admin/dashboard'),
         headers: {
           'Accept': 'application/json',
           'ngrok-skip-browser-warning': 'true',

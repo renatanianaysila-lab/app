@@ -39,7 +39,7 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
     setState(() { _isLoadingGuru = true; _errorGuru = ''; });
     try {
       final res = await http.get(
-        Uri.parse('https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/admin/guru'),
+        Uri.parse('https://isyaratkita.alwaysdata.net/api/admin/guru'),
         headers: {
           'Accept': 'application/json',
           'ngrok-skip-browser-warning': 'true',
@@ -63,7 +63,7 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
     setState(() { _isLoadingMurid = true; _errorMurid = ''; });
     try {
       final res = await http.get(
-        Uri.parse('https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/admin/murid'),
+        Uri.parse('https://isyaratkita.alwaysdata.net/api/admin/murid'),
         headers: {
           'Accept': 'application/json',
           'ngrok-skip-browser-warning': 'true',

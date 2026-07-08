@@ -42,7 +42,7 @@ class _KontenScreenState extends State<KontenScreen>
     setState(() { _isLoading = true; _error = ''; });
     try {
       final res = await http.get(
-        Uri.parse('https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/admin/konten'),
+        Uri.parse('https://isyaratkita.alwaysdata.net/api/admin/konten'),
         headers: {
           'Accept': 'application/json',
           'ngrok-skip-browser-warning': 'true',

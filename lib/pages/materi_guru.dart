@@ -59,7 +59,7 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/materis?kategori=$_selectedLevel&guru_id=${widget.guruId}'),
+        Uri.parse('https://isyaratkita.alwaysdata.net/api/materis?kategori=$_selectedLevel&guru_id=${widget.guruId}'),
         headers: {
           'ngrok-skip-browser-warning': 'true',
         },
@@ -106,7 +106,7 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/materi'),
+        Uri.parse('https://isyaratkita.alwaysdata.net/api/materi'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'guru_id': widget.guruId,

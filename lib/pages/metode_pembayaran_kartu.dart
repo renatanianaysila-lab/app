@@ -56,7 +56,7 @@ class _MetodePembayaranKartuPageState
     try {
       final createResponse = await http.post(
         Uri.parse(
-          'https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/payment',
+          'https://isyaratkita.alwaysdata.net/api/payment',
         ),
         headers: {
           'Content-Type': 'application/json',
@@ -76,7 +76,7 @@ class _MetodePembayaranKartuPageState
 
         final confirmResponse = await http.post(
           Uri.parse(
-            'https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/payment/$paymentId/confirm',
+            'https://isyaratkita.alwaysdata.net/api/payment/$paymentId/confirm',
           ),
         );
 

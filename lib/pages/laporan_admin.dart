@@ -24,7 +24,7 @@ class _LaporanAdminState extends State<LaporanAdmin> {
   List<Map<String, dynamic>> _transaksi = [];
   Map<String, dynamic> _summary = {};
 
-  static const String _baseUrl = 'https://luther-nonrepayable-unguiltily.ngrok-free.dev/api';
+  static const String _baseUrl = 'https://isyaratkita.alwaysdata.net/api';
 
   @override
   void initState() {

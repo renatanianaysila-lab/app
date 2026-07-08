@@ -60,7 +60,7 @@ class _MetodePembayaranQrisPageState
 
     try {
       final createResponse = await http.post(
-        Uri.parse('https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/payment'),
+        Uri.parse('https://isyaratkita.alwaysdata.net/api/payment'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -76,7 +76,7 @@ class _MetodePembayaranQrisPageState
         final paymentId = data['payment']['id'];
 
         final confirmResponse = await http.post(
-          Uri.parse('https://luther-nonrepayable-unguiltily.ngrok-free.dev/api/payment/$paymentId/confirm'),
+          Uri.parse('https://isyaratkita.alwaysdata.net/api/payment/$paymentId/confirm'),
         );
 
         if (confirmResponse.statusCode == 200 ||
