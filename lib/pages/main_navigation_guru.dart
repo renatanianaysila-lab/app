@@ -1,3 +1,5 @@
+// ignore_for_file: unused_local_variable
+
 import 'package:flutter/material.dart';
 import 'beranda_guru.dart'; 
 import 'materi_guru.dart'; 
@@ -15,42 +17,45 @@ class MainNavigationGuru extends StatefulWidget {
 
 class _MainNavigationGuruState extends State<MainNavigationGuru> {
   late int _currentIndex;
-
-  // 2. Daftarkan Class MateriGuruGayaMurid pada Index 1 (Tab Kedua) 🚀
   late final List<Widget> _pages;
 
-@override
+  @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
     
-    // 1. Siapkan variabel data identitas guru sementara (sebelum fitur login kelar)
     String currentGuruId = 'G0001'; 
-    String currentUsernameGuru = '@budi_guru'; // Username untuk forum guru
+    String currentUsernameGuru = '@budi_guru'; 
 
     _pages = [
-      const BerandaGuruMain(), // Index 0: Halaman Beranda Guru
-      
-      // Index 1: Halaman Materi Guru
+      // Index 0: Beranda
+      BerandaGuruMain(
+        onChangeTab: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+      ),
+
+      // Index 1: Materi
       MateriGuruPage(
-        guruId: currentGuruId, 
-      ),      
-      
-      // Index 2: SEKARANG CONNECT KE FORUM ASLI DENGAN ROLE GURU! 🎯
-      ForumPage(
-        currentUsername: currentUsernameGuru, // Mengoper username guru ke forum
-        currentRole: 'Guru',                  // Mengunci role agar terbaca sebagai Guru
-      ), 
-      
-      const ProgresGuruPage(),          // Index 3
-      const ProfilGuruPage(),           // Index 4
+        guruId: currentGuruId,
+      ),
+
+      // Index 2: Forum
+      const ForumPage(),
+
+      // Index 3: Progres
+      const ProgresGuruPage(),
+
+      // Index 4: Profil
+      const ProfilGuruPage(),
     ];
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Menggunakan IndexedStack agar state halaman tidak ter-reset saat berpindah tab
       body: IndexedStack(
         index: _currentIndex,
         children: _pages,
@@ -58,22 +63,22 @@ class _MainNavigationGuruState extends State<MainNavigationGuru> {
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
-        selectedItemColor: const Color(0xFFFFB703), // Warna kuning emas navigasi gurumu
+        selectedItemColor: const Color(0xFFFFB703), 
         unselectedItemColor: const Color(0xFF9CA3AF),
         currentIndex: _currentIndex,
         onTap: (index) {
           setState(() {
-            _currentIndex = index; // Logika saklar pemindah halaman terpusat 🎯
+            _currentIndex = index; 
           });
         },
         selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w800, fontFamily: 'Poppins', fontSize: 11),
         unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontFamily: 'Poppins', fontSize: 11),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_filled, size: 24), label: "Beranda"),
-          BottomNavigationBarItem(icon: Icon(Icons.assignment, size: 24), label: "Materi"),
-          BottomNavigationBarItem(icon: Icon(Icons.chat, size: 24), label: "Forum"),
-          BottomNavigationBarItem(icon: Icon(Icons.trending_up, size: 24), label: "Progres"),
-          BottomNavigationBarItem(icon: Icon(Icons.person_rounded, size: 24), label: "Profil"),
+          BottomNavigationBarItem(icon: Icon(Icons.home_filled, size: 24), label: 'Beranda'),
+          BottomNavigationBarItem(icon: Icon(Icons.assignment, size: 24), label: 'Materi'),
+          BottomNavigationBarItem(icon: Icon(Icons.chat, size: 24), label: 'Forum'),
+          BottomNavigationBarItem(icon: Icon(Icons.trending_up, size: 24), label: 'Progres'),
+          BottomNavigationBarItem(icon: Icon(Icons.person, size: 24), label: 'Profil'),
         ],
       ),
     );

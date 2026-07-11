@@ -10,7 +10,7 @@ class ProgresGuruPage extends StatefulWidget {
 }
 
 class _ProgresGuruPageState extends State<ProgresGuruPage> {
-  String selectedKelas = 'Mudah';
+  String selectedKelas = 'Dasar';
   
   // ── 1. VARIABEL BARU UNTUK MENAMPUNG DATA DATABASE ──
   List<dynamic> studentsData = [];
@@ -20,14 +20,13 @@ class _ProgresGuruPageState extends State<ProgresGuruPage> {
   @override
   void initState() {
     super.initState();
-    _fetchProgresSiswa(); // Jalankan penarikan data pas halaman dibuka
+    _fetchProgresSiswa();
   }
 
   // ── 2. FUNGSI UNTUK MENGAMBIL DATA DARI LARAVEL ──
   Future<void> _fetchProgresSiswa() async {
     setState(() => isLoading = true);
     try {
-      // Sesuaikan IP dengan Wi-Fi laptopmu ya!
       final response = await http.get(
         Uri.parse('https://isyaratkita.alwaysdata.net/api/guru/progres?kelas=$selectedKelas'),
       );
@@ -37,7 +36,6 @@ class _ProgresGuruPageState extends State<ProgresGuruPage> {
         setState(() {
           studentsData = jsonResponse['data'];
           
-          // Set default expand untuk murid pertama agar terbuka otomatis jika ada data
           expandedStudents.clear();
           if (studentsData.isNotEmpty) {
             expandedStudents[studentsData[0]['nama']] = true;
@@ -83,7 +81,6 @@ class _ProgresGuruPageState extends State<ProgresGuruPage> {
                   ),
                   const SizedBox(height: 8),
                   
-                  // Dropdown Kelas Tetap Milikmu, Ditambahkan Fungsi Pemicu API Pas Diubah
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
@@ -93,10 +90,11 @@ class _ProgresGuruPageState extends State<ProgresGuruPage> {
                     ),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
-                      value: selectedKelas,
-                      isExpanded: true,
-                      // Diubah sesuai kategori asli di file materis.sql kamu! 🎯
-                      items: <String>['Mudah', 'Sedang', 'Susah'] 
+                        value: ['Dasar', 'Menengah', 'Lanjutan'].contains(selectedKelas)
+                                  ? selectedKelas
+                                  : 'Dasar',
+                        isExpanded: true,
+                      items: <String>['Dasar', 'Menengah', 'Lanjutan']
                           .map<DropdownMenuItem<String>>((String value) {
                         return DropdownMenuItem<String>(
                           value: value,
@@ -108,7 +106,7 @@ class _ProgresGuruPageState extends State<ProgresGuruPage> {
                           setState(() {
                             selectedKelas = newValue;
                           });
-                          _fetchProgresSiswa(); // Panggil fungsi API otomatis pas diganti kategori kelasnya
+                          _fetchProgresSiswa();
                         }
                       },
                     ),
@@ -227,7 +225,6 @@ class _ProgresGuruPageState extends State<ProgresGuruPage> {
     );
   }
 
-  // Widget _buildProgressItem Tetap Menggunakan Desain Cantik Aslimu 100%
   Widget _buildProgressItem({
     required String title,
     required String status,

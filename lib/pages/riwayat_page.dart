@@ -1,4 +1,9 @@
+// ignore_for_file: unused_import
+
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class RiwayatPage extends StatefulWidget {
   final int initialTab;
@@ -14,12 +19,50 @@ class RiwayatPage extends StatefulWidget {
 
 class _RiwayatPageState extends State<RiwayatPage> {
   late int _selectedTab;
+  bool _isLoadingPembelian = true;
+  List<Map<String, dynamic>> _pembelianData = [];
 
   @override
   void initState() {
     super.initState();
     _selectedTab = widget.initialTab;
+    _loadPembelian();
   }
+
+      Future<void> _loadPembelian() async {
+      try {
+        final response = await http.get(
+          Uri.parse('http://10.0.2.2:8000/api/transactions'),
+          headers: {'Accept': 'application/json'},
+        );
+
+        if (!mounted) return;
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          if (data['success'] == true && data['data'] != null) {
+            final List<dynamic> raw = data['data'];
+            setState(() {
+              _pembelianData = raw.map((item) {
+                final method = item['payment_method'] == 'qris' ? 'QRIS' : 'Kartu';
+                return {
+                  'paket': 'Paket Premium ($method)',
+                  'harga': 'Rp ${item['amount']}',
+                  'tanggal': item['created_at'] ?? '-',
+                  'status': item['status'] == 'success' ? 'Aktif' : 'Non-Aktif',
+                };
+              }).toList();
+              _isLoadingPembelian = false;
+            });
+            return;
+          }
+        }
+        setState(() => _isLoadingPembelian = false);
+      } catch (e) {
+        debugPrint('Error ambil riwayat pembelian: $e');
+        if (mounted) setState(() => _isLoadingPembelian = false);
+      }
+    }
 
   @override
   Widget build(BuildContext context) {
@@ -219,47 +262,38 @@ class _RiwayatPageState extends State<RiwayatPage> {
   }
 
   Widget _buildPembelianList() {
-    final pembelianData = [
-      {
-        'paket': 'Paket Premium',
-        'harga': 'Rp 30.000',
-        'tanggal': '1 Desember 2025',
-        'status': 'Non-Aktif',
-      },
-      {
-        'paket': 'Paket Premium',
-        'harga': 'Rp 30.000',
-        'tanggal': '5 Januari 2026',
-        'status': 'Non-Aktif',
-      },
-      {
-        'paket': 'Paket Premium',
-        'harga': 'Rp 30.000',
-        'tanggal': '19 Maret 2026',
-        'status': 'Aktif',
-      },
-    ];
+  if (_isLoadingPembelian) {
+    return const Center(child: CircularProgressIndicator(color: Color(0xFF2563EB)));
+  }
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: pembelianData.length,
-      itemBuilder: (context, index) {
-        final item = pembelianData[index];
-        final isAktif = item['status'] == 'Aktif';
-
-        return _buildHistoryCard(
-          icon: Icons.shopping_cart_outlined,
-          title: '${item['paket']} - ${item['harga']}',
-          date: item['tanggal']!,
-          status: item['status']!,
-          statusColor:
-              isAktif ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
-          statusBg:
-              isAktif ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2),
-        );
-      },
+  if (_pembelianData.isEmpty) {
+    return const Center(
+      child: Text(
+        'Belum ada riwayat pembelian.',
+        style: TextStyle(color: Colors.grey),
+      ),
     );
   }
+
+  return ListView.builder(
+    padding: const EdgeInsets.symmetric(horizontal: 16),
+    itemCount: _pembelianData.length,
+    itemBuilder: (context, index) {
+      final item = _pembelianData[index];
+      final isAktif = item['status'] == 'Aktif';
+
+      return _buildHistoryCard(
+        icon: Icons.shopping_cart_outlined,
+        title: '${item['paket']} - ${item['harga']}',
+        date: item['tanggal']!,
+        status: item['status']!,
+        statusColor: isAktif ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
+        statusBg: isAktif ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2),
+      );
+    },
+  );
+}
+
 
   Widget _buildHistoryCard({
     required IconData icon,

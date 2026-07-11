@@ -1,4 +1,8 @@
+// ignore_for_file: unused_element, unused_import
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'edit_profilepage.dart';
 import 'payment_page.dart';
 import 'login_screen.dart';
@@ -16,12 +20,64 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  String nama = 'Naysila';
-  String email = 'naysila@student.com';
-  String noTelp = '+62 812 3456 7890';
-  String tanggalLahir = '15 Maret 2005';
+  String nama = '';
+  String email = '';
+  String noTelp = '';
+  String tanggalLahir = '';
+  bool _isLoading = true;
+
+  String _muridId = '';
 
   @override
+  void initState() {
+    super.initState();
+    _initData();
+  }
+
+  Future<void> _initData() async {
+  final prefs = await SharedPreferences.getInstance();
+  final id = prefs.getString('murid_id') ?? '';
+
+  if (!mounted) return;
+
+  setState(() {
+    _muridId = id;
+  });
+
+  _loadProfil();
+}
+
+    Future<void> _loadProfil() async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8000/api/user/$_muridId'),
+        headers: {'Accept': 'application/json'},
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          final u = data['data'];
+          setState(() {
+            nama = u['nama'] ?? '-';
+            email = u['email'] ?? '-';
+            noTelp = u['no_telp'] ?? '-';
+            tanggalLahir = u['tanggal_lahir'] ?? '-';
+            _isLoading = false;
+          });
+          return;
+        }
+      }
+      setState(() => _isLoading = false);
+    } catch (e) {
+      debugPrint('Error ambil profil: $e');
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+    @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FC),
@@ -30,23 +86,25 @@ class _ProfilePageState extends State<ProfilePage> {
           children: [
             _buildTopBar(context),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 24),
-                    _buildAvatarSection(context),
-                    const SizedBox(height: 24),
-                    _buildInfoPribadi(context),
-                    const SizedBox(height: 20),
-                    _buildPaketAktif(context),
-                    const SizedBox(height: 24),
-                    _buildKeluarButton(context),
-                    const SizedBox(height: 30),
-                  ],
-                ),
-              ),
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF3B72FF)))
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 24),
+                          _buildAvatarSection(context),
+                          const SizedBox(height: 24),
+                          _buildInfoPribadi(context),
+                          const SizedBox(height: 20),
+                          _buildPaketAktif(context),
+                          const SizedBox(height: 24),
+                          _buildKeluarButton(context),
+                          const SizedBox(height: 30),
+                        ],
+                      ),
+                    ),
             ),
           ],
         ),

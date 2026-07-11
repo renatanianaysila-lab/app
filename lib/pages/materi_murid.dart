@@ -2,11 +2,77 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'video_play_page.dart';
 import 'quiz_play_page.dart';
+import 'tampilan_paket.dart';
+import 'session.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
+String? _extractYoutubeId(String url) {
+  final patterns = [
+    RegExp(r'youtu\.be/([a-zA-Z0-9_-]{6,})'),
+    RegExp(r'[?&]v=([a-zA-Z0-9_-]{6,})'),
+  ];
+  for (final p in patterns) {
+    final match = p.firstMatch(url);
+    if (match != null) return match.group(1);
+  }
+  return null;
+}
+
+String _mapTabToKategori(String tabLabel) {
+  switch (tabLabel) {
+    case 'Dasar':
+      return 'Dasar';
+    case 'Menengah':
+      return 'Menengah';
+    case 'Lanjutan':
+      return 'Susah';
+    default:
+      return 'Dasar';
+  }
+}
+
+String _mapKategoriToTab(String kategori) {
+  switch (kategori) {
+    case 'Dasar':
+      return 'Dasar';
+    case 'Menengah':
+      return 'Menengah';
+    case 'Susah':
+      return 'Lanjutan';
+    default:
+      return 'Dasar';
+  }
+}
+
+class ScoringService {
+  static const String baseUrl = 'http://10.0.2.2:8000/api';
+
+  static Future<Map<String, dynamic>?> getQuizScoreByLevel({
+    required String userId,
+    required String level,
+  }) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/quiz-scores?user_id=$userId&level=$level'),
+        headers: {'Accept': 'application/json'},
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return data['data'];
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetch kuis score: $e');
+    }
+    return null;
+  }
+}
 
 class MateriMurid extends StatefulWidget {
   final String initialLevel;
-  const MateriMurid({super.key, this.initialLevel = 'Beginner'});
+  const MateriMurid({super.key, this.initialLevel = 'Dasar'});
 
   @override
   State<MateriMurid> createState() => _MateriMuridState();
@@ -14,526 +80,405 @@ class MateriMurid extends StatefulWidget {
 
 class _MateriMuridState extends State<MateriMurid> {
   late String _selectedLevel;
-  final Map<int, bool> _expanded = {0: false, 1: false, 2: false, 3: false};
-  bool _isLoading = true; // 2. Tambahkan state loading
+  Map<int, bool> _expanded = {};
+  bool _isLoading = true;
+  bool _hasError = false;
 
-  // ── DATA BEGINNER (Struktur asli dipertahankan) ──────────────────────
-  final List<Map<String, dynamic>> _kategoriBeginner = [
-    {
-      'icon': 'assets/images/A.png',
-      'iconBg': const Color(0xFFDEEAFF),
-      'title': 'Abjad A-Z',
-      'subtitle': null,
-      'videoCount': 1,
-      'premium': false,
-      'items': [
-        {'type': 'video', 'title': 'Dasar Bahasa Isyarat - Alfabet A-Z', 'done': true},
-        {'type': 'kuis', 'title': 'Kuis: Abjad A-Z', 'score': '100/100', 'scoreColor': const Color(0xFF4CAF7D)},
-      ],
-    },
-    {
-      'icon': 'assets/images/#.png',
-      'iconBg': const Color(0xFFDEF7EC),
-      'title': 'Angka 1-10',
-      'subtitle': null,
-      'videoCount': 1,
-      'premium': false,
-      'items': [
-        {'type': 'video', 'title': 'Angka dalam Bahasa Isyarat 1-100', 'done': true},
-        {'type': 'kuis', 'title': 'Kuis: Angka 1-10', 'score': '60/100', 'scoreColor': const Color(0xFFE53E3E)}, 
-      ],
-    },
-    {
-      'icon': 'assets/images/ekspresi.png',
-      'iconBg': const Color(0xFFF3E8FF),
-      'title': 'Ekspresi',
-      'subtitle': null,
-      'videoCount': 5,
-      'premium': false,
-      'items': [
-        {'type': 'video', 'title': 'Ekspresi Sehari-hari - Salam', 'done': true},
-        {'type': 'kuis', 'title': 'Kuis: Ekspresi Sehari-hari', 'score': '95/100', 'scoreColor': const Color(0xFF4CAF7D)},
-        {'type': 'video', 'title': 'Ekspresi Sehari-hari: Perasaan', 'done': false},
-        {'type': 'kuis', 'title': 'Kuis: Ekspresi Perasaan', 'score': null, 'scoreColor': null},
-      ],
-    },
-    {
-      'icon': 'assets/images/percakapan.png',
-      'iconBg': const Color(0xFFFFF3E0),
-      'title': 'Percakapan Dasar',
-      'subtitle': null,
-      'videoCount': 0,
-      'premium': false,
-      'items': [], // Akan diisi dinamis dari Laravel
-    },
+  List<Map<String, dynamic>> _kategoriAktif = [];
+  String _muridId = '';
+
+  static const List<Map<String, dynamic>> _iconPalette = [
+    {'icon': 'assets/images/A.png', 'bg': Color(0xFFDEEAFF)},
+    {'icon': 'assets/images/123.png', 'bg': Color(0xFFFFEAD2)},
+    {'icon': 'assets/images/smile.png', 'bg': Color(0xFFE2FBE7)},
+    {'icon': 'assets/images/chat.png', 'bg': Color(0xFFFCE1E4)},
   ];
-
-  // ── DATA INTERMEDIATE (Struktur asli dipertahankan) ────────────────────────
-  final List<Map<String, dynamic>> _kategoriIntermediate = [
-    {
-      'icon': 'assets/images/materi.png',
-      'iconBg': const Color(0xFFEEF2FF),
-      'title': 'Kosakata Lanjutan',
-      'subtitle': 'Transportasi · Pekerjaan · Pendidikan',
-      'videoCount': 5,
-      'premium': true,
-      'items': [],
-    },
-    {
-      'icon': 'assets/images/percakapan.png',
-      'iconBg': const Color(0xFFE8F9F0),
-      'title': 'Percakapan Sehari-hari',
-      'subtitle': '3-5 kalimat per sesi',
-      'videoCount': 5,
-      'premium': true,
-      'items': [],
-    },
-    {
-      'icon': 'assets/images/ekspresi.png',
-      'iconBg': const Color(0xFFF3E8FF),
-      'title': 'Ekspresi Wajah Lanjutan',
-      'subtitle': 'Lanjutan dari Ekspresi Dasar',
-      'videoCount': 5,
-      'premium': true,
-      'items': [],
-    },
-    {
-      'icon': 'assets/images/img.png',
-      'iconBg': const Color(0xFFFFF8EC),
-      'title': 'Tanya Jawab Interaktif',
-      'subtitle': 'Gabungan semua materi Dasar',
-      'videoCount': 5,
-      'premium': true,
-      'items': [],
-    },
-  ];
-
-  List<Map<String, dynamic>> get _currentKategori =>
-      _selectedLevel == 'Beginner' ? _kategoriBeginner : _kategoriIntermediate;
-
-  bool get _isPremiumLevel => _selectedLevel == 'Intermediate';
 
   @override
   void initState() {
     super.initState();
-    _selectedLevel = widget.initialLevel;
-    _fetchDataMateriLaravel(); 
+    _selectedLevel = _mapKategoriToTab(widget.initialLevel);
+    _initData();
   }
 
-  
-  Future<void> _fetchDataMateriLaravel() async {
-    const String url = 'https://isyaratkita.alwaysdata.net/api/materi';
+  Future<void> _initData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final id = prefs.getString('murid_id') ?? '';
+
+    if (!mounted) return;
+
+    setState(() {
+      _muridId = id;
+    });
+
+    _loadDataFromBackend();
+  }
+
+  Future<void> _loadDataFromBackend() async {
+    setState(() {
+      _isLoading = true;
+      _hasError = false;
+    });
+
+    final kategoriDb = _mapTabToKategori(_selectedLevel);
+
     try {
-      final response = await http.get(
-        Uri.parse(url),
-        headers: {
-          'ngrok-skip-browser-warning': 'true',
-        },
+      final res = await http.get(
+        Uri.parse('http://10.0.2.2:8000/api/materis'),
+        headers: {'Accept': 'application/json'},
       );
 
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        List<dynamic> materiDariApi = responseData['data'];
-
+      if (res.statusCode != 200) {
         setState(() {
-          
-          for (var item in materiDariApi) {
-            if (item['kategori'] == 'Percakapan') {
-              
-              _kategoriBeginner[3]['items'].add({
-                'type': 'video',
-                'title': item['judul'],
-                'done': false,
-              });
-            }
-          }
-          
-          _kategoriBeginner[3]['videoCount'] = _kategoriBeginner[3]['items'].length;
           _isLoading = false;
+          _hasError = true;
         });
-      } else {
-        setState(() => _isLoading = false);
+        return;
       }
+
+      final decoded = jsonDecode(res.body);
+      if (decoded['success'] != true) {
+        setState(() {
+          _isLoading = false;
+          _hasError = true;
+        });
+        return;
+      }
+
+      final List<dynamic> allMateri = decoded['data'];
+      final filtered = allMateri.where((m) => m['kategori'] == kategoriDb).toList();
+
+      final Map<String, List<dynamic>> grouped = {};
+      for (final m in filtered) {
+        final modul = (m['nama_modul'] as String?) ?? 'Materi Lainnya';
+        grouped.putIfAbsent(modul, () => []).add(m);
+      }
+
+      final skorLevel = await ScoringService.getQuizScoreByLevel(
+        userId: _muridId,
+        level: kategoriDb,
+      );
+
+      final skorText = (skorLevel != null && skorLevel['skor'] != null)
+          ? '${skorLevel['skor']}/100'
+          : '-';
+
+      int paletteIndex = 0;
+      final List<Map<String, dynamic>> hasil = [];
+      grouped.forEach((modulTitle, materiList) {
+        final palette = _iconPalette[paletteIndex % _iconPalette.length];
+        paletteIndex++;
+
+        final items = <Map<String, dynamic>>[];
+        for (final m in materiList) {
+          items.add({
+            'type': 'video',
+            'title': m['judul'] as String? ?? 'Materi',
+            'video_url': m['video_url'] as String? ?? '',
+            'deskripsi': m['deskripsi'] as String? ?? '',
+            'done': false,
+          });
+        }
+        items.add({
+          'type': 'kuis',
+          'title': 'Kuis: $modulTitle',
+          'score': skorText,
+          'kuis_id': null,
+        });
+
+        hasil.add({
+          'icon': palette['icon'],
+          'iconBg': palette['bg'],
+          'title': modulTitle,
+          'subtitle': null,
+          'videoCount': materiList.length,
+          'items': items,
+        });
+      });
+
+      setState(() {
+        _kategoriAktif = hasil;
+        _expanded = {for (int i = 0; i < hasil.length; i++) i: false};
+        _isLoading = false;
+      });
     } catch (e) {
-      
-      setState(() => _isLoading = false);
+      debugPrint('Error load materi: $e');
+      setState(() {
+        _isLoading = false;
+        _hasError = true;
+      });
     }
   }
 
   void _switchLevel(String level) {
     setState(() {
       _selectedLevel = level;
-      _expanded.updateAll((key, value) => false);
     });
+    _loadDataFromBackend();
+  }
+
+  void _showPremiumOfferDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        contentPadding: const EdgeInsets.all(20),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircleAvatar(
+              radius: 35,
+              backgroundColor: Color(0xFFFEF3C7),
+              child: Icon(Icons.workspace_premium_rounded, size: 40, color: Colors.amber),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Buka Akses Level $_selectedLevel',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Materi video level ini hanya tersedia untuk pengguna Premium.',
+              style: TextStyle(fontSize: 13, color: Colors.grey),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 45,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const TampilanPaket()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2563EB),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  elevation: 0,
+                ),
+                child: const Text('Lihat Paket Premium',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Nanti Saja', style: TextStyle(color: Colors.black54)),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    List<Map<String, dynamic>> kategoriAktif = _kategoriAktif;
+    final bool isLocked = _selectedLevel != 'Dasar' && !AppSession.isPremium;
+
+    debugPrint('CEK STATUS PREMIUM: ${AppSession.isPremium}');
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF7F8FC),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: const Text(
+          'Materi Pembelajaran',
+          style: TextStyle(
+            color: Color(0xFF1A1D2E),
+            fontWeight: FontWeight.bold,
+            fontFamily: 'Poppins',
+            fontSize: 20,
+          ),
+        ),
+      ),
       body: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildTopBar(),
-            _buildSearchBar(),
-            _buildLevelTabs(),
-            Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF3B72FF)))
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 16),
-                          if (_isPremiumLevel) ...[
-                            _buildPremiumBanner(),
-                            const SizedBox(height: 20),
-                          ] else
-                            const SizedBox(height: 4),
-                          const Text(
-                            'Kategori Pembelajaran',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF1A1D2E),
-                              fontFamily: 'Poppins',
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                          ...List.generate(_currentKategori.length, (i) {
-                            return _buildKategoriCard(i);
-                          }),
-                          if (!_isPremiumLevel) ...[
-                            const SizedBox(height: 8),
-                            _buildOverallProgress(),
-                          ],
-                          const SizedBox(height: 20),
-                        ],
+            // SEARCH BAR
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F4F6),
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                child: const TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Cari materi pembelajaran...',
+                    hintStyle: TextStyle(color: Colors.grey, fontFamily: 'Poppins', fontSize: 14),
+                    prefixIcon: Icon(Icons.search, color: Colors.grey),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(vertical: 14),
+                  ),
+                ),
+              ),
+            ),
+
+            // TABS LEVEL SAKLAR
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Row(
+                children: ['Dasar', 'Menengah', 'Lanjutan'].map((level) {
+                  final isSelected = _selectedLevel == level;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isSelected ? const Color(0xFF3B72FF) : const Color(0xFFE5E7EB),
+                        foregroundColor: isSelected ? Colors.white : Colors.grey[700],
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      ),
+                      onPressed: () => _switchLevel(level),
+                      child: Text(
+                        level,
+                        style: const TextStyle(fontWeight: FontWeight.w600, fontFamily: 'Poppins', fontSize: 13),
                       ),
                     ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ─── TOP BAR ───────────────────────────────────────────
-  Widget _buildTopBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFF0F0F0))),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context), // Sediakan fungsi back ke halaman BerandaMurid
-            child: const Icon(Icons.arrow_back_ios_new, size: 20, color: Color(0xFF1A1D2E)),
-          ),
-          const SizedBox(width: 14),
-          const Expanded(
-            child: Text(
-              'Materi Pembelajaran',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF1A1D2E),
-                fontFamily: 'Poppins',
+                  );
+                }).toList(),
               ),
             ),
-          ),
-          Image.asset(
-            'assets/images/lonceng.png', 
-            width: 28, 
-            height: 28,
-            errorBuilder: (_, __, ___) => const Icon(Icons.notifications_none, size: 28),
-          ),
-        ],
-      ),
-    );
-  }
 
-  // ─── SEARCH BAR ────────────────────────────────────────
-  Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF3F4F6),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const Row(
-          children: [
-            Icon(Icons.search, color: Color(0xFF9CA3AF), size: 20),
-            SizedBox(width: 10),
-            Text(
-              'Cari materi pembelajaran...',
-              style: TextStyle(
-                fontSize: 14,
-                color: Color(0xFF9CA3AF),
-                fontFamily: 'Poppins',
+            // BANNER KONTEN PREMIUM (muncul kalau level ini terkunci)
+            if (isLocked)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF4F46E5), Color(0xFF3B82F6)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      const CircleAvatar(
+                        radius: 22,
+                        backgroundColor: Colors.white24,
+                        child: Text('👑', style: TextStyle(fontSize: 20)),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Konten Premium',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                fontFamily: 'Poppins',
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Upgrade untuk akses semua materi $_selectedLevel',
+                              style: const TextStyle(color: Colors.white70, fontSize: 12, fontFamily: 'Poppins'),
+                            ),
+                          ],
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const TampilanPaket()),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: const Color(0xFF3B82F6),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        ),
+                        child: const Text('Upgrade →', style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
-  // ─── LEVEL TABS ────────────────────────────────────────
-  Widget _buildLevelTabs() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-      child: Row(
-        children: [
-          _buildTabChip('Beginner', const Color(0xFF3B72FF)),
-          const SizedBox(width: 10),
-          _buildTabChip('Intermediate', const Color(0xFF3B72FF)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTabChip(String level, Color activeColor) {
-    final isActive = _selectedLevel == level;
-    return GestureDetector(
-      onTap: () => _switchLevel(level),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-        decoration: BoxDecoration(
-          color: isActive ? activeColor : const Color(0xFFF3F4F6),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          level,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: isActive ? Colors.white : const Color(0xFF6B7280),
-            fontFamily: 'Poppins',
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ─── PREMIUM BANNER ────────────────────────────────────
-  Widget _buildPremiumBanner() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF3B72FF), Color(0xFF7BA7FF)],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: const Center(
-              child: Text('👑', style: TextStyle(fontSize: 18)),
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Konten Premium',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    fontFamily: 'Poppins',
-                  ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  'Upgrade untuk akses semua materi Intermediate',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white70,
-                    fontFamily: 'Poppins',
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 10),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Row(
-              children: [
-                Text(
-                  'Upgrade',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF3B72FF),
-                    fontFamily: 'Poppins',
-                  ),
-                ),
-                SizedBox(width: 4),
-                Icon(Icons.arrow_forward, size: 14, color: Color(0xFF3B72FF)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ─── OVERALL PROGRESS ──────────────────────────────────
-  Widget _buildOverallProgress() {
-    final totalKategori = _kategoriBeginner.length;
-    final selesai = _kategoriBeginner
-        .where((k) => (k['items'] as List)
-            .any((i) => i['type'] == 'video' && i['done'] == true))
-        .length;
-    final percent = totalKategori == 0 ? 0.0 : selesai / totalKategori;
-
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.bar_chart_rounded,
-                  color: Color(0xFF3B72FF), size: 20),
-              const SizedBox(width: 8),
-              const Text(
-                'Progress Keseluruhan',
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Text(
+                'Kategori Pembelajaran',
                 style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                   color: Color(0xFF1A1D2E),
                   fontFamily: 'Poppins',
                 ),
               ),
-              const Spacer(),
-              Text(
-                '${(percent * 100).toInt()}%',
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF3B72FF),
-                  fontFamily: 'Poppins',
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: LinearProgressIndicator(
-              value: percent,
-              minHeight: 10,
-              backgroundColor: const Color(0xFFE5E7EB),
-              valueColor:
-                  const AlwaysStoppedAnimation<Color>(Color(0xFF3B72FF)),
             ),
-          ),
-          const SizedBox(height: 14),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildProgressStat(
-                'Selesai',
-                '$selesai Kategori',
-                const Color(0xFF4CAF7D),
-                const Color(0xFFE8F9F0),
-              ),
-              _buildProgressStat(
-                'Tersisa',
-                '${totalKategori - selesai} Kategori',
-                const Color(0xFFF5A623),
-                const Color(0xFFFFF8EC),
-              ),
-              _buildProgressStat(
-                'Total',
-                '$totalKategori Kategori',
-                const Color(0xFF3B72FF),
-                const Color(0xFFEEF2FF),
-              ),
-            ],
-          ),
-        ],
+
+            // LIST ELEMEN UTAMA
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator(color: Color(0xFFFFB800)))
+                  : _hasError
+                      ? _buildErrorState()
+                      : kategoriAktif.isEmpty
+                          ? const Center(
+                              child: Text(
+                                'Belum ada materi untuk level ini.',
+                                style: TextStyle(fontFamily: 'Poppins', color: Colors.grey),
+                              ),
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              itemCount: kategoriAktif.length,
+                              itemBuilder: (context, index) {
+                                return _buildKategoriCard(kategoriAktif[index], index, isLocked);
+                              },
+                            ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildProgressStat(
-      String label, String value, Color color, Color bgColor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              color: color,
-              fontFamily: 'Poppins',
+  Widget _buildErrorState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.wifi_off_rounded, size: 40, color: Color(0xFF9CA3AF)),
+            const SizedBox(height: 12),
+            const Text(
+              'Gagal memuat materi dari server.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontFamily: 'Poppins', color: Color(0xFF6B7280)),
             ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF6B7280),
-              fontFamily: 'Poppins',
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: _loadDataFromBackend,
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFFB800)),
+              child: const Text('Coba Lagi', style: TextStyle(color: Colors.white, fontFamily: 'Poppins')),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  // ─── KATEGORI CARD ─────────────────────────────────────
-  Widget _buildKategoriCard(int index) {
-    final item = _currentKategori[index];
-    final isExpanded = _expanded[index] ?? false;
-    final bool isPremium = item['premium'] as bool;
-    final String? subtitle = item['subtitle'] as String?;
+  Widget _buildKategoriCard(Map<String, dynamic> kategori, int index, bool isLocked) {
+    bool isExpanded = _expanded[index] ?? false;
+    List<Map<String, dynamic>> subItems = kategori['items'] as List<Map<String, dynamic>>;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -543,197 +488,141 @@ class _MateriMuridState extends State<MateriMurid> {
         border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 6,
             offset: const Offset(0, 2),
-          ),
+          )
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: isPremium ? null : () {
-              setState(() {
-                _expanded[index] = !isExpanded;
-              });
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: item['iconBg'] as Color,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.all(10),
-                    child: Image.asset(
-                      item['icon'] as String,
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => const Icon(
-                        Icons.menu_book_outlined,
-                        color: Color(0xFF3B72FF),
-                        size: 24,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item['title'] as String,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF1A1D2E),
-                            fontFamily: 'Poppins',
-                          ),
-                        ),
-                        if (subtitle != null) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            subtitle,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFF6B7280),
-                              fontFamily: 'Poppins',
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Text(
-                              '${item['videoCount']} Video',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF6B7280),
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            if (isPremium) ...[
-                              const SizedBox(width: 6),
-                              const Icon(Icons.lock,
-                                  size: 13, color: Color(0xFF9CA3AF)),
-                            ] else ...[
-                              const SizedBox(width: 4),
-                              Icon(
-                                isExpanded
-                                    ? Icons.keyboard_arrow_up
-                                    : Icons.keyboard_arrow_down,
-                                size: 18,
-                                color: const Color(0xFF6B7280),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: isPremium
-                          ? const Color(0xFFF5A623)
-                          : const Color(0xFF3B72FF),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      isPremium ? 'Premium' : 'Beginner',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        fontFamily: 'Poppins',
-                      ),
-                    ),
-                  ),
-                ],
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            leading: CircleAvatar(
+              radius: 24,
+              backgroundColor: kategori['iconBg'] as Color,
+              child: Image.asset(
+                kategori['icon'] as String,
+                width: 24,
+                height: 24,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Icon(Icons.class_outlined, color: Color(0xFFFFB800));
+                },
               ),
             ),
+            title: Text(
+              kategori['title'] as String,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Poppins',
+                fontSize: 15,
+                color: Color(0xFF1A1D2E),
+              ),
+            ),
+            subtitle: Row(
+              children: [
+                Text(
+                  '${kategori['videoCount']} Video',
+                  style: const TextStyle(color: Colors.grey, fontFamily: 'Poppins', fontSize: 13),
+                ),
+                const SizedBox(width: 4),
+                if (isLocked)
+                  const Icon(Icons.lock, size: 14, color: Colors.grey)
+                else
+                  Icon(
+                    isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                    size: 16,
+                    color: Colors.grey,
+                  ),
+              ],
+            ),
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                color: isLocked ? const Color(0xFFF5A623) : const Color(0xFF0F9668),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                isLocked ? 'Premium' : 'Gratis',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Poppins',
+                ),
+              ),
+            ),
+            onTap: () {
+              if (isLocked) {
+                _showPremiumOfferDialog();
+              } else {
+                setState(() {
+                  _expanded[index] = !isExpanded;
+                });
+              }
+            },
           ),
-          if (!isPremium &&
-              isExpanded &&
-              (item['items'] as List).isNotEmpty) ...[
-            const Divider(height: 1, color: Color(0xFFF0F0F0)),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          if (isExpanded && !isLocked) ...[
+            Container(
+              color: const Color(0xFFFAFAFC),
+              padding: const EdgeInsets.symmetric(vertical: 4),
               child: Column(
-                children: (item['items'] as List).map<Widget>((subItem) {
-                  final isDone = subItem['done'] ?? false;
-                  final isKuis = subItem['type'] == 'kuis';
-                  final score = subItem['score'];
-                  final scoreColor = subItem['scoreColor'] as Color?;
-                  final hasScore = score != null;
+                children: subItems.map((subItem) {
+                  bool isKuis = subItem['type'] == 'kuis';
+                  dynamic score = subItem['score'];
+                  bool hasScore = isKuis && score != null && score != '-';
+                  bool isDone = !isKuis && (subItem['done'] == true);
 
-                  // ── WARNA BACKGROUND SUBITEM ──
-                  Color bgColor;
-                  if (isKuis && hasScore && scoreColor != null) {
-                    bgColor = scoreColor.withOpacity(0.1); 
-                  } else if (!hasScore && isKuis) {
-                    bgColor = const Color(0xFFF3F4F6); 
-                  } else if (!isDone && !isKuis) {
-                    bgColor = const Color(0xFFF3F4F6); 
-                  } else {
-                    bgColor = const Color(0xFFDEF7EC); 
+                  Color scoreColor = Colors.grey;
+                  if (hasScore) {
+                    int numericScore = int.tryParse(score.toString().split('/').first) ?? 0;
+                    scoreColor = numericScore >= 75 ? const Color(0xFF2D9F6B) : const Color(0xFFEF4444);
                   }
 
-                  return GestureDetector(
+                  return InkWell(
                     onTap: () {
                       if (isKuis) {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => QuizPlayPage(
+                            builder: (context) => QuizPlayPage(
                               quizTitle: subItem['title'] as String,
                             ),
                           ),
-                        );
+                        ).then((_) => _loadDataFromBackend());
                       } else {
+                        final videoId = _extractYoutubeId(subItem['video_url'] as String? ?? '') ?? '';
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => VideoPlayPage(
-                              videoId: 'video_01', 
-                              videoTitle: subItem['title'] as String, 
-                              commentsReference: const <Map<String, dynamic>>[], 
-                              onCommentUpdated: () {
-                                setState(() {});
-                              },
+                            builder: (context) => VideoPlayPage(
+                              videoId: videoId,
+                              videoTitle: subItem['title'] as String,
+                              videoDescription: subItem['deskripsi'] as String? ??
+                                  'Selamat datang di kelas materi visual.',
+                              modulName: kategori['title'] as String,
+                              objectives: List<String>.from([
+                                'Memahami bentuk instruksi visual materi secara mendalam.',
+                                'Mampu mempraktikkan gerakan isyarat secara mandiri dengan presisi.'
+                              ]),
+                              isTeacher: false,
+                              commentsReference: [],
+                              onCommentUpdated: () {},
                             ),
                           ),
                         );
                       }
                     },
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: bgColor,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       child: Row(
                         children: [
-                          Image.asset(
-                            'assets/images/iconhijau.png',
-                            width: 24,
-                            height: 24,
-                            color: hasScore || isDone
-                                ? (isKuis
-                                    ? scoreColor
-                                    : const Color(0xFF2D9F6B))
-                                : const Color(0xFF9CA3AF),
+                          Icon(
+                            isKuis ? Icons.assignment_outlined : Icons.play_circle_fill,
+                            size: 20,
+                            color: isKuis
+                                ? (hasScore ? const Color(0xFFFFB800) : const Color(0xFF9CA3AF))
+                                : const Color(0xFFFFB800),
                           ),
                           const SizedBox(width: 10),
                           Expanded(

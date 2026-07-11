@@ -40,219 +40,192 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
       'id': 'vid_2',
       'type': 'Video',
       'title': 'Gerakan Isyarat Utama',
-      'duration': '4:25 menit',
-      'status': 'done',
+      'duration': '5:40 menit',
+      'status': 'active',
     },
     {
       'id': 'quiz_2',
       'type': 'Quiz',
-      'title': 'Kuis 2: Evaluasi Kecepatan',
-      'duration': '4/10 FAILED (Coba Lagi)', 
-      'status': 'failed',
+      'title': 'Kuis 2: Praktik Gerakan',
+      'duration': '5 Soal kuis',
+      'status': 'locked',
     },
     {
       'id': 'vid_3',
       'type': 'Video',
-      'title': 'Variasi dan Aturan Posisi',
-      'duration': '5:12 menit',
-      'status': 'active',
-    },
-    {
-      'id': 'vid_4',
-      'type': 'Video',
-      'title': 'Praktik Kalimat Sederhana',
-      'duration': '7:25 menit',
+      'title': 'Studi Kasus & Dialog',
+      'duration': '4:15 menit',
       'status': 'locked',
     },
   ];
 
-  void navigateToVideo(Map<String, dynamic> item, String fullTitle) {
-    _globalCommentDatabase.putIfAbsent(item['id'].toString(), () => [
-      {
-        'username': 'Naysila Renatania',
-        'content': 'Penjelasannya gampang dimengerti kak! Gerakan tangannya jelas bgt.',
-        'likeCount': 12,
-        'isLiked': false,
-        'replies': <Map<String, dynamic>>[],
-      },
-      {
-        'username': 'Aurel Zalsabilla',
-        'content': 'Keren bgt transisinya, ngebantu buat dicoba bareng temen kelompok.',
-        'likeCount': 8,
-        'isLiked': false,
-        'replies': <Map<String, dynamic>>[],
-      },
-    ]);
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => VideoPlayPage(
-          videoId: item['id'].toString(),
-          videoTitle: fullTitle,
-          commentsReference: _globalCommentDatabase[item['id'].toString()]!,
-          onCommentUpdated: () {
-            setState(() {});
-          },
-        ),
-      ),
-    );
-  }
-
-  void navigateToQuiz(String fullTitle) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => QuizPlayPage(
-          quizTitle: fullTitle, 
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    Color darkerOmbreColor = Color.alphaBlend(
-      Colors.black.withOpacity(0.25),
-      widget.themeColor,
-    );
-
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 260,
-            pinned: true,
-            elevation: 0,
-            backgroundColor: widget.themeColor,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
-              onPressed: () => Navigator.pop(context),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                padding: const EdgeInsets.only(left: 20, right: 20, top: 100, bottom: 28),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [widget.themeColor, darkerOmbreColor],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(6)),
-                      child: const Text('IsyaratKita Academy', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(widget.materiTitle, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-                    const Text('Unit Pembelajaran Aktif', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500)),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Progress Belajar', style: TextStyle(color: Colors.white70, fontSize: 11)),
-                        Text(widget.materiTitle == 'Ekspresi Dasar' ? '100% Selesai' : '50% Selesai', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: LinearProgressIndicator(
-                        value: widget.materiTitle == 'Ekspresi Dasar' ? 1.0 : 0.5,
-                        backgroundColor: Colors.white24,
-                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                        minHeight: 5,
-                      ),
-                    ),
-                  ],
-                ),
+      backgroundColor: widget.bgColor,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          widget.materiTitle,
+          style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 18, fontFamily: 'Poppins'),
+        ),
+        centerTitle: true,
+      ),
+      body: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        itemCount: journeyItems.length,
+        itemBuilder: (context, index) {
+          final item = journeyItems[index];
+          bool isLast = index == journeyItems.length - 1;
+          return _buildJourneyStep(item, isLast);
+        },
+      ),
+    );
+  }
+
+  Widget _buildJourneyStep(Map<String, dynamic> item, bool isLast) {
+    bool isActive = item['status'] == 'active';
+    bool isDone = item['status'] == 'done';
+    bool isLocked = item['status'] == 'locked';
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          children: [
+            _buildStatusIndicator(item),
+            if (!isLast)
+              Container(
+                width: 2,
+                height: 55,
+                color: isDone ? widget.themeColor : Colors.grey.shade300,
               ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 24.0, bottom: 40.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
-                    child: Text('Milestone Pembelajaran', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF1F2937))),
+          ],
+        ),
+        const SizedBox(width: 20),
+        Expanded(
+          child: Opacity(
+            opacity: isLocked ? 0.55 : 1.0,
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 20),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isActive ? widget.themeColor.withOpacity(0.5) : Colors.grey.shade100,
+                  width: isActive ? 1.5 : 1.0,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: isActive ? widget.themeColor.withOpacity(0.06) : Colors.black.withOpacity(0.01),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
-                  const SizedBox(height: 8),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    padding: EdgeInsets.zero,
-                    itemCount: journeyItems.length,
-                    itemBuilder: (context, index) {
-                      final item = journeyItems[index];
-                      int nomorUrut = index + 1;
-                      String fullTitle = "${item['title']} ${widget.materiTitle}";
-
-                      Color durationColor = Colors.black45;
-                      if (item['status'] == 'failed') {
-                        durationColor = const Color(0xFFE53935);
-                      } else if (item['status'] == 'done' && item['type'] == 'Quiz') {
-                        durationColor = const Color(0xFF4CAF50);
-                      }
-
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 14.0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           children: [
-                            SizedBox(
-                              width: 30,
-                              child: Text('$nomorUrut', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: item['status'] == 'locked' ? Colors.black12 : Colors.black26)),
-                            ),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    fullTitle,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: item['status'] == 'locked' ? Colors.black38 : Colors.black87),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text('${item['type']}  •  ${item['duration']}', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: durationColor)),
-                                  const SizedBox(height: 12),
-                                  Container(height: 1, color: Colors.grey.shade100),
-                                ],
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: item['type'] == 'Video' ? const Color(0xFFFFF3E0) : const Color(0xFFE8EAF6),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                item['type'].toString().toUpperCase(),
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                  color: item['type'] == 'Video' ? Colors.orange.shade800 : Colors.indigo.shade800,
+                                  fontFamily: 'Poppins',
+                                ),
                               ),
                             ),
-                            const SizedBox(width: 16),
-                            _buildActionIcon(context, item, fullTitle, widget.themeColor, widget.bgColor),
+                            const SizedBox(width: 8),
+                            Text(
+                              item['duration'],
+                              style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontFamily: 'Poppins'),
+                            ),
                           ],
                         ),
-                      );
-                    },
+                        const SizedBox(height: 6),
+                        Text(
+                          item['title'],
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87, fontFamily: 'Poppins'),
+                        ),
+                      ],
+                    ),
                   ),
+                  if (!isLocked)
+                    Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey.shade400)
                 ],
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildActionIcon(BuildContext context, Map<String, dynamic> item, String fullTitle, Color activeColor, Color softBgColor) {
-    void handleTapAction() {
-      if (item['type'] == 'Quiz') {
-        navigateToQuiz(fullTitle);
-      } else {
-        navigateToVideo(item, fullTitle);
-      }
+  Widget _buildStatusIndicator(Map<String, dynamic> item) {
+    final String videoIdKey = item['id'] ?? 'vid_default';
+
+    VoidCallback? handleTapAction;
+    if (item['status'] != 'locked') {
+      handleTapAction = () {
+        if (item['type'] == 'Quiz') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => QuizPlayPage(quizTitle: item['title']),
+            ),
+          );
+        } else {
+          if (!_globalCommentDatabase.containsKey(videoIdKey)) {
+            _globalCommentDatabase[videoIdKey] = [];
+          }
+
+          List<Map<String, dynamic>> currentComments = _globalCommentDatabase[videoIdKey]!;
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => VideoPlayPage(
+                videoId: 'iLnmTe5Q2Qw', 
+                videoTitle: item['title'] ?? 'Materi Video',
+                videoDescription: 'Tonton video instruksi materi ini sampai selesai untuk membuka kuis berikutnya.',
+                
+                // ── 🌟 ARGUMEN WAJIB DI SINI ──
+                modulName: widget.materiTitle, 
+                objectives: List<String>.from([
+                  'Memahami poin dasar pengenalan isyarat visual materi.',
+                  'Mampu menerapkan gerakan isyarat mandiri secara baik.'
+                ]),
+                
+                commentsReference: currentComments,
+                onCommentUpdated: () {
+                  setState(() {
+                    _globalCommentDatabase[videoIdKey] = currentComments;
+                  });
+                },
+                isTeacher: false,
+              ),
+            ),
+          );
+        }
+      };
     }
 
     if (item['status'] == 'done') {
@@ -293,9 +266,17 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
       child: Container(
         width: 34,
         height: 34,
-        decoration: BoxDecoration(color: softBgColor, shape: BoxShape.circle),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          border: Border.all(color: widget.themeColor, width: 2),
+        ),
         child: Center(
-          child: Icon(item['type'] == 'Quiz' ? Icons.star_rounded : Icons.play_arrow_rounded, color: activeColor, size: 18),
+          child: Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(color: widget.themeColor, shape: BoxShape.circle),
+          ),
         ),
       ),
     );

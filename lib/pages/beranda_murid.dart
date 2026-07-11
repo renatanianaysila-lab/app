@@ -1,7 +1,9 @@
+// ignore_for_file: unused_field
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'materi_murid.dart';
-import 'package:http/http.dart' as http; // 1. Tambahkan import http
+import 'package:http/http.dart' as http;
 
 class BerandaMurid extends StatefulWidget {
   final void Function(String level)? onOpenMateri;
@@ -17,75 +19,98 @@ class BerandaMurid extends StatefulWidget {
 
 class _BerandaMuridState extends State<BerandaMurid> {
   bool _isLoading = true;
-  
-  // List levels sekarang dibuat dinamis agar bisa menampung update jumlah topik dari Laravel
-  final List<Map<String, dynamic>> _levelsData = [
-    {
-      'number': 1,
-      'title': 'Beginner',
-      'subtitle': 'Level Dasar',
-      'materi': 0, // Akan di-update dari API
-      'soal': 120,
-      'progress': 0.75,
-      'locked': false,
-      'color': const Color(0xFF3B72FF),
-      'bgColor': const Color(0xFFEEF2FF),
-    },
-    {
-      'number': 2,
-      'title': 'Intermediate',
-      'subtitle': 'Level Menengah',
-      'materi': 0, // Akan di-update dari API
-      'soal': 180,
-      'progress': 0.45,
-      'locked': false,
-      'color': const Color(0xFF4CAF7D),
-      'bgColor': const Color(0xFFE8F9F0),
-    },
-    {
-      'number': 3,
-      'title': 'Advanced',
-      'subtitle': 'Level Lanjutan',
-      'materi': 0, // Akan di-update dari API
-      'soal': 240,
-      'progress': 0.0,
-      'locked': true,
-      'color': const Color(0xFF9B59B6),
-      'bgColor': const Color(0xFFF5EEFF),
-    },
+  List<Map<String, dynamic>> _levelsData = [];
+  String _userName = '';
+  String _muridId = '';
+
+  static const String _dummyMuridId = '1';
+
+  static const List<Map<String, Color>> _colorPalette = [
+    {'color': Color(0xFF3B72FF), 'bg': Color(0xFFEEF2FF)},
+    {'color': Color(0xFF4CAF7D), 'bg': Color(0xFFE8F9F0)},
+    {'color': Color(0xFF9B59B6), 'bg': Color(0xFFF5EEFF)},
+    {'color': Color(0xFFF5A623), 'bg': Color(0xFFFFF8EC)},
   ];
 
   @override
-  void initState() {
-    super.initState();
-    _loadMateriCount();
-  }
+void initState() {
+  super.initState();
+  _initData();
+}
 
-  // 2. Fungsi untuk mengambil data materi dari Laravel
-  Future<void> _loadMateriCount() async {
-    const String url = 'https://isyaratkita.alwaysdata.net/api/materi';
+Future<void> _initData() async {
+  final prefs = await SharedPreferences.getInstance();
+  final id = prefs.getString('murid_id') ?? '';
+  final nama = prefs.getString('nama_murid') ?? '';
+
+  if (!mounted) return;
+
+  setState(() {
+    _muridId = id;
+    _userName = nama;
+  });
+
+  _loadLevels();
+}
+
+  Future<void> _loadLevels() async {
+    setState(() => _isLoading = true);
+    const String urlLevels = 'http://10.0.2.2:8000/api/materi/levels';
+    const String urlSkor = 'http://10.0.2.2:8000/api/skor-kuis';
+
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(Uri.parse(urlLevels));
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        List<dynamic> materiFromApi = responseData['data'];
+        if (responseData['success'] == true) {
+          final List<dynamic> levelsFromApi = responseData['data'];
 
-        // Menghitung jumlah topik per kategori dari backend Laravel
-        int beginnerCount = materiFromApi.where((m) => m['kategori'] == 'Abjad' || m['kategori'] == 'Angka').length;
-        int intermediateCount = materiFromApi.where((m) => m['kategori'] == 'Percakapan').length;
+          List<Map<String, dynamic>> levels = [];
+          for (int i = 0; i < levelsFromApi.length; i++) {
+            final item = levelsFromApi[i];
+            final palette = _colorPalette[i % _colorPalette.length];
+            levels.add({
+              'number': item['level'],
+              'title': item['kategori'],
+              'subtitle': 'Level ${item['kategori']}',
+              'kategori': item['kategori'],
+              'materi': item['jumlah_materi'],
+              'soal': 0,
+              'progress': 0.0,
+              'locked': i != 0, // level pertama selalu kebuka
+              'color': palette['color'],
+              'bgColor': palette['bg'],
+            });
+          }
 
-        setState(() {
-          _levelsData[0]['materi'] = beginnerCount > 0 ? beginnerCount : 12; // fallback ke data UTS kelompokmu jika API kosong
-          _levelsData[1]['materi'] = intermediateCount > 0 ? intermediateCount : 18;
-          _levelsData[2]['materi'] = 24; 
-          _isLoading = false;
-        });
-      } else {
-        setState(() => _isLoading = false);
+          // Cek skor kuis level sebelumnya buat nentuin locked/unlocked level berikutnya
+          for (int i = 1; i < levels.length; i++) {
+            final prevKategori = levels[i - 1]['kategori'] as String;
+            bool passed = false;
+            try {
+              final skorRes = await http.get(
+                Uri.parse('$urlSkor?user_id=$_muridId&level=$prevKategori'),
+              );
+              if (skorRes.statusCode == 200) {
+                final skorData = jsonDecode(skorRes.body);
+                if (skorData['success'] == true && skorData['data'] != null) {
+                  passed = (skorData['data']['skor'] ?? 0) >= 70;
+                }
+              }
+            } catch (_) {}
+            levels[i]['locked'] = !passed;
+          }
+
+          setState(() {
+            _levelsData = levels;
+            _isLoading = false;
+          });
+          return;
+        }
       }
+      setState(() => _isLoading = false);
     } catch (e) {
-      // Jika server offline, tetap pakai data mock agar UI kelompokmu tidak eror/kosong saat demo
       setState(() => _isLoading = false);
     }
   }
@@ -101,45 +126,73 @@ class _BerandaMuridState extends State<BerandaMurid> {
             Expanded(
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator(color: Color(0xFF3B72FF)))
-                  : RefreshIndicator(
-                      onRefresh: _loadMateriCount,
-                      child: SingleChildScrollView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.only(bottom: 20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 16),
-                            _buildHeroBanner(),
-                            const SizedBox(height: 16),
-                            _buildCTAButton(context),
-                            const SizedBox(height: 24),
-                            const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 16),
-                              child: Text(
-                                'Level Pembelajaran',
-                                style: TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w900,
-                                  color: Color(0xFF1A1D2E),
-                                  fontFamily: 'Poppins',
+                  : _levelsData.isEmpty
+                      ? _buildEmptyState()
+                      : RefreshIndicator(
+                          onRefresh: _loadLevels,
+                          child: SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.only(bottom: 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 16),
+                                _buildHeroBanner(),
+                                const SizedBox(height: 16),
+                                _buildCTAButton(context),
+                                const SizedBox(height: 24),
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 16),
+                                  child: Text(
+                                    'Level Pembelajaran',
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w900,
+                                      color: Color(0xFF1A1D2E),
+                                      fontFamily: 'Poppins',
+                                    ),
+                                  ),
                                 ),
-                              ),
+                                const SizedBox(height: 12),
+                                ..._levelsData.map((level) => Padding(
+                                      padding: const EdgeInsets.only(bottom: 14),
+                                      child: _buildLevelCard(context, level),
+                                    )),
+                              ],
                             ),
-                            const SizedBox(height: 12),
-                            ..._levelsData.map((level) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 14),
-                                  child: _buildLevelCard(context, level),
-                                )),
-                          ],
+                          ),
                         ),
-                      ),
-                    ),
             ),
           ],
         ),
       ),
-      // bottomNavigationBar dikosongkan agar otomatis mengikuti Navbar Utama proyek kelompok
+    );
+  }
+
+  // ─── EMPTY STATE (server gagal dihubungi) ───────────────
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.wifi_off_rounded, size: 40, color: Color(0xFF9CA3AF)),
+            const SizedBox(height: 12),
+            const Text(
+              'Gagal memuat daftar level dari server.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontFamily: 'Poppins', color: Color(0xFF6B7280)),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: _loadLevels,
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF3B72FF)),
+              child: const Text('Coba Lagi', style: TextStyle(color: Colors.white, fontFamily: 'Poppins')),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -161,13 +214,13 @@ class _BerandaMuridState extends State<BerandaMurid> {
             ),
           ),
           const SizedBox(width: 10),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Halo, Naysila 👋',
-                  style: TextStyle(
+                  'Halo, ${_userName.isNotEmpty ? _userName : 'Murid'} 👋',
+                  style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF1A1D2E),
@@ -263,13 +316,17 @@ class _BerandaMuridState extends State<BerandaMurid> {
         width: double.infinity,
         child: ElevatedButton(
           onPressed: () {
+            // Tombol ini buka level pertama yang ada di list (biasanya "Dasar")
+            final String targetLevel =
+                _levelsData.isNotEmpty ? _levelsData.first['title'] as String : 'Dasar';
+
             if (widget.onOpenMateri != null) {
-              widget.onOpenMateri!('Beginner');
+              widget.onOpenMateri!(targetLevel);
             } else {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const MateriMurid(initialLevel: 'Beginner'),
+                  builder: (_) => MateriMurid(initialLevel: targetLevel),
                 ),
               );
             }
@@ -449,13 +506,12 @@ class _BerandaMuridState extends State<BerandaMurid> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => MateriMurid(
-                              initialLevel: selectedLevel,
-                            ),
+                            builder: (_) => MateriMurid(initialLevel: selectedLevel),
                           ),
                         );
                       }
                     },
+
               style: ElevatedButton.styleFrom(
                 backgroundColor: locked ? const Color(0xFFEBEBEB) : color,
                 foregroundColor: locked ? const Color(0xFF6B7280) : Colors.white,

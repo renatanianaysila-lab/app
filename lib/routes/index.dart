@@ -25,8 +25,9 @@ class AppRoutes {
           settings: settings,
         );
       case AuthRoute.signUp:
+        final role = settings.arguments as String;
         return MaterialPageRoute(
-          builder: (_) => const SignUpPage(),
+          builder: (_) => SignUpPage(role: role),
           settings: settings,
         );
       case AuthRoute.forgotPassword:

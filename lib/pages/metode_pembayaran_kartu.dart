@@ -2,12 +2,15 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
+import 'session.dart';
 import 'payment_success_page.dart';
 
 class MetodePembayaranKartuPage extends StatefulWidget {
+  final int paymentId;
+
   const MetodePembayaranKartuPage({
     super.key,
+    required this.paymentId,
   });
 
   @override
@@ -33,16 +36,44 @@ class _MetodePembayaranKartuPageState
   final TextEditingController cvvController =
       TextEditingController();
 
-  Future<void> processDummyCardPayment() async {
-    if (cardNumberController.text.isEmpty ||
-        cardNameController.text.isEmpty ||
-        expiryController.text.isEmpty ||
-        cvvController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Lengkapi data kartu terlebih dahulu',
-          ),
+Future<void> processDummyCardPayment() async {
+  if (cardNumberController.text.isEmpty ||
+      cardNameController.text.isEmpty ||
+      expiryController.text.isEmpty ||
+      cvvController.text.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Lengkapi data kartu terlebih dahulu'),
+      ),
+    );
+    return;
+  }
+
+  setState(() {
+    isLoading = true;
+  });
+
+  try {
+    final confirmResponse = await http.post(
+      Uri.parse('http://10.0.2.2:8000/api/payment/${widget.paymentId}/confirm'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'card_holder': cardNameController.text,
+      }),
+    );
+
+    if (confirmResponse.statusCode == 200 ||
+        confirmResponse.statusCode == 201) {
+      await Future.delayed(const Duration(seconds: 3));
+
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const PaymentSuccessPage(),
         ),
       );
 
@@ -121,19 +152,27 @@ class _MetodePembayaranKartuPageState
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Backend tidak terhubung',
-          ),
+          content: Text('Gagal konfirmasi pembayaran'),
         ),
       );
     }
+  } catch (e) {
+    if (!mounted) return;
+    AppSession.isPremium = true;
 
-    if (mounted) {
-      setState(() {
-        isLoading = false;
-      });
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Backend tidak terhubung'),
+      ),
+    );
   }
+
+  if (mounted) {
+    setState(() {
+      isLoading = false;
+    });
+  }
+}
 
   @override
   void dispose() {

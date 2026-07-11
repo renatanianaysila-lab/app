@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -9,62 +10,72 @@ class ProgressController extends Controller
 {
     public function getProgresSiswa(Request $request)
     {
-        $kategoriInput = $request->query('kelas', 'Dasar');
+        // 1. Tangkap langsung filter dari Flutter ('Mudah', 'Sedang', 'Susah')
+        $kategoriInput = $request->query('kelas', 'Mudah');
 
-        // Samakan konversi kata dari Flutter ke data SQL kamu
-        $kategoriDb = 'Dasar';
-        if ($kategoriInput == 'Intermediate' || $kategoriInput == 'Menengah') {
-            $kategoriDb = 'Menengah';
-        } elseif ($kategoriInput == 'Lanjutan' || $kategoriInput == 'Susah') {
-            $kategoriDb = 'Susah';
-        }
-
+        // 2. Ambil semua data murid asli dari tabel murid
         $murids = DB::table('murid')->get();
-        $allMateris = DB::table('materis')->where('kategori', $kategoriDb)->get();
-        $totalMateri = $allMateris->count();
+        
+        // 3. Hitung total materi yang ada di kategori tersebut
+        $totalMateri = DB::table('materis')->where('kategori', $kategoriInput)->count();
 
         $dataProgres = [];
 
         foreach ($murids as $murid) {
-            if ($totalMateri == 0) {
+            // Jembatan relasi: karena user_progress pakai 'user_id' (bigint/users.id), 
+            // kita cari dulu ID user yang emailnya cocok dengan email_murid ini.
+            $userAccount = DB::table('users')->where('email', $murid->email_murid)->first();
+
+            // Jika akun user-nya belum ada di tabel users, set progres 0% biar ga crash
+            if (!$userAccount) {
                 $dataProgres[] = [
                     'nama' => $murid->nama_murid,
                     'overall_progress' => '0%',
                     'details' => [
-                        ['title' => 'Materi Belum Tersedia', 'status' => 'Belum ada materi di bab ini', 'percentage' => '0%', 'score' => null]
+                        ['title' => 'Tonton Video Pembelajaran', 'status' => '0 dari ' . $totalMateri . ' Materi Selesai', 'percentage' => '0%', 'score' => null],
+                        ['title' => 'Evaluasi Kuis Kelas', 'status' => 'Belum Mengerjakan', 'percentage' => '0%', 'score' => 'Belum Kuis']
                     ]
                 ];
                 continue;
             }
 
-            // Hitung materi selesai berdasarkan data dummy user_id = 1 yang kita masukkan tadi
+            // 4. Hitung materi selesai yang BENAR-BENAR milik ID user ini
             $materiSelesaiCount = DB::table('user_progress')
-                ->where('user_id', 1) 
-                ->whereIn('materi_id', $allMateris->pluck('id'))
-                ->where('is_completed', 1)
+                ->join('materis', 'user_progress.materi_id', '=', 'materis.id')
+                ->where('user_progress.user_id', $userAccount->id)
+                ->where('materis.kategori', $kategoriInput)
+                ->where('user_progress.is_completed', 1)
                 ->count();
 
-            $persentase = round(($materiSelesaiCount / $totalMateri) * 100);
-            if ($persentase > 100) $persentase = 100;
+            // 5. Hitung persentase nonton video secara akurat
+            $persentaseVideo = $totalMateri > 0 ? round(($materiSelesaiCount / $totalMateri) * 100) : 0;
 
-            $materiPertama = $allMateris->first();
-            $judulMateri = $materiPertama ? $materiPertama->judul : 'Materi Pembelajaran';
+            // 6. Ambil skor kuis asli dari tabel quiz_scores (jika ada)
+            $quizScore = DB::table('quiz_scores')
+                ->where('user_id', $userAccount->id)
+                ->orderBy('created_at', 'desc')
+                ->first();
 
+            $statusKuis = $quizScore ? 'Selesai Dikerjakan' : 'Belum Mengerjakan';
+            $persentaseKuis = $quizScore ? $quizScore->score . '%' : '0%';
+            $textSkor = $quizScore ? 'Skor: ' . $quizScore->score : 'Belum Kuis';
+
+            // 7. Masukkan ke array dengan format yang pas dengan index [0] dan [1] di Flutter-mu
             $dataProgres[] = [
                 'nama' => $murid->nama_murid,
-                'overall_progress' => $persentase . '%',
+                'overall_progress' => $persentaseVideo . '%',
                 'details' => [
                     [
-                        'title' => 'Menonton: ' . $judulMateri,
-                        'status' => $persentase > 0 ? 'Sudah ditonton' : 'Belum selesai',
-                        'percentage' => $persentase . '%',
+                        'title' => 'Tonton Video Pembelajaran',
+                        'status' => $materiSelesaiCount . ' dari ' . $totalMateri . ' Materi Selesai',
+                        'percentage' => $persentaseVideo . '%',
                         'score' => null,
                     ],
                     [
-                        'title' => 'Mengerjakan Kuis ' . $kategoriInput,
-                        'status' => $persentase == 100 ? 'Selesai dikerjakan' : 'Belum dikerjakan',
-                        'percentage' => $persentase == 100 ? '100%' : '0%',
-                        'score' => $persentase == 100 ? 'Skor: 95/100' : 'Skor: 0/100',
+                        'title' => 'Evaluasi Kuis Kelas',
+                        'status' => $statusKuis,
+                        'percentage' => $persentaseKuis,
+                        'score' => $textSkor,
                     ]
                 ]
             ];

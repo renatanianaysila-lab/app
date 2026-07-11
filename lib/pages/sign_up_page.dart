@@ -1,10 +1,14 @@
+// ignore_for_file: unused_import, unused_element
+
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:app/routes/auth_route.dart';
-import 'package:http/http.dart' as http; 
+import 'role_page.dart';
+import 'login_screen.dart';
+import 'package:http/http.dart' as http;
 
 class SignUpPage extends StatefulWidget {
-  const SignUpPage({super.key});
+  final String role;
+  const SignUpPage({super.key, required this.role});
 
   @override
   State<SignUpPage> createState() => _SignUpPageState();
@@ -16,12 +20,11 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  bool _isLoading = false; 
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -32,16 +35,42 @@ class _SignUpPageState extends State<SignUpPage> {
     super.dispose();
   }
 
-  
   Future<void> _submitForm() async {
-    if (_formKey.currentState!.validate()) {
+  if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
 
-      
-      const String url = 'https://isyaratkita.alwaysdata.net/api/register/murid';
+      // 1. Tentukan URL secara dinamis berdasarkan role
+      final String url = 'http://10.0.2.2:8000/api/register/${widget.role}';
 
+      // 2. Siapkan data yang akan dikirim (REQUEST BODY)
+      // MASUKKAN KODE KAMU DI SINI:
+      Map<String, dynamic> requestBody;
+
+      if (widget.role == 'murid') {
+        requestBody = {
+          'nama_murid': _nameController.text.trim(),
+          'email_murid': _emailController.text.trim(),
+          'password_murid': _passwordController.text,
+          'tanggal_lahir': '2000-01-01', // Sesuaikan format tanggalmu
+        };
+      } else if (widget.role == 'guru') {
+        requestBody = {
+          'nama_guru': _nameController.text.trim(),
+          'email_guru': _emailController.text.trim(),
+          'password_guru': _passwordController.text,
+        };
+      } else {
+        // admin
+        requestBody = {
+          'name': _nameController.text.trim(),
+          'email': _emailController.text.trim(),
+          'password': _passwordController.text,
+        };
+      }
+
+      // 3. Lakukan pengiriman data ke Laravel
       try {
         final response = await http.post(
           Uri.parse(url),
@@ -49,64 +78,53 @@ class _SignUpPageState extends State<SignUpPage> {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           },
-          body: jsonEncode({
-            'nama_murid': _nameController.text.trim(),
-            'email_murid': _emailController.text.trim(),
-            'password_murid': _passwordController.text,
-            'tanggal_lahir': '2005-01-01', // Dummy default sesuai requirement database migration murid
-          }),
+          body: jsonEncode(requestBody),
         );
 
         final responseData = jsonDecode(response.body);
 
-        if (response.statusCode == 201) {
-          // Registrasi Berhasil
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(responseData['message'] ?? 'Registrasi Berhasil!'),
-                backgroundColor: Colors.green,
-              ),
-            );
-  
-            Navigator.pushReplacementNamed(context, AuthRoute.login);
+          if (response.statusCode == 201 || response.statusCode == 200) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Registrasi berhasil! Kami sudah mengirim email verifikasi ke alamat kamu.'),
+                  backgroundColor: Colors.green,
+                  duration: Duration(seconds: 4),
+                ),
+              );
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (route) => false,
+              );
+            }
+          } else {
+          String errorMessage = responseData['message'] ?? 'Registrasi Gagal';
+
+          if (responseData['errors'] != null && responseData['errors'] is Map) {
+            var firstErrorList = responseData['errors'].values.first;
+            if (firstErrorList is List && firstErrorList.isNotEmpty) {
+              errorMessage = firstErrorList.first.toString();
+            }
           }
-        } else {
-      
-          String errorMessage = 'Registrasi Gagal';
-          if (responseData['errors'] != null) {
-            errorMessage = responseData['errors'].toString();
-          } else if (responseData['message'] != null) {
-            errorMessage = responseData['message'];
-          }
-          
-          if (mounted) {
-            _showErrorSnackBar(errorMessage);
-          }
+          if (mounted) _showErrorSnackBar(errorMessage);
         }
-      } catch (e) {
-      
-        if (mounted) {
-          _showErrorSnackBar('Gagal terhubung ke server backend: $e');
-        }
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
+        } catch (e) {
+          if (mounted) _showErrorSnackBar('Gagal terhubung ke server: $e');
+        } finally {
+          if (mounted) setState(() => _isLoading = false);
         }
       }
     }
-  }
 
-  void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
-    );
-  }
+    void _showErrorSnackBar(String message) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
 
   InputDecoration _inputDecoration({
     required String hintText,
@@ -146,10 +164,7 @@ class _SignUpPageState extends State<SignUpPage> {
         width: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              Color(0xFFEAF3FF),
-              Color(0xFFF7F3DE),
-            ],
+            colors: [Color(0xFFEAF3FF), Color(0xFFF7F3DE)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -167,10 +182,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     borderRadius: BorderRadius.circular(24),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 28,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
                     child: Form(
                       key: _formKey,
                       child: Column(
@@ -222,10 +234,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
                           const Text(
                             'Nama',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
-                            ),
+                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
                           ),
                           const SizedBox(height: 8),
                           TextFormField(
@@ -245,10 +254,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
                           const Text(
                             'Email',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
-                            ),
+                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
                           ),
                           const SizedBox(height: 8),
                           TextFormField(
@@ -272,10 +278,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
                           const Text(
                             'Password',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
-                            ),
+                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
                           ),
                           const SizedBox(height: 8),
                           TextFormField(
@@ -312,10 +315,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
                           const Text(
                             'Konfirmasi Password',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
-                            ),
+                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
                           ),
                           const SizedBox(height: 8),
                           TextFormField(
@@ -327,8 +327,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               suffixIcon: IconButton(
                                 onPressed: () {
                                   setState(() {
-                                    _obscureConfirmPassword =
-                                        !_obscureConfirmPassword;
+                                    _obscureConfirmPassword = !_obscureConfirmPassword;
                                   });
                                 },
                                 icon: Icon(
@@ -351,7 +350,6 @@ class _SignUpPageState extends State<SignUpPage> {
                           ),
                           const SizedBox(height: 24),
 
-                          // 4. Integrasikan efek loading di tombol Daftar
                           SizedBox(
                             height: 54,
                             child: ElevatedButton.icon(
@@ -368,10 +366,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                   : const Icon(Icons.login_rounded),
                               label: Text(
                                 _isLoading ? 'Memproses...' : 'Daftar',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                ),
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                               ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF2F5EDB),
@@ -404,38 +399,6 @@ class _SignUpPageState extends State<SignUpPage> {
                             ],
                           ),
                           const SizedBox(height: 22),
-
-                          RichText(
-                            textAlign: TextAlign.center,
-                            text: const TextSpan(
-                              style: TextStyle(
-                                color: Colors.black54,
-                                fontSize: 13,
-                                height: 1.6,
-                              ),
-                              children: [
-                                TextSpan(
-                                  text: 'Dengan mendaftar, Anda menyetujui\n',
-                                ),
-                                TextSpan(
-                                  text: 'Syarat & Ketentuan',
-                                  style: TextStyle(
-                                    color: Color(0xFF2F5EDB),
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                TextSpan(text: '\ndan\n'),
-                                TextSpan(
-                                  text: 'Kebijakan Privasi',
-                                  style: TextStyle(
-                                    color: Color(0xFF2F5EDB),
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                TextSpan(text: '\nkami'),
-                              ],
-                            ),
-                          ),
                         ],
                       ),
                     ),

@@ -57,8 +57,8 @@ use Fruitcake\Cors\CorsService;
 $cors = new CorsService([
     'allowedHeaders'         => ['x-allowed-header', 'x-other-allowed-header'],
     'allowedMethods'         => ['DELETE', 'GET', 'POST', 'PUT'],
-    'allowedOrigins'         => ['http://localhost', 'https://*.example.com'],
-    'allowedOriginsPatterns' => ['/localhost:\d/'],
+    'allowedOrigins'         => ['http://10.0.2.2', 'https://*.example.com'],
+    'allowedOriginsPatterns' => ['/10.0.2.2:\d/'],
     'exposedHeaders'         => ['Content-Encoding'],
     'maxAge'                 => 0,
     'supportsCredentials'    => false,

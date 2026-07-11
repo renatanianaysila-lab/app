@@ -1,17 +1,26 @@
+// ignore_for_file: unused_import
+
 import 'package:flutter/material.dart';
+import 'video_play_page.dart';
+import 'quiz_management_page.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class MateriGuruPage extends StatefulWidget {
   final String initialLevel;
   final String initialClassName;
-  final String guruId; // Menyimpan ID guru yang dikirim dari beranda
+  final String guruId;
+  final bool isFromHome;
+  final VoidCallback? onBackToHome;
 
   const MateriGuruPage({
     super.key,
     this.initialLevel = 'Dasar',
     this.initialClassName = '',
-    required this.guruId, 
+    required this.guruId,
+    this.isFromHome = false,
+    this.onBackToHome,
   });
 
   @override
@@ -27,12 +36,12 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
   List<dynamic> _apiMateris = [];
   Map<String, List<dynamic>> _groupedModuls = {};
 
-  // 🎯 TEXT EDITING CONTROLLER UNTUK FORM TAMBAH MATERI
+  // TEXT EDITING CONTROLLER
   final TextEditingController _modulController = TextEditingController();
   final TextEditingController _judulController = TextEditingController();
   final TextEditingController _deskripsiController = TextEditingController();
-  final TextEditingController _youtubeUrlController = TextEditingController(); // Controller Link YouTube
-
+  final TextEditingController _youtubeUrlController = TextEditingController(); 
+  
   @override
   void initState() {
     super.initState();
@@ -42,7 +51,6 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
 
   @override
   void dispose() {
-    // Clean up controllers to avoid memory leaks
     _modulController.dispose();
     _judulController.dispose();
     _deskripsiController.dispose();
@@ -51,49 +59,57 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
   }
 
   Future<void> _fetchMateri() async {
-    setState(() {
-      _isLoading = true;
-      _groupedModuls.clear();
-      _errorMessage = '';
-    });
+  setState(() {
+    _isLoading = true;
+    _groupedModuls.clear();
+    _errorMessage = '';
+  });
 
-    try {
-      final response = await http.get(
-        Uri.parse('https://isyaratkita.alwaysdata.net/api/materis?kategori=$_selectedLevel&guru_id=${widget.guruId}'),
-        headers: {
-          'ngrok-skip-browser-warning': 'true',
-        },
-      );
+  try {
+    // 1. Menggunakan 10.0.2.2 jika di emulator Android, atau 10.0.2.2 jika di Chrome/Web
+    final String url = 'http://10.0.2.2:8000/api/materis?kategori=$_selectedLevel&guru_id=${widget.guruId}';
+    
+    final response = await http.get(Uri.parse(url));
 
-      if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
-        setState(() {
-          _apiMateris = responseData['data'];
-          
-          for (var materi in _apiMateris) {
-            String namaModul = materi['nama_modul'] ?? 'Modul Umum';
-            if (!_groupedModuls.containsKey(namaModul)) {
-              _groupedModuls[namaModul] = [];
-            }
-            _groupedModuls[namaModul]!.add(materi);
-          }
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          _errorMessage = '';
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
+    if (response.statusCode == 200) {
+      final responseData = json.decode(response.body);
+      
+      // 2. Tambahkan pengecekan apakah 'data' ada dan berbentuk list
+      final List<dynamic> dataMateri = responseData['data'] is List ? responseData['data'] : [];
+      
       setState(() {
-        _errorMessage = '';
+        _apiMateris = dataMateri;
+        
+        // 3. Grouping ulang ke dalam map
+        for (var materi in _apiMateris) {
+          String namaModul = materi['nama_modul']?.toString() ?? 'Modul Umum';
+          if (!_groupedModuls.containsKey(namaModul)) {
+            _groupedModuls[namaModul] = [];
+          }
+          _groupedModuls[namaModul]!.add(materi);
+        }
+        
+        // 4. Jika data kosong setelah difetch, beri pesan informatif
+        if (_groupedModuls.isEmpty) {
+          _errorMessage = 'Belum ada materi untuk kategori $_selectedLevel';
+        }
+        
+        _isLoading = false;
+      });
+    } else {
+      setState(() {
+        _errorMessage = 'Server merespon: ${response.statusCode}';
         _isLoading = false;
       });
     }
+  } catch (e) {
+    setState(() {
+      _errorMessage = 'Gagal terhubung: $e';
+      _isLoading = false;
+    });
   }
+}
 
-  // 🎯 LOGIKA KIRIM DATA KE API STORE LARAVEL
   Future<void> _simpanMateriBaru() async {
     if (_modulController.text.trim().isEmpty || 
         _judulController.text.trim().isEmpty || 
@@ -110,23 +126,22 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'guru_id': widget.guruId,
-          'nama_modul': _modulController.text, // Modul target
+          'nama_modul': _modulController.text,
           'judul': _judulController.text,
           'deskripsi': _deskripsiController.text,
-          'video_url': _youtubeUrlController.text, // Mengirim URL YouTube ke Backend
-          'kategori': _selectedLevel, // Otomatis masuk ke level tab yang aktif saat ini
+          'video_url': _youtubeUrlController.text,
+          'kategori': _selectedLevel,
         }),
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {
-        // Bersihkan form textfield setelah berhasil simpan
         _modulController.clear();
         _judulController.clear();
         _deskripsiController.clear();
         _youtubeUrlController.clear();
 
-        Navigator.pop(context); // Tutup dialog
-        _fetchMateri(); // Refresh data biar list materi langsung terupdate
+        Navigator.pop(context); 
+        _fetchMateri(); 
         
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Materi baru berhasil ditambahkan!')),
@@ -175,7 +190,6 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                // 🎯 SEKARANG SUDAH ADA KOLOM INPUT LINK YOUTUBE
                 TextField(
                   controller: _youtubeUrlController,
                   keyboardType: TextInputType.url,
@@ -214,7 +228,7 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
                 backgroundColor: const Color(0xFFFFB800),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
-              onPressed: _simpanMateriBaru, // Menjalankan fungsi simpan terintegrasi API
+              onPressed: _simpanMateriBaru,
               child: const Text('Simpan', style: TextStyle(fontFamily: 'Poppins', color: Colors.white)),
             ),
           ],
@@ -230,11 +244,12 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        // ❌ ICON PLUS YANG DOUBLE DI SINI SUDAH DIHAPUS BERSIH
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1D2E)),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: widget.isFromHome 
+          ? IconButton(
+              icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1D2E)),
+              onPressed: () => Navigator.pop(context),
+            )
+          : null, 
         title: const Text(
           'Materi Pembelajaran',
           style: TextStyle(
@@ -245,7 +260,7 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
           ),
         ),
       ),
-      
+
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFFFFB800),
         onPressed: _showTambahMateriDialog,
@@ -326,7 +341,7 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
               ),
               onPressed: () => _switchLevel(l),
               child: Text(
-                l == 'Menengah' ? 'Intermediate' : l,
+                l == 'Menengah' ? 'Menengah' : l,
                 style: const TextStyle(fontWeight: FontWeight.w600, fontFamily: 'Poppins', fontSize: 13),
               ),
             ),
@@ -390,27 +405,87 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                _selectedLevel == 'Menengah' ? 'Intermediate' : _selectedLevel,
+                _selectedLevel == 'Menengah' ? 'Menengah' : _selectedLevel,
                 style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold, fontFamily: 'Poppins'),
               ),
             ),
             onTap: () => setState(() => _modulExpanded[namaModul] = !isExpanded),
           ),
           
-          if (isExpanded)
+if (isExpanded)
             Container(
               color: const Color(0xFFFAFAFC),
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Column(
-                children: materiList.map((m) => ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-                  leading: const Icon(Icons.play_circle_fill, color: Color(0xFFFFB800), size: 22),
-                  title: Text(
-                    m['judul'] ?? 'Tanpa Judul',
-                    style: const TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w500),
+                children: [
+                  // 1. Me-render semua daftar video materi Guru
+                  ...materiList.map((m) {
+                    return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                      leading: const Icon(Icons.play_circle_fill, color: Color(0xFFFFB800), size: 22),
+                      title: Text(
+                        m['judul'] ?? 'Tanpa Judul',
+                        style: const TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w500),
+                      ),
+                      onTap: () {
+                        String videoUrl = m['video_url'] ?? ''; 
+                        String? convertedId = YoutubePlayer.convertUrlToId(videoUrl);
+
+                        if (convertedId != null && convertedId.isNotEmpty) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => VideoPlayPage(
+                                videoId: convertedId,
+                                videoTitle: m['judul'] ?? 'Detail Video',
+                                videoDescription: m['deskripsi'], 
+                                modulName: namaModul, 
+                                objectives: List<String>.from(m['objectives'] ?? [
+                                  'Memahami instruksi visual materi terkait dengan baik.',
+                                  'Menerapkan teknik gerakan isyarat secara mandiri dan presisi.'
+                                ]),
+                                isTeacher: true,
+                                commentsReference: const [], 
+                                onCommentUpdated: () => _fetchMateri(),
+                              ),
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Link video YouTube materi ini tidak valid!')),
+                          );
+                        }
+                      },
+                    );
+                  }).toList(),
+
+                  // 🔥 2. MENU TAMBAHAN: Tombol Kelola Bank Soal Kuis Guru (Google Form Style)
+                  const Divider(height: 1, indent: 24, endIndent: 24, color: Color(0xFFE5E7EB)),
+                  ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 2),
+                    leading: const Icon(Icons.assignment_rounded, color: Color(0xFFFFB800), size: 22),
+                    title: Text(
+                      'Kelola Kuis - $namaModul',
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, fontFamily: 'Poppins', color: Color(0xFF1F2937)),
+                    ),
+                    trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFF9CA3AF)),
+                    onTap: () {
+                      // Ambil ID dari materi pertama di modul ini sebagai relasi database kuis
+                      int? materiId = materiList.isNotEmpty ? materiList[0]['id'] : null;
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => QuizManagementPage(
+                            quizTitle: 'Kuis $namaModul',
+                            materiId: materiId,
+                            level: _selectedLevel,
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                  subtitle: m['deskripsi'] != null ? Text(m['deskripsi'], style: const TextStyle(fontFamily: 'Poppins', fontSize: 12)) : null,
-                )).toList(),
+                ],
               ),
             ),
         ],

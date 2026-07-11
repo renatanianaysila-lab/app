@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
+import 'package:shared_preferences/shared_preferences.dart';
 import 'metode_pembayaran_qris.dart';
 import 'metode_pembayaran_kartu.dart';
 
@@ -19,22 +19,30 @@ class _MetodePembayaranPageState extends State<MetodePembayaranPage> {
 
   final int amount = 30000;
 
-  Future<bool> _createDummyPayment(String method) async {
+  Future<int?> _createDummyPayment(String method) async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final muridId = prefs.getString('murid_id') ?? '';
+
       final response = await http.post(
         Uri.parse('https://isyaratkita.alwaysdata.net/api/payment'),
         headers: {
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
+          'murid_id': muridId,
           'payment_method': method,
           'amount': amount,
         }),
       );
 
-      return response.statusCode == 200 || response.statusCode == 201;
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        return data['payment']['id'];
+      }
+      return null;
     } catch (e) {
-      return false;
+      return null;
     }
   }
 
@@ -62,7 +70,7 @@ class _MetodePembayaranPageState extends State<MetodePembayaranPage> {
     });
 
     final String method = selectedMethod == 1 ? 'qris' : 'card';
-    final bool success = await _createDummyPayment(method);
+    final int? paymentId = await _createDummyPayment(method);
 
     setState(() {
       isLoading = false;
@@ -70,7 +78,7 @@ class _MetodePembayaranPageState extends State<MetodePembayaranPage> {
 
     if (!mounted) return;
 
-    if (!success) {
+    if (paymentId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Gagal menghubungkan ke backend'),
@@ -83,14 +91,14 @@ class _MetodePembayaranPageState extends State<MetodePembayaranPage> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const MetodePembayaranQrisPage(),
+          builder: (context) => MetodePembayaranQrisPage(paymentId: paymentId),
         ),
       );
     } else if (selectedMethod == 2) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const MetodePembayaranKartuPage(),
+          builder: (context) => MetodePembayaranKartuPage(paymentId: paymentId),
         ),
       );
     }

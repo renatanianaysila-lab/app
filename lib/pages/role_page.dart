@@ -1,8 +1,8 @@
+// ignore_for_file: unused_import
+
 import 'package:flutter/material.dart';
-import 'main_navigation.dart';
-import 'beranda_guru.dart';
-import 'main_navigation_guru.dart';
-import 'beranda_admin.dart'; // ← TAMBAH INI
+import 'login_screen.dart';
+import 'sign_up_page.dart';
 
 class RolePage extends StatelessWidget {
   const RolePage({super.key});
@@ -51,13 +51,13 @@ class RolePage extends StatelessWidget {
                 buttonText: "Pilih Murid",
                 buttonColor: const Color(0xFF5B8DEF),
                 icon: Icons.school,
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const MainNavigation(initialIndex: 0),
-                    ),
-                  );
+                  onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SignUpPage(role: "murid"),
+                        ),
+                      );
                 },
               ),
 
@@ -78,19 +78,19 @@ class RolePage extends StatelessWidget {
                 buttonText: "Pilih Guru",
                 buttonColor: const Color(0xFFF4C542),
                 icon: Icons.menu_book_rounded,
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const MainNavigationGuru(initialIndex: 0),
-                    ),
-                  );
+                  onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SignUpPage(role: "guru"),
+                        ),
+                      );
                 },
               ),
 
               const SizedBox(height: 20),
 
-              // ─── ROLE CARD ADMIN ← TAMBAH INI ────────────────────────────
+              // ─── ROLE CARD ADMIN ──────────────────────────────────────────
               roleCard(
                 imagePath: "assets/images/admin.png",
                 colorTop: const Color(0xFF4CAF7D),
@@ -105,15 +105,15 @@ class RolePage extends StatelessWidget {
                 buttonText: "Pilih Admin",
                 buttonColor: const Color(0xFF4CAF7D),
                 icon: Icons.admin_panel_settings,
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const BerandaAdmin(),
-                    ),
-                  );
-                },
-              ),
+                  onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SignUpPage(role: "admin"),
+                        ),
+                      );
+                    },
+                  ),
 
               const SizedBox(height: 20),
 

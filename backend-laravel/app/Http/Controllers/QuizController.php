@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 class QuizController extends Controller
 {
     /**
-     * 1. Mengambil kuis acak berdasarkan materi_id / video tertentu
+     * 1. Mengambil kuis acak berdasarkan materi_id -> KHUSUS MURID (Maksimal 10 Soal)
      */
     public function index(Request $request)
     {
@@ -52,7 +52,7 @@ class QuizController extends Controller
     }
 
     /**
-     * 2. Menyimpan skor hasil kuis siswa ke tabel quiz_scores
+     * 2. Menyimpan skor hasil kuis siswa ke tabel quiz_scores -> KHUSUS MURID
      */
     public function saveScore(Request $request)
     {
@@ -82,5 +82,121 @@ class QuizController extends Controller
             'success' => false,
             'message' => 'Gagal menyimpan skor.'
         ], 500);
+    }
+
+    /**
+     * 3. Menyimpan soal kuis baru secara otomatis per materi -> KHUSUS GURU
+     */
+    public function store(Request $request)
+    {
+        // Validasi data yang dikirim dari Flutter
+        $request->validate([
+            'materi_id'     => 'required|integer', 
+            'pertanyaan'    => 'required|string',
+            'opsi_a'        => 'required|string',
+            'opsi_b'        => 'required|string',
+            'opsi_c'        => 'required|string',
+            'opsi_d'        => 'required|string',
+            'jawaban_benar' => 'required|string|max:1',
+            'level'         => 'required|string',
+        ]); 
+
+        // Query Insert ke Database
+        $id = DB::table('quizzes')->insertGetId([
+            'materi_id'     => $request->materi_id,
+            'pertanyaan'    => $request->pertanyaan,
+            'opsi_a'        => $request->opsi_a,
+            'opsi_b'        => $request->opsi_b,
+            'opsi_c'        => $request->opsi_c,
+            'opsi_d'        => $request->opsi_d,
+            'jawaban_benar' => strtoupper($request->jawaban_benar),
+            'level'         => $request->level,
+            'created_at'    => now(),
+            'updated_at'    => now(),
+        ]);
+
+        if ($id) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Soal kuis baru berhasil disimpan otomatis!',
+                'id'      => $id
+            ], 201);
+        }
+
+        return response()->json([
+            'success' => false, 
+            'message' => 'Gagal menyimpan soal.'
+        ], 500);
+    }
+
+    /**
+     * 4. Mengambil SEMUA kuis tanpa acak & tanpa limit -> KHUSUS GURU (Full Bank Soal)
+     */
+    public function getAllQuizzes(Request $request)
+    {
+        $materiId = $request->query('materi_id');
+        
+        $query = DB::table('quizzes');
+        if ($materiId) {
+            $query->where('materi_id', $materiId);
+        }
+
+        // Diambil semua berurutan berdasarkan id terbaru agar guru mudah memantau
+        $quizzes = $query->latest('id')->get(); 
+        
+        return response()->json([
+            'success' => true,
+            'data'    => $quizzes
+        ], 200);
+    }
+
+    /**
+     * 5. Mengubah/Update Soal Kuis (Khusus Guru)
+     */
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'pertanyaan'    => 'required|string',
+            'opsi_a'        => 'required|string',
+            'opsi_b'        => 'required|string',
+            'opsi_c'        => 'required|string',
+            'opsi_d'        => 'required|string',
+            'jawaban_benar' => 'required|string|max:1',
+        ]);
+
+        DB::table('quizzes')->where('id', $id)->update([
+            'pertanyaan'    => $request->pertanyaan,
+            'opsi_a'        => $request->opsi_a,
+            'opsi_b'        => $request->opsi_b,
+            'opsi_c'        => $request->opsi_c,
+            'opsi_d'        => $request->opsi_d,
+            'jawaban_benar' => strtoupper($request->jawaban_benar),
+            'updated_at'    => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Soal kuis berhasil diperbarui!'
+        ], 200);
+    }
+
+    /**
+     * 6. Menghapus Soal Kuis dari Database (Khusus Guru)
+     */
+    public function destroy($id)
+    {
+        $deleted = DB::table('quizzes')->where('id', $id)->delete();
+
+        if ($deleted) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Soal kuis berhasil dihapus!'
+            ], 200);
+        }
+
+        return response()->json([
+            'success' => false, 
+            'message' => 'Soal tidak ditemukan.'
+        ], 404);
     }
 }

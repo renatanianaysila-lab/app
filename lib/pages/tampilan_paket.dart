@@ -1,4 +1,6 @@
+// ignore_for_file: unused_import
 import 'package:flutter/material.dart';
+import 'metode_pembayaran.dart';
 
 class TampilanPaket extends StatelessWidget {
   const TampilanPaket({super.key});
@@ -151,7 +153,12 @@ class TampilanPaket extends StatelessWidget {
                     height: 52,
                     child: ElevatedButton(
                       onPressed: () {
-                      },
+                      Navigator.push( 
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MetodePembayaranPage(),
+                        ),
+                      );},
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF2563EB),
                         shape: RoundedRectangleBorder(

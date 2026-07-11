@@ -1,3 +1,5 @@
+// ignore_for_file: unused_import
+
 import 'dart:async';
 import 'dart:convert';
 
@@ -5,10 +7,14 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import 'payment_success_page.dart';
+import 'session.dart';
 
 class MetodePembayaranQrisPage extends StatefulWidget {
+  final int paymentId;
+
   const MetodePembayaranQrisPage({
     super.key,
+    required this.paymentId,
   });
 
   @override
@@ -53,78 +59,54 @@ class _MetodePembayaranQrisPageState
         '${remaining.toString().padLeft(2, '0')}';
   }
 
-  Future<void> confirmDummyPayment() async {
-    setState(() {
-      isLoading = true;
-    });
+Future<void> confirmDummyPayment() async {
+  setState(() {
+    isLoading = true;
+  });
 
-    try {
-      final createResponse = await http.post(
-        Uri.parse('https://isyaratkita.alwaysdata.net/api/payment'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'payment_method': 'qris',
-          'amount': 30000,
-        }),
+  try {
+    final confirmResponse = await http.post(
+      Uri.parse('http://10.0.2.2:8000/api/payment/${widget.paymentId}/confirm'),
+    );
+
+    if (confirmResponse.statusCode == 200 ||
+        confirmResponse.statusCode == 201) {
+      await Future.delayed(const Duration(seconds: 3));
+
+      if (!mounted) return;
+      AppSession.isPremium = true;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const PaymentSuccessPage(),
+        ),
       );
-
-      if (createResponse.statusCode == 200 ||
-          createResponse.statusCode == 201) {
-        final data = jsonDecode(createResponse.body);
-        final paymentId = data['payment']['id'];
-
-        final confirmResponse = await http.post(
-          Uri.parse('https://isyaratkita.alwaysdata.net/api/payment/$paymentId/confirm'),
-        );
-
-        if (confirmResponse.statusCode == 200 ||
-            confirmResponse.statusCode == 201) {
-          await Future.delayed(const Duration(seconds: 3));
-
-          if (!mounted) return;
-
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const PaymentSuccessPage(),
-            ),
-          );
-        } else {
-          if (!mounted) return;
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Gagal konfirmasi pembayaran'),
-            ),
-          );
-        }
-      } else {
-        if (!mounted) return;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Gagal melakukan pembayaran'),
-          ),
-        );
-      }
-    } catch (e) {
+    } else {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Backend tidak terhubung'),
+          content: Text('Gagal konfirmasi pembayaran'),
         ),
       );
     }
+  } catch (e) {
+    if (!mounted) return;
 
-    if (mounted) {
-      setState(() {
-        isLoading = false;
-      });
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Backend tidak terhubung'),
+      ),
+    );
   }
+
+  if (mounted) {
+    setState(() {
+      isLoading = false;
+    });
+  }
+}
 
   @override
   void dispose() {

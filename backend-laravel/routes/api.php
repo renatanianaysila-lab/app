@@ -5,26 +5,34 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Api\UserController;
-use App\Http\Controllers\Api\MateriController;
+use App\Http\Controllers\MateriController;
 use App\Http\Controllers\QuizController;
-use App\Http\Controllers\Api\MateriGuruController;
 use App\Http\Controllers\ForumController;
-use App\Http\Controllers\ProgressController;
+use App\Http\Controllers\Api\ProgressController;
+use App\Http\Controllers\CommentController;
+use App\Http\Controllers\Api\ProfileController;
+
+Route::get('/profile', [ProfileController::class, 'show']);
+Route::get('/user/{id}', [UserController::class, 'getUser']);
+Route::post('/user/{id}/foto', [UserController::class, 'uploadFoto']);
 
 // ==========================================
 // ─── 1. RUTE AUTENTIKASI USER ───
 // ==========================================
 Route::post('/register/murid', [UserController::class, 'registerMurid']);
+Route::post('/register/guru', [UserController::class, 'registerGuru']);
+Route::post('/register/admin', [UserController::class, 'registerAdmin']);
 Route::post('/login', [UserController::class, 'login']);
 
 
 // ==========================================
-// ─── 2. RUTE BERANDA & PROFIL GURU (VERSI TERBARU) ───
+// ─── 2. RUTE BERANDA & PROFIL GURU ───
 // ==========================================
+Route::post('/guru/profile/{id}/upload-avatar', [ProfileController::class, 'uploadAvatar']);
+
 Route::get('/guru/profil', function (Request $request) {
     $guruId = $request->query('guru_id', 'G0001');
     $guru = DB::table('guru')->where('guru_id', $guruId)->first();
-    
     $daftarModul = DB::table('materis')
         ->where('guru_id', $guruId)
         ->whereNotNull('nama_modul')
@@ -33,7 +41,7 @@ Route::get('/guru/profil', function (Request $request) {
 
     $kelasData = [];
     $idCounter = 1;
-    
+
     foreach ($daftarModul as $modul) {
         $kelasData[] = [
             'id' => $idCounter++,
@@ -61,47 +69,36 @@ Route::get('/guru/profil', function (Request $request) {
 // ==========================================
 // ─── 3. RUTE MATERI (SISWA & GURU) ───
 // ==========================================
-// ✅ DIPERBAIKI: Hapus duplikat, gabung jadi satu route dengan filter kategori & guru_id
-Route::get('/materis', function (Request $request) {
-    try {
-        $kategoriInput = $request->query('kategori', null);
-        $guruIdInput   = $request->query('guru_id', null);
+Route::get('/materi/levels', [MateriController::class, 'levels']);
+Route::get('/materi/{video_id}', [MateriController::class, 'show']);
 
-        $query = DB::table('materis');
+Route::get('/materis', [MateriController::class, 'index']);
+Route::post('/materis', [MateriController::class, 'store']);
 
-        // Filter kategori jika ada
-        if ($kategoriInput) {
-            $kategoriDb = 'Dasar';
-            if ($kategoriInput == 'Intermediate' || $kategoriInput == 'Menengah') {
-                $kategoriDb = 'Menengah';
-            } elseif ($kategoriInput == 'Lanjutan' || $kategoriInput == 'Susah') {
-                $kategoriDb = 'Susah';
-            }
-            $query->where('kategori', $kategoriDb);
-        }
+// Filter materi per kategori + guru tertentu (buat halaman GURU, bukan murid).
+// Sebelumnya path-nya numpuk sama '/materis' di atas jadi gak pernah kepanggil.
+// Sekarang path-nya dipisah + mapping kategori dibenerin (Susah -> Lanjutan).
+Route::get('/materis/filter', function (Request $request) {
+    $kategoriInput = $request->query('kategori', 'Dasar');
+    $guruIdInput = $request->query('guru_id', 'G0001');
 
-        // Filter guru_id jika ada
-        if ($guruIdInput) {
-            $query->where('guru_id', $guruIdInput);
-        }
-
-        $materis = $query->get();
-
-        return response()->json([
-            'success' => true,
-            'data' => $materis
-        ], 200);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Gagal memuat materi: ' . $e->getMessage()
-        ], 500);
+    $kategoriDb = 'Dasar';
+    if ($kategoriInput == 'Intermediate' || $kategoriInput == 'Menengah') {
+        $kategoriDb = 'Menengah';
+    } elseif ($kategoriInput == 'Lanjutan' || $kategoriInput == 'Susah') {
+        $kategoriDb = 'Lanjutan';
     }
+
+    $materis = DB::table('materis')
+        ->where('kategori', $kategoriDb)
+        ->where('guru_id', $guruIdInput)
+        ->get();
+
+    return response()->json([
+        'success' => true,
+        'data' => $materis
+    ], 200);
 });
-
-Route::post('/materi', [MateriController::class, 'store']);
-
 
 // ==========================================
 // ─── 4. RUTE PROGRESS BELAJAR SISWA ───
@@ -120,51 +117,57 @@ Route::get('/user/progress/{user_id}', function ($user_id) {
     ], 200);
 });
 
+// Tandai 1 materi selesai ditonton -> BELUM ADA sebelumnya, dibutuhin buat unlock kuis level.
+// Ditulis inline (bukan controller baru) biar gak nambah file.
+Route::post('/user/progress', function (Request $request) {
+    $request->validate([
+        'user_id'   => 'required',
+        'materi_id' => 'required|integer',
+    ]);
+
+    $existing = DB::table('user_progress')
+        ->where('user_id', $request->user_id)
+        ->where('materi_id', $request->materi_id)
+        ->first();
+
+    if ($existing) {
+        DB::table('user_progress')
+            ->where('id', $existing->id)
+            ->update(['is_completed' => 1, 'updated_at' => now()]);
+    } else {
+        DB::table('user_progress')->insert([
+            'user_id'      => $request->user_id,
+            'materi_id'    => $request->materi_id,
+            'is_completed' => 1,
+            'created_at'   => now(),
+            'updated_at'   => now(),
+        ]);
+    }
+
+    return response()->json(['success' => true, 'message' => 'Progress materi diperbarui.'], 200);
+});
 
 // ==========================================
 // ─── 5. RUTE FORUM DISKUSI ───
 // ==========================================
 Route::get('/forums', [ForumController::class, 'index']);
 Route::post('/forums', [ForumController::class, 'store']);
-
+Route::post('/forums/{id}/reply', [ForumController::class, 'storeReply']);
+Route::post('/forums/{id}/like', [ForumController::class, 'toggleLike']);
 
 // ==========================================
 // ─── 6. RUTE KUIS & RIWAYAT NILAI ───
 // ==========================================
+Route::get('/quizzes/level/{level}', [QuizController::class, 'byLevel']);
 Route::get('/quizzes', [QuizController::class, 'index']);
+Route::post('/quizzes', [QuizController::class, 'store']);
+Route::put('/quizzes/{id}', [QuizController::class, 'update']);
+Route::delete('/quizzes/{id}', [QuizController::class, 'destroy']);
+
+// Nama endpoint skor DISAMAIN ke '/quiz-scores' (yang udah eksis di file kamu),
+// bukan '/skor-kuis' kayak yang aku pakai di kode Flutter sebelumnya.
+Route::get('/quiz-scores', [QuizController::class, 'getScore']);
 Route::post('/quiz-scores', [QuizController::class, 'saveScore']);
-
-Route::get('/quiz', function () {
-    return response()->json([
-        'success' => true,
-        'message' => 'Daftar soal kuis berhasil diambil',
-        'data' => DB::table('quizzes')->get()
-    ], 200);
-});
-
-Route::get('/quizzes/{kategori}', [QuizController::class, 'index']);
-
-Route::post('/quiz/score', function (Request $request) {
-    $validated = $request->validate([
-        'user_id' => 'required|integer',
-        'level' => 'required|string',
-        'skor' => 'required|integer',
-    ]);
-
-    $id = DB::table('quiz_scores')->insertGetId([
-        'user_id' => $validated['user_id'],
-        'level' => $validated['level'],
-        'skor' => $validated['skor'],
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Skor kuis berhasil disimpan ke database!',
-        'data' => DB::table('quiz_scores')->where('id', $id)->first()
-    ], 201);
-});
 
 Route::get('/quiz/history', function () {
     return response()->json([
@@ -174,6 +177,7 @@ Route::get('/quiz/history', function () {
     ], 200);
 });
 
+Route::get('/guru/quizzes', [QuizController::class, 'getAllQuizzes']);
 
 // ==========================================
 // ─── 7. RUTE PEMBAYARAN & SUBSCRIPTION ───
@@ -188,7 +192,7 @@ Route::get('/packages', function () {
         'message' => 'Daftar paket premium berhasil diambil',
         'data' => DB::table('packages')->get()
     ], 200);
-}); 
+});
 
 Route::get('/user/subscription/{user_id}', function ($user_id) {
     $subscription = DB::table('user_subscriptions')
@@ -203,7 +207,6 @@ Route::get('/user/subscription/{user_id}', function ($user_id) {
         'data' => $subscription
     ], 200);
 });
-
 
 // ==========================================
 // ─── 8. RUTE PANEL INPUT ADMIN & DASHBOARD ───
@@ -232,6 +235,7 @@ Route::post('/admin/materi', function (Request $request) {
     ], 201);
 });
 
+// ⚠️ Tabel 'categories' GAK ADA di database kamu -> bakal 500 kalau dipanggil.
 Route::post('/admin/kategori', function (Request $request) {
     $validated = $request->validate([
         'nama_kategori' => 'required|string|max:100',
@@ -251,6 +255,7 @@ Route::post('/admin/kategori', function (Request $request) {
     ], 201);
 });
 
+// ⚠️ Tabel 'teachers' juga GAK ADA (yang ada 'guru') -> bakal 500 kalau dipanggil.
 Route::post('/admin/guru', function (Request $request) {
     $validated = $request->validate([
         'nama_guru' => 'required|string|max:150',
@@ -317,10 +322,9 @@ Route::get('/admin/guru', function () {
                 'id'     => $item->guru_id,
                 'nama'   => $item->nama_guru,
                 'email'  => $item->email_guru,
-                'status' => 'Aktif',
+                'status' => $item->status ?? 'Aktif',
             ];
         });
-
         return response()->json(['success' => true, 'data' => $guru], 200);
     } catch (\Exception $e) {
         return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
@@ -337,7 +341,6 @@ Route::get('/admin/murid', function () {
                 'status' => 'Aktif',
             ];
         });
-
         return response()->json(['success' => true, 'data' => $murid], 200);
     } catch (\Exception $e) {
         return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
@@ -365,7 +368,6 @@ Route::get('/admin/konten', function () {
                 'warna'    => $kategoriColor,
             ];
         });
-
         return response()->json(['success' => true, 'data' => $materi], 200);
     } catch (\Exception $e) {
         return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
@@ -417,7 +419,6 @@ Route::get('/admin/aktivitas', function () {
         }, $aktivitas);
 
         return response()->json(['success' => true, 'data' => $result], 200);
-
     } catch (\Exception $e) {
         return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
     }
@@ -442,7 +443,6 @@ Route::get('/admin/laporan', function () {
 
         $transaksi = $transaksiRaw->map(function ($t) {
             $nominal = '+Rp ' . number_format($t->total_harga ?? 0, 0, ',', '.');
-
             return [
                 'judul'   => $t->nama_paket ?? 'Paket Tidak Diketahui',
                 'sub'     => 'oleh ' . ($t->user_name ?? 'Pengguna') . ' • ' .
@@ -462,11 +462,7 @@ Route::get('/admin/laporan', function () {
         $mingguan = [];
         for ($i = 6; $i >= 0; $i--) {
             $tanggal = now()->subDays($i);
-            $nilai = DB::table('transactions')
-                ->where('status', 'success')
-                ->whereDate('created_at', $tanggal->toDateString())
-                ->sum('total_harga');
-
+            $nilai = DB::table('transactions')->where('status', 'success')->whereDate('created_at', $tanggal->toDateString())->sum('total_harga');
             $mingguan[] = [
                 'hari'      => $hariIndo[$tanggal->dayOfWeek],
                 'nilai'     => (float) $nilai,
@@ -485,8 +481,24 @@ Route::get('/admin/laporan', function () {
                 'mingguan'         => $mingguan,
             ],
         ], 200);
-
     } catch (\Exception $e) {
         return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
     }
+});
+
+// ==========================================
+// ─── 9. RUTE KOMENTAR & DISKUSI VIDEO ───
+// ==========================================
+Route::get('/comments', [CommentController::class, 'getComments']);
+Route::post('/comments', [CommentController::class, 'storeComment']);
+
+Route::get('/teacher/dashboard-stats', [CommentController::class, 'getDashboardStats']);
+
+Route::post('/admin/guru/{id}/approve', function ($id) {
+    DB::table('guru')->where('guru_id', $id)->update(['status' => 'aktif']);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Guru berhasil di-approve!'
+    ], 200);
 });

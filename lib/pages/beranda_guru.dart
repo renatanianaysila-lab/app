@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+// ignore: unused_import
 import 'materi_guru.dart';
 
 class BerandaGuruMain extends StatefulWidget {
-  const BerandaGuruMain({super.key});
+  final Function(int) onChangeTab; 
+
+  const BerandaGuruMain({super.key, required this.onChangeTab});
 
   @override
   State<BerandaGuruMain> createState() => _BerandaGuruMainState();
 }
 
 class _BerandaGuruMainState extends State<BerandaGuruMain> {
-  // ── STATE DATA API BERANDA ───────────────────────────────────────
   bool _isLoading = true;
   String _namaGuru = '';
   int _jumlahSiswa = 0;
@@ -20,9 +22,6 @@ class _BerandaGuruMainState extends State<BerandaGuruMain> {
   int _jumlahUlasan = 0;
   List<dynamic> _kelasList = [];
 
-  // 🎯 KUNCI UTAMA: Variabel untuk menyimpan halaman aktif di dalam tab Beranda
-  Widget? _subPage;
-
   @override
   void initState() {
     super.initState();
@@ -30,45 +29,50 @@ class _BerandaGuruMainState extends State<BerandaGuruMain> {
   }
 
   Future<void> _fetchBerandaData() async {
-  setState(() => _isLoading = true);
-  try {
-    final resProfil = await http.get(
-      Uri.parse('https://isyaratkita.alwaysdata.net/api/guru/profil?guru_id=G0001'),
-      headers: {
-        'ngrok-skip-browser-warning': 'true',
-      },
-    );
-    
-    print("STATUS CODE: ${resProfil.statusCode}"); 
-    print("RESPONSE: ${resProfil.body}");      
-    
-    if (resProfil.statusCode == 200) {
-      final data = jsonDecode(resProfil.body)['data'];
-      setState(() {
-        _namaGuru = data['nama_guru'] ?? 'Nama Guru';
-        _jumlahSiswa = data['jumlah_siswa'] ?? 0;
-        _jumlahKelas = data['jumlah_kelas'] ?? 0;
-        _ratingGuru = (data['rating'] ?? 0.0).toDouble();
-        _kelasList = data['kelas'] ?? [];
-        _isLoading = false;
-      });
-    } else {
-      print("GAGAL: status ${resProfil.statusCode}"); // 🔍 Tambah ini
+    setState(() => _isLoading = true);
+    try {
+      // 1. Ambil Data Profil Guru
+      final resProfil = await http.get(
+        Uri.parse('http://10.0.2.2:8000/api/guru/profil?guru_id=G0001'),
+      );
+      
+      // 2. Ambil Data Rata-Rata Rating Global dari Seluruh Video
+      final resStats = await http.get(
+        Uri.parse('http://10.0.2.2:8000/api/teacher/dashboard-stats'),
+      );
+      
+      if (resProfil.statusCode == 200) {
+        final data = jsonDecode(resProfil.body)['data'];
+        
+        double liveRating = 0.0;
+        int liveUlasanCount = 0;
+
+        // Ambil data ulasan live dari database statistik baru
+        if (resStats.statusCode == 200) {
+          final statsData = jsonDecode(resStats.body);
+          liveRating = double.parse(statsData['average_rating'].toString());
+          liveUlasanCount = statsData['total_reviews'];
+        }
+
+        setState(() {
+          _namaGuru = data['nama_guru'] ?? 'Nama Guru';
+          _jumlahSiswa = data['jumlah_siswa'] ?? 0;
+          _jumlahKelas = data['jumlah_kelas'] ?? 0;
+          _kelasList = data['kelas'] ?? [];
+          
+          _ratingGuru = liveRating;
+          _jumlahUlasan = liveUlasanCount;
+          
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print("Eror Beranda: $e");
       setState(() => _isLoading = false);
     }
-  } catch (e) {
-    print("Eror Beranda: $e"); // Ini sudah ada
-    setState(() => _isLoading = false);
-  }
-}
-  
+    }
   @override
   Widget build(BuildContext context) {
-    // 🎯 JIKA _subPage TIDAK NULL, TAMPILKAN HALAMAN MATERI LANGSUNG DI SINI
-    if (_subPage != null) {
-      return _subPage!;
-    }
-
     if (_isLoading) {
       return const Scaffold(
         backgroundColor: Color(0xFFF7F8FC),
@@ -120,7 +124,6 @@ class _BerandaGuruMainState extends State<BerandaGuruMain> {
     );
   }
 
-  // ── TOP BAR ──────────────────────────────────────────────────────
   Widget _buildTopBar() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -176,7 +179,6 @@ class _BerandaGuruMainState extends State<BerandaGuruMain> {
     );
   }
 
-  // ── SUMMARY CARDS ────────────────────────────────────────────────
   Widget _buildSummaryCards() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -224,7 +226,6 @@ class _BerandaGuruMainState extends State<BerandaGuruMain> {
     );
   }
 
-  // ── RATING BOX ───────────────────────────────────────────────────
   Widget _buildRatingBox() {
     final int bintangPenuh = _ratingGuru.floor();
     final bool adaSetengah = (_ratingGuru - bintangPenuh) >= 0.5;
@@ -294,7 +295,7 @@ class _BerandaGuruMainState extends State<BerandaGuruMain> {
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                         fontFamily: 'Poppins')),
-                const SizedBox(width: 4),
+                SizedBox(width: 4),
                 Icon(Icons.arrow_forward_ios_rounded, size: 10),
               ],
             ),
@@ -304,7 +305,6 @@ class _BerandaGuruMainState extends State<BerandaGuruMain> {
     );
   }
 
-  // ── KELAS LIST HORIZONTAL ────────────────────────────────────────
   Widget _buildKelasListHorizontal() {
     if (_kelasList.isEmpty) {
       return const Padding(
@@ -390,14 +390,8 @@ class _BerandaGuruMainState extends State<BerandaGuruMain> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
-                      // 🎯 LANGSUNG NYAMBUNG DI TEMPAT: Mengisi _subPage dengan widget MateriGuruPage
-                      setState(() {
-                        _subPage = MateriGuruPage(
-                          initialLevel: level,
-                          initialClassName: title,
-                          guruId: 'G0001',
-                        );
-                      });
+                      // 🎯 LANGSUNG PINDAH TAB KE INDEKS 1 (MATERI) TANPA TYPO
+                      widget.onChangeTab(1); 
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: warnaKuning,

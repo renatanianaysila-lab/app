@@ -1,11 +1,18 @@
+// ignore_for_file: unused_import
+
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // untuk session login
 import 'forgot_password_page.dart';
-import 'package:app/pages/role_page.dart';
+import 'sign_up_page.dart'; 
+import 'package:app/pages/role_page.dart'; // Import RolePage buat alur daftar
+import 'main_navigation.dart'; // langsung ke Beranda Murid
+import 'main_navigation_guru.dart'; // langsung ke Beranda Guru
 import 'beranda_admin.dart';
 import 'package:http/http.dart' as http;
 
 class LoginScreen extends StatefulWidget {
+  // Constructor dibuat polosan tanpa mewajibkan lemparan data role dari splash screen
   const LoginScreen({super.key});
 
   @override
@@ -17,20 +24,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool isLogin = true;
   bool isPasswordHidden = true;
-  bool isConfirmPasswordHidden = true;
   bool _isLoading = false;
 
-  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
 
   @override
   void dispose() {
-    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
-    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -41,7 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }) {
     return InputDecoration(
       hintText: hintText,
-      hintStyle: const TextStyle(color: Color(0xFF9AA1AC)),
+      hintStyle: const TextStyle(color: Color(0xFF9AA1AC), fontFamily: 'Poppins'),
       prefixIcon: Icon(prefixIcon, color: const Color(0xFF9AA1AC)),
       suffixIcon: suffixIcon,
       filled: true,
@@ -80,110 +82,93 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
-    if (isLogin) {
-      // ── 1. LOGIKA LOGIN ──
-      if (email == 'admin@gmail.com' && password == '12345678') {
-        setState(() => _isLoading = false);
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const BerandaAdmin()),
-        );
-        return;
-      }
+    // ── 1. LOGIKA LOGIN ADMIN BYPASS ──
+    if (email == 'admin@gmail.com' && password == '12345678') {
+      setState(() => _isLoading = false);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const BerandaAdmin()),
+      );
+      return;
+    }
 
-      const String urlLogin = 'https://isyaratkita.alwaysdata.net/api/login';
-      
-      try {
-        final response = await http.post(
-          Uri.parse(urlLogin),
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: jsonEncode({
-            'email': email,
-            'password': password,
-            'role': 'murid',
-          }),
-        );
+    const String urlLogin = 'http://10.0.2.2:8000/api/login';
+    
+    try {
+      final response = await http.post(
+        Uri.parse(urlLogin),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({
+          'email': email,
+          'password': password
+        }),
+      );
 
-        final responseData = jsonDecode(response.body);
+      final responseData = jsonDecode(response.body);
 
-        if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final prefs = await SharedPreferences.getInstance();
+        String role = responseData['role'] ?? 'murid';
+        
+        if (role == 'admin') {
+          await prefs.setString('role', 'admin');
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Selamat datang kembali!'),
-                backgroundColor: Colors.green,
-              ),
-            );
+            _showSnackBar('Selamat datang kembali Admin!', Colors.green);
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (_) => const RolePage()),
+              MaterialPageRoute(builder: (_) => const BerandaAdmin()),
             );
           }
-        } else {
+        } else if (role == 'murid') {
+          await prefs.setString('role', 'murid');
+          await prefs.setString('murid_id', responseData['user']['murid_id'] ?? '');
+          await prefs.setString('nama_murid', responseData['user']['nama_murid'] ?? '');
+          
           if (mounted) {
-            _showSnackBar(responseData['message'] ?? 'Email atau password salah', Colors.red);
+            _showSnackBar('Selamat datang kembali, ${responseData['user']['nama_murid']}!', Colors.green);
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const MainNavigation(initialIndex: 0)),
+            );
+          }
+        } else if (role == 'guru') {
+          await prefs.setString('role', 'guru');
+          await prefs.setString('guru_id', responseData['user']['guru_id'] ?? '');
+          await prefs.setString('nama_guru', responseData['user']['nama_guru'] ?? '');
+          
+          if (mounted) {
+            _showSnackBar('Selamat datang kembali Guru, ${responseData['user']['nama_guru']}!', Colors.green);
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const MainNavigationGuru()),
+            );
           }
         }
-      } catch (e) {
-        if (mounted) _showSnackBar('Gagal terhubung ke server: $e', Colors.red);
-      } finally {
-        if (mounted) setState(() => _isLoading = false);
-      }
-
-    } else {
-      // ── 2. LOGIKA REGISTRASI ──
-      const String urlRegister = 'https://isyaratkita.alwaysdata.net/api/register/murid';
-      try {
-        final response = await http.post(
-          Uri.parse(urlRegister),
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: jsonEncode({
-            'nama_murid': _nameController.text.trim(),
-            'email_murid': email,
-            'password_murid': password,
-            'tanggal_lahir': '2005-01-01',
-          }),
-        );
-
-        final responseData = jsonDecode(response.body);
-
-        if (response.statusCode == 201) {
-          if (mounted) {
-            _showSnackBar(responseData['message'] ?? 'Pendaftaran berhasil diproses!', Colors.green);
-            setState(() {
-              isLogin = true;
-              isPasswordHidden = true;
-              isConfirmPasswordHidden = true;
-              _nameController.clear();
-              _emailController.clear();
-              _passwordController.clear();
-              _confirmPasswordController.clear();
-            });
-          }
-        } else {
-          if (mounted) {
-            String errorMsg = responseData['message'] ?? 'Gagal memproses pendaftaran';
-            if (responseData['errors'] != null) errorMsg = responseData['errors'].toString();
-            _showSnackBar(errorMsg, Colors.red);
-          }
+      } else if (response.statusCode == 403) {
+        if (mounted) {
+          _showSnackBar(responseData['message'] ?? 'Akun Guru Anda belum disetujui oleh Admin.', Colors.orange);
         }
-      } catch (e) {
-        if (mounted) _showSnackBar('Gagal terhubung ke server: $e', Colors.red);
-      } finally {
-        if (mounted) setState(() => _isLoading = false);
+      } else {
+        if (mounted) {
+          _showSnackBar(responseData['message'] ?? 'Email atau password salah', Colors.red);
+        }
       }
+    } catch (e) {
+      if (mounted) _showSnackBar('Gagal terhubung ke server: $e', Colors.red);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   void _showSnackBar(String message, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: color),
+      SnackBar(
+        content: Text(message, style: const TextStyle(fontFamily: 'Poppins')), 
+        backgroundColor: color
+      ),
     );
   }
 
@@ -227,12 +212,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 4),
                         const Text(
                           'Belajar Bahasa Isyarat Bersama',
-                          style: TextStyle(fontSize: 14, color: Color(0xFF5D6470)),
+                          style: TextStyle(fontSize: 14, fontFamily: 'Poppins', color: Color(0xFF5D6470)),
                         ),
                         const SizedBox(height: 26),
-                        Text(
-                          isLogin ? 'Selamat Datang' : 'Daftar Akun',
-                          style: const TextStyle(
+                        const Text(
+                          'Selamat Datang',
+                          style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 28,
                             fontWeight: FontWeight.w800,
@@ -240,40 +225,22 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        Text(
-                          isLogin
-                              ? 'Masuk ke akun Anda untuk melanjutkan\npembelajaran'
-                              : 'Buat akun baru untuk memulai',
+                        const Text(
+                          'Masuk ke akun Anda untuk melanjutkan\npembelajaran',
                           textAlign: TextAlign.center,
-                          style: const TextStyle(fontSize: 14, height: 1.5, color: Color(0xFF5D6470)),
+                          style: TextStyle(fontSize: 14, fontFamily: 'Poppins', height: 1.5, color: Color(0xFF5D6470)),
                         ),
                         const SizedBox(height: 30),
-                        if (!isLogin) ...[
-                          const Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text('Nama', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF414A57))),
-                          ),
-                          const SizedBox(height: 10),
-                          TextFormField(
-                            controller: _nameController,
-                            decoration: _inputDecoration(hintText: 'Masukkan nama lengkap', prefixIcon: Icons.person_outline),
-                            validator: (value) {
-                              if (!isLogin && (value == null || value.trim().isEmpty)) {
-                                return 'Nama wajib diisi';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 22),
-                        ],
+                        
                         const Align(
                           alignment: Alignment.centerLeft,
-                          child: Text('Email', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF414A57))),
+                          child: Text('Email', style: TextStyle(fontSize: 14, fontFamily: 'Poppins', fontWeight: FontWeight.w600, color: Color(0xFF414A57))),
                         ),
                         const SizedBox(height: 10),
                         TextFormField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
+                          style: const TextStyle(fontFamily: 'Poppins', fontSize: 14),
                           decoration: _inputDecoration(hintText: 'Masukkan email Anda', prefixIcon: Icons.email_outlined),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
@@ -289,12 +256,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 22),
                         const Align(
                           alignment: Alignment.centerLeft,
-                          child: Text('Password', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF414A57))),
+                          child: Text('Password', style: TextStyle(fontSize: 14, fontFamily: 'Poppins', fontWeight: FontWeight.w600, color: Color(0xFF414A57))),
                         ),
                         const SizedBox(height: 10),
                         TextFormField(
                           controller: _passwordController,
                           obscureText: isPasswordHidden,
+                          style: const TextStyle(fontFamily: 'Poppins', fontSize: 14),
                           decoration: _inputDecoration(
                             hintText: 'Masukkan password Anda',
                             prefixIcon: Icons.lock_outline,
@@ -312,58 +280,26 @@ class _LoginScreenState extends State<LoginScreen> {
                             return null;
                           },
                         ),
-                        if (!isLogin) ...[
-                          const SizedBox(height: 22),
-                          const Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text('Konfirmasi Password', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF414A57))),
-                          ),
-                          const SizedBox(height: 10),
-                          TextFormField(
-                            controller: _confirmPasswordController,
-                            obscureText: isConfirmPasswordHidden,
-                            decoration: _inputDecoration(
-                              hintText: 'Ulangi password',
-                              prefixIcon: Icons.lock_outline,
-                              suffixIcon: IconButton(
-                                onPressed: () => setState(() => isConfirmPasswordHidden = !isConfirmPasswordHidden),
-                                icon: Icon(
-                                  isConfirmPasswordHidden ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                                  color: const Color(0xFF9AA1AC),
-                                ),
-                              ),
+                        const SizedBox(height: 12),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () => Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const ForgotPasswordPage()),
                             ),
-                            validator: (value) {
-                              if (!isLogin) {
-                                if (value == null || value.isEmpty) return 'Konfirmasi password wajib diisi';
-                                if (value != _passwordController.text) return 'Password tidak sama';
-                              }
-                              return null;
-                            },
+                            child: const Text('Lupa Password?', style: TextStyle(color: Color(0xFF5F8DFF), fontSize: 14, fontFamily: 'Poppins', fontWeight: FontWeight.w500)),
                           ),
-                        ],
-                        if (isLogin) ...[
-                          const SizedBox(height: 12),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: () => Navigator.of(context).push(
-                                MaterialPageRoute(builder: (_) => const ForgotPasswordPage()),
-                              ),
-                              child: const Text('Lupa Password?', style: TextStyle(color: Color(0xFF5F8DFF), fontSize: 14, fontWeight: FontWeight.w500)),
-                            ),
-                          ),
-                        ],
+                        ),
                         const SizedBox(height: 8),
                         SizedBox(
                           width: double.infinity,
                           height: 58,
                           child: ElevatedButton.icon(
                             onPressed: _submit,
-                            icon: Icon(isLogin ? Icons.login : Icons.person_add_alt_1, color: Colors.white),
-                            label: Text(
-                              isLogin ? 'Masuk' : 'Daftar',
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white),
+                            icon: const Icon(Icons.login, color: Colors.white),
+                            label: const Text(
+                              'Masuk',
+                              style: TextStyle(fontSize: 16, fontFamily: 'Poppins', fontWeight: FontWeight.w700, color: Colors.white),
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF5F8DFF),
@@ -373,22 +309,23 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ),
+                        
                         const SizedBox(height: 34),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              isLogin ? 'Belum punya akun? ' : 'Sudah punya akun? ',
-                              style: const TextStyle(fontSize: 14, color: Color(0xFF5D6470)),
+                            const Text(
+                              'Belum punya akun? ',
+                              style: TextStyle(fontSize: 14, fontFamily: 'Poppins', color: Color(0xFF5D6470)),
                             ),
                             TextButton(
                               onPressed: () {
-                                setState(() {
-                                  isLogin = !isLogin;
-                                  _formKey.currentState?.reset();
-                                });
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const RolePage()),
+                                );
                               },
-                              child: Text(isLogin ? 'Daftar' : 'Masuk'),
+                              child: const Text('Daftar', style: TextStyle(fontFamily: 'Poppins')),
                             ),
                           ],
                         ),

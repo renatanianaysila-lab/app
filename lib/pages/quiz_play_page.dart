@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'quiz_result_page.dart'; 
 
 class QuizPlayPage extends StatefulWidget {
@@ -11,125 +13,59 @@ class QuizPlayPage extends StatefulWidget {
 
 class _QuizPlayPageState extends State<QuizPlayPage> {
   int currentQuestionIndex = 0; 
-  late List<Map<String, dynamic>> activeQuizData; // Menampung data kuis yang aktif sesuai pilihan user
+  bool _isLoading = true;
+  String _errorMessage = '';
 
-  // 1. DATA KUIS BAGIAN ABJAD
-  final List<Map<String, dynamic>> daftarSoalAbjad = [
-    {
-      'id': 1,
-      'question': 'Apa arti dari gerakan bahasa isyarat berikut?',
-      'instruction': 'Perhatikan gerakan dengan seksama dan pilih jawaban yang tepat',
-      'gambarPath': 'assets/images/a_kuis.png',
-      'options': {'A': 'Huruf A', 'B': 'Huruf B', 'C': 'Huruf C', 'D': 'Huruf D'},
-      'jawabanBenar': 'A',
-      'selectedAnswer': null,
-      'isFlagged': false,
-    },
-    {
-      'id': 2,
-      'question': 'Perhatikan gerakan tangan ini dengan seksama. Huruf apakah ini?',
-      'instruction': 'Perhatikan gerakan dengan seksama dan pilih jawaban yang tepat',
-      'gambarPath': 'assets/images/d_kuis.png',
-      'options': {'A': 'Huruf E', 'B': 'Huruf D', 'C': 'Huruf F', 'D': 'Huruf G'},
-      'jawabanBenar': 'B',
-      'selectedAnswer': null,
-      'isFlagged': false,
-    },
-    {
-      'id': 3,
-      'question': 'Simbol gerakan tangan berikut merepresentasikan huruf...',
-      'instruction': 'Perhatikan gerakan dengan seksama dan pilih jawaban yang tepat',
-      'gambarPath': 'assets/images/g_kuis.png',
-      'options': {'A': 'Huruf H', 'B': 'Huruf I', 'C': 'Huruf G', 'D': 'Huruf J'},
-      'jawabanBenar': 'C',
-      'selectedAnswer': null,
-      'isFlagged': false,
-    },
-    {
-      'id': 4,
-      'question': 'Apa arti dari gerakan bahasa isyarat berikut?',
-      'instruction': 'Perhatikan gerakan dengan seksama dan pilih jawaban yang tepat',
-      'gambarPath': 'assets/images/j_kuis.png',
-      'options': {'A': 'Huruf K', 'B': 'Huruf L', 'C': 'Huruf M', 'D': 'Huruf J'},
-      'jawabanBenar': 'D',
-      'selectedAnswer': null,
-      'isFlagged': false,
-    },
-    {
-      'id': 5,
-      'question': 'Huruf apakah yang ditunjukkan oleh isyarat tangan di bawah ini?',
-      'instruction': 'Perhatikan gerakan dengan seksama dan pilih jawaban yang tepat',
-      'gambarPath': 'assets/images/w_kuis.png',
-      'options': {'A': 'Huruf W', 'B': 'Huruf V', 'C': 'Huruf U', 'D': 'Huruf X'},
-      'jawabanBenar': 'A',
-      'selectedAnswer': null,
-      'isFlagged': false,
-    },
-  ];
+  List<Map<String, dynamic>> activeQuizData = [];
 
-  // 2. DATA KUIS BAGIAN ANGKA (Sesuai dengan nama file di image_3fab9c.png)
-  final List<Map<String, dynamic>> daftarSoalAngka = [
-    {
-      'id': 1,
-      'question': 'Simbol isyarat tangan pada gambar berikut menunjukkan angka...',
-      'instruction': 'Perhatikan formasi jari dengan seksama dan tentukan nilainya',
-      'gambarPath': 'assets/images/angka1_kuis.jpg', // Format .jpg sesuai tanda logo file
-      'options': {'A': 'Angka 1', 'B': 'Angka 2', 'C': 'Angka 0', 'D': 'Angka 5'},
-      'jawabanBenar': 'A',
-      'selectedAnswer': null,
-      'isFlagged': false,
-    },
-    {
-      'id': 2,
-      'question': 'Berapakah nilai angka yang direpresentasikan oleh gerakan isyarat ini?',
-      'instruction': 'Perhatikan formasi jari dengan seksama dan tentukan nilainya',
-      'gambarPath': 'assets/images/angka3_kuis.jpg',
-      'options': {'A': 'Angka 2', 'B': 'Angka 4', 'C': 'Angka 3', 'D': 'Angka 1'},
-      'jawabanBenar': 'C',
-      'selectedAnswer': null,
-      'isFlagged': false,
-    },
-    {
-      'id': 3,
-      'question': 'Apa arti dari simbol isyarat angka pada gambar berikut?',
-      'instruction': 'Perhatikan formasi jari dengan seksama dan tentukan nilainya',
-      'gambarPath': 'assets/images/angka5_kuis.jpg',
-      'options': {'A': 'Angka 10', 'B': 'Angka 5', 'C': 'Angka 6', 'D': 'Angka 4'},
-      'jawabanBenar': 'B',
-      'selectedAnswer': null,
-      'isFlagged': false,
-    },
-    {
-      'id': 4,
-      'question': 'Perhatikan posisi jari ini. Isyarat ini melambangkan bilangan...',
-      'instruction': 'Perhatikan formasi jari dengan seksama dan tentukan nilainya',
-      'gambarPath': 'assets/images/angka6_kuis.jpg',
-      'options': {'A': 'Angka 7', 'B': 'Angka 9', 'C': 'Angka 8', 'D': 'Angka 6'},
-      'jawabanBenar': 'D',
-      'selectedAnswer': null,
-      'isFlagged': false,
-    },
-    {
-      'id': 5,
-      'question': 'Simbol isyarat tangan pada gambar berikut menunjukkan angka...',
-      'instruction': 'Perhatikan formasi jari dengan seksama dan tentukan nilainya',
-      'gambarPath': 'assets/images/angka8_kuis.jpg',
-      'options': {'A': 'Angka 8', 'B': 'Angka 7', 'C': 'Angka 9', 'D': 'Angka 10'},
-      'jawabanBenar': 'A',
-      'selectedAnswer': null,
-      'isFlagged': false,
-    },
-  ];
+  Future<void> _fetchQuestions() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8000/api/quizzes?materi_id=1'),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+
+        setState(() {
+          activeQuizData = data.map((item) {
+            return {
+              'id': item['id'],
+              'question': item['question'] ?? '',
+              'instruction': item['instruction'] ??
+                  'Perhatikan gerakan dengan seksama dan pilih jawaban yang tepat',
+              'gambarPath': item['gambarPath'] ?? '',
+              'options': Map<String, dynamic>.from(item['options'] ?? {}),
+              'jawabanBenar': item['jawabanBenar'] ?? 'A',
+              'selectedAnswer': null,
+              'isFlagged': false,
+            };
+          }).toList();
+
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Gagal mengambil data kuis.';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Tidak dapat terhubung ke server Laravel.';
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    // Logika Otomatis: Jika judul mengandung kata 'Angka', muat list angka. Jika tidak, muat list abjad.
-    if (widget.quizTitle.toLowerCase().contains('angka')) {
-      activeQuizData = daftarSoalAngka;
-    } else {
-      activeQuizData = daftarSoalAbjad;
-    }
+    _fetchQuestions();
   }
 
   void _submitQuizConfirmation() {
@@ -169,6 +105,24 @@ class _QuizPlayPageState extends State<QuizPlayPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(
+            color: Color(0xFF3B82F6),
+          ),
+        ),
+      );
+    }
+
+    if (_errorMessage.isNotEmpty) {
+      return Scaffold(
+        body: Center(
+          child: Text(_errorMessage),
+        ),
+      );
+    }
+
     final currentQuestion = activeQuizData[currentQuestionIndex];
     final bool isCurrentFlagged = currentQuestion['isFlagged'] ?? false;
     final bool isLastQuestion = currentQuestionIndex == activeQuizData.length - 1;
