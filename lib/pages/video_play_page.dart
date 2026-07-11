@@ -252,7 +252,7 @@ Future<void> _addComment() async {
     final String targetVideoId = widget.videoId.isNotEmpty ? widget.videoId : 'iLnmTe5Q2Qw';
     
     // 2. UBAH API ENDPOINT SESUAI 10.0.2.2 REKUESTMU
-    const String apiUrl = 'http://10.0.2.2:8000/api/comments'; 
+    const String apiUrl = 'https://isyaratkita.alwaysdata.net/api/comments'; 
 
     try {
       final response = await http.post(

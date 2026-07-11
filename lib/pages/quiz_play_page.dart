@@ -25,7 +25,7 @@ class _QuizPlayPageState extends State<QuizPlayPage> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/quizzes?materi_id=1'),
+        Uri.parse('https://isyaratkita.alwaysdata.net/api/quizzes?materi_id=1'),
       );
 
       if (response.statusCode == 200) {

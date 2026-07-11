@@ -42,7 +42,7 @@ class _SignUpPageState extends State<SignUpPage> {
       });
 
       // 1. Tentukan URL secara dinamis berdasarkan role
-      final String url = 'http://10.0.2.2:8000/api/register/${widget.role}';
+      final String url = 'https://isyaratkita.alwaysdata.net/api/register/${widget.role}';
 
       // 2. Siapkan data yang akan dikirim (REQUEST BODY)
       // MASUKKAN KODE KAMU DI SINI:

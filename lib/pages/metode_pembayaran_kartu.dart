@@ -55,7 +55,7 @@ Future<void> processDummyCardPayment() async {
 
   try {
     final confirmResponse = await http.post(
-      Uri.parse('http://10.0.2.2:8000/api/payment/${widget.paymentId}/confirm'),
+      Uri.parse('https://isyaratkita.alwaysdata.net/api/payment/${widget.paymentId}/confirm'),
       headers: {
         'Content-Type': 'application/json',
       },

@@ -33,12 +33,12 @@ class _BerandaGuruMainState extends State<BerandaGuruMain> {
     try {
       // 1. Ambil Data Profil Guru
       final resProfil = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/guru/profil?guru_id=G0001'),
+        Uri.parse('https://isyaratkita.alwaysdata.net/api/guru/profil?guru_id=G0001'),
       );
       
       // 2. Ambil Data Rata-Rata Rating Global dari Seluruh Video
       final resStats = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/teacher/dashboard-stats'),
+        Uri.parse('https://isyaratkita.alwaysdata.net/api/teacher/dashboard-stats'),
       );
       
       if (resProfil.statusCode == 200) {

@@ -43,7 +43,7 @@ class _QuizManagementPageState extends State<QuizManagementPage> {
     setState(() => _isLoading = true);
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/quizzes?materi_id=${widget.materiId}'),
+        Uri.parse('https://isyaratkita.alwaysdata.net/api/quizzes?materi_id=${widget.materiId}'),
       );
 
       if (response.statusCode == 200) {
@@ -161,8 +161,8 @@ class _QuizManagementPageState extends State<QuizManagementPage> {
                     try {
                       // Menentukan endpoint secara dinamis: jika edit pake PUT, jika baru pake POST
                       final url = isEdit 
-                          ? 'http://10.0.2.2:8000/api/quizzes/${existingQuestion['id']}' 
-                          : 'http://10.0.2.2:8000/api/quizzes'; 
+                          ? 'https://isyaratkita.alwaysdata.net/api/quizzes/${existingQuestion['id']}' 
+                          : 'https://isyaratkita.alwaysdata.net/api/quizzes'; 
 
                       final response = await (isEdit 
                           ? http.put(Uri.parse(url), headers: {'Content-Type': 'application/json'}, body: json.encode({
@@ -233,7 +233,7 @@ class _QuizManagementPageState extends State<QuizManagementPage> {
   void _deleteQuestion(int id) async {
     try {
       final response = await http.delete(
-        Uri.parse('http://10.0.2.2:8000/api/quizzes/$id'),
+        Uri.parse('https://isyaratkita.alwaysdata.net/api/quizzes/$id'),
       );
 
       if (response.statusCode == 200) {

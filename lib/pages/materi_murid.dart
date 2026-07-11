@@ -46,7 +46,7 @@ String _mapKategoriToTab(String kategori) {
 }
 
 class ScoringService {
-  static const String baseUrl = 'http://10.0.2.2:8000/api';
+  static const String baseUrl = 'https://isyaratkita.alwaysdata.net/api';
 
   static Future<Map<String, dynamic>?> getQuizScoreByLevel({
     required String userId,
@@ -124,7 +124,7 @@ class _MateriMuridState extends State<MateriMurid> {
 
     try {
       final res = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/materis'),
+        Uri.parse('https://isyaratkita.alwaysdata.net/api/materis'),
         headers: {'Accept': 'application/json'},
       );
 

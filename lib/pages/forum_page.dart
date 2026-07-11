@@ -74,8 +74,8 @@ class _ForumPageState extends State<ForumPage> {
     setState(() => isLoading = true);
     try {
       final String url = Uri.base.host == '10.0.2.2'
-          ? 'http://10.0.2.2:8000/api/forums'
-          : 'http://10.0.2.2:8000/api/forums';
+          ? 'https://isyaratkita.alwaysdata.net/api/forums'
+          : 'https://isyaratkita.alwaysdata.net/api/forums';
 
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -147,7 +147,7 @@ class _ForumPageState extends State<ForumPage> {
 
     setState(() => isLoading = true);
     try {
-      final String url = Uri.base.host == '10.0.2.2' ? 'http://10.0.2.2:8000/api/forums' : 'http://10.0.2.2:8000/api/forums';
+      final String url = Uri.base.host == '10.0.2.2' ? 'https://isyaratkita.alwaysdata.net/api/forums' : 'https://isyaratkita.alwaysdata.net/api/forums';
       var request = http.MultipartRequest('POST', Uri.parse(url));
       
       request.fields['pembuat_id'] = currentPembuatId;
@@ -184,8 +184,8 @@ class _ForumPageState extends State<ForumPage> {
 
     try {
       final String url = Uri.base.host == '10.0.2.2'
-          ? 'http://10.0.2.2:8000/api/forums/$forumId/reply'
-          : 'http://10.0.2.2:8000/api/forums/$forumId/reply';
+          ? 'https://isyaratkita.alwaysdata.net/api/forums/$forumId/reply'
+          : 'https://isyaratkita.alwaysdata.net/api/forums/$forumId/reply';
 
       final response = await http.post(
         Uri.parse('https://isyaratkita.alwaysdata.net/api/forums'), 
@@ -220,8 +220,8 @@ class _ForumPageState extends State<ForumPage> {
 
     try {
       final String url = Uri.base.host == '10.0.2.2'
-          ? 'http://10.0.2.2:8000/api/forums/$forumId/like'
-          : 'http://10.0.2.2:8000/api/forums/$forumId/like';
+          ? 'https://isyaratkita.alwaysdata.net/api/forums/$forumId/like'
+          : 'https://isyaratkita.alwaysdata.net/api/forums/$forumId/like';
 
       final response = await http.post(
         Uri.parse(url),

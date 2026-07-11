@@ -67,7 +67,7 @@ class _MateriGuruPageState extends State<MateriGuruPage> {
 
   try {
     // 1. Menggunakan 10.0.2.2 jika di emulator Android, atau 10.0.2.2 jika di Chrome/Web
-    final String url = 'http://10.0.2.2:8000/api/materis?kategori=$_selectedLevel&guru_id=${widget.guruId}';
+    final String url = 'https://isyaratkita.alwaysdata.net/api/materis?kategori=$_selectedLevel&guru_id=${widget.guruId}';
     
     final response = await http.get(Uri.parse(url));
 

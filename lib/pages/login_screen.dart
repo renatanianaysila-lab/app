@@ -92,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    const String urlLogin = 'http://10.0.2.2:8000/api/login';
+    const String urlLogin = 'https://isyaratkita.alwaysdata.net/api/login';
     
     try {
       final response = await http.post(

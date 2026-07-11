@@ -55,8 +55,8 @@ Future<void> _initData() async {
 
   Future<void> _loadLevels() async {
     setState(() => _isLoading = true);
-    const String urlLevels = 'http://10.0.2.2:8000/api/materi/levels';
-    const String urlSkor = 'http://10.0.2.2:8000/api/skor-kuis';
+    const String urlLevels = 'https://isyaratkita.alwaysdata.net/api/materi/levels';
+    const String urlSkor = 'https://isyaratkita.alwaysdata.net/api/skor-kuis';
 
     try {
       final response = await http.get(Uri.parse(urlLevels));

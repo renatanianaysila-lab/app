@@ -47,7 +47,7 @@ class _ProfilGuruPageState extends State<ProfilGuruPage> {
   }
 
   String _getApiUrl() {
-    final String baseUrl = Uri.base.host == '10.0.2.2' ? 'http://10.0.2.2:8000' : 'http://10.0.2.2:8000';
+    final String baseUrl = Uri.base.host == '10.0.2.2' ? 'https://isyaratkita.alwaysdata.net' : 'https://isyaratkita.alwaysdata.net';
     return '$baseUrl/api/guru/profile/$currentGuruId';
   }
 
@@ -117,7 +117,7 @@ class _ProfilGuruPageState extends State<ProfilGuruPage> {
         }
       });
       
-      final String baseUrl = Uri.base.host == '10.0.2.2' ? 'http://10.0.2.2:8000' : 'http://10.0.2.2:8000';
+      final String baseUrl = Uri.base.host == '10.0.2.2' ? 'https://isyaratkita.alwaysdata.net' : 'https://isyaratkita.alwaysdata.net';
       final String uploadUrl = '$baseUrl/api/guru/profile/$currentGuruId/upload-avatar';
       
       var request = http.MultipartRequest('POST', Uri.parse(uploadUrl));

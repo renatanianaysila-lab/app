@@ -70,7 +70,7 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
     setState(() => _isLoadingComments = true);
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.0.9:8000/api/comments?video_id=$videoId'),
+        Uri.parse('https://isyaratkita.alwaysdata.net/api/comments?video_id=$videoId'),
         headers: {'Accept': 'application/json'},
       );
 
