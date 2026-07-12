@@ -42,6 +42,8 @@ class _ProgresGuruPageState extends State<ProgresGuruPage> {
           }
           isLoading = false;
         });
+      } else {
+        setState(() => isLoading = false);
       }
     } catch (e) {
       print("Error fetch progres: $e");
